@@ -2,6 +2,8 @@ import 'package:avatar_flow/core/config/appconfig.dart';
 import 'package:avatar_flow/core/constants/app_constants.dart';
 import 'package:avatar_flow/core/constants/app_icons.dart';
 import 'package:avatar_flow/core/constants/app_images.dart';
+import 'package:avatar_flow/core/router/navigation_service.dart';
+import 'package:avatar_flow/core/router/routes.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
 import 'package:avatar_flow/widgets/bg_widget.dart';
 import 'package:avatar_flow/widgets/custom_button.dart';
@@ -85,11 +87,18 @@ class WelcomeScreen extends StatelessWidget {
                             mainAxisAlignment: MainAxisAlignment.end,
 
                             children: [
-                              CustomButton(text: "Login", onPressed: () {}),
+                              CustomButton(
+                                text: "Login",
+                                onPressed: () {
+                                  NavigationService.goNamed(AppRoutes.home);
+                                },
+                              ),
                               Spacing.y(2),
                               CustomButton(
                                 text: "Sign Up",
-                                onPressed: () {},
+                                onPressed: () {
+                                  NavigationService.goNamed(AppRoutes.home);
+                                },
                                 isOutlineButton: true,
                               ),
                             ],
