@@ -5,6 +5,8 @@ class AppImagesPng {
   static const String vector2 = "assets/images/vector2.png";
   static const String vector3 = "assets/images/vector3.png";
   static const String vector4 = "assets/images/vector4.png";
+  static const String cardVector = "assets/images/card_vector.png";
+
   //Bottom clippath
   static const String bottomClipPath = "assets/images/clippath.png";
 
@@ -15,4 +17,7 @@ class AppImagesPng {
   //
   static const String appLogo = "assets/images/app_logo.png";
   static const String welcomeImage = "assets/images/welcome_image.png";
+
+  //dummy image
+  static const String dummyImage = "assets/images/dummy_avatar.png";
 }

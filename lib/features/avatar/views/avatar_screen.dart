@@ -16,7 +16,9 @@ class AvatarScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
 
         appBar: HomeAppbar(),
-        body: Column(children: [Spacing.y(2), AvatarTabs(), AvatarCards()]),
+        body: Column(
+          children: [Spacing.y(2), AvatarTabs(), Spacing.y(3), AvatarCards()],
+        ),
       ),
     );
   }

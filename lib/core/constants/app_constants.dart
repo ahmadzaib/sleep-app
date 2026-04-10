@@ -11,10 +11,10 @@ class AppConstants {
 
   static double profilePhotoRadius = 100.r;
 
-  static double largeRadius = 16.r;
-  static double mediumRadius = 12.r;
-  static double smallRadius = 8.r;
-  static double extraLargeRadius = 20.r;
+  static double largeRadius = 24.r;
+  static double mediumRadius = 18.r;
+  static double smallRadius = 12.r;
+  static double extraLargeRadius = 36.r;
   static double circleRadius = 50.r;
 
   static double paddingOnly = 12.w;
@@ -27,22 +27,18 @@ class AppConstants {
 
   // TILE BORDER - Instagram style
   static Border tileBorder(BuildContext context) => Border.all(
-    color:
-        Theme.of(context).brightness == Brightness.light
-            ? context.appColors.lightGrey
-            : context.appColors.bubbleGray,
+    color: Theme.of(context).brightness == Brightness.light
+        ? context.appColors.lightGrey
+        : context.appColors.bubbleGray,
     width: 0.8.r,
   );
 
   // GRADIENTS - now use theme colors
   static LinearGradient defaultGradient(BuildContext context) => LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              context.appColors.bgGradient1,
-              context.appColors.bgGradient2,
-            ],
-          );
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [context.appColors.bgGradient1, context.appColors.bgGradient2],
+  );
 
   // Chip Styling
   static double chipRadius = 20.r;
