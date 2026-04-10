@@ -1,9 +1,9 @@
-import 'package:avatar_flow/features/splash/home/views/components/home_appbar.dart';
+import 'package:avatar_flow/features/splash/avatar/views/components/avatar_appbar.dart';
 import 'package:avatar_flow/widgets/bg_widget.dart';
 import 'package:flutter/material.dart';
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+class AvatarScreen extends StatelessWidget {
+  const AvatarScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
