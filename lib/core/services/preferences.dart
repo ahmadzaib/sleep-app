@@ -1,0 +1,78 @@
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../debug/debug_point.dart';
+
+class Preferences {
+  late SharedPreferences _preferences;
+
+  Future<Preferences> init() async {
+    _preferences = await SharedPreferences.getInstance();
+    return this;
+  }
+
+  Future setString(String key, String? value) async {
+    if (value == null) return;
+    try {
+      await _preferences.setString(key, value);
+    } catch (e) {
+      DebugPoint.log("$e");
+    }
+  }
+
+  Future setInt(String key, int? value) async {
+    if (value == null) return;
+    try {
+      await _preferences.setInt(key, value);
+    } catch (e) {
+      DebugPoint.log("$e");
+    }
+  }
+
+  Future setBool(String key, bool? value) async {
+    if (value == null) return;
+    try {
+      await _preferences.setBool(key, value);
+    } catch (e) {
+      DebugPoint.log("$e");
+    }
+  }
+
+  String? getString(String key) {
+    try {
+      return _preferences.getString(key);
+    } catch (e) {
+      DebugPoint.log("$e");
+    }
+    return null;
+  }
+
+  int? getInt(String key) {
+    try {
+      return _preferences.getInt(key);
+    } catch (e) {
+      DebugPoint.log("$e");
+    }
+    return null;
+  }
+
+  bool? getBool(String key) {
+    try {
+      return _preferences.getBool(key);
+    } catch (e) {
+      DebugPoint.log("$e");
+    }
+    return null;
+  }
+
+  Future clear() async {
+    await _preferences.clear();
+  }
+
+  Future remove(String key) async {
+    try {
+      await _preferences.remove(key);
+    } catch (e) {
+      DebugPoint.log("$e");
+    }
+  }
+}

@@ -1,0 +1,53 @@
+import 'package:avatar_flow/core/services/preferences.dart';
+import 'package:avatar_flow/core/services/service_locator.dart';
+import 'package:avatar_flow/core/theme/app_colors.dart';
+import 'package:avatar_flow/my_app.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final prefs = await Preferences().init();
+  ErrorWidget.builder = (details) {
+    return Container(
+      color: AppColors.whiteColor,
+      alignment: Alignment.center,
+      child: Builder(
+        builder: (context) {
+          final message =
+            
+              'Error: ${details.exceptionAsString()}';
+          return Text(
+            message,
+            style: const TextStyle(
+              color: AppColors.error,
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+            ),
+            textAlign: TextAlign.center,
+          );
+        },
+      ),
+    );
+  };
+
+  // await initialize();
+  await initDependencies();
+
+  // Initialize local notifications with enhanced setup
+  // if (!kIsWeb) {
+  //   await Firebase.initializeApp(
+  //     options: DefaultFirebaseOptions.currentPlatform,
+  //   );
+  //   await NotificationService.localNotiInit();
+  //   await NotificationService.getDeviceToken();
+  // }
+
+  // final isDark = getBoolAsync(Keys.isDarkMode);
+
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+  runApp(MyApp(prefs: prefs));
+}
