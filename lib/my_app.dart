@@ -1,3 +1,4 @@
+import 'package:avatar_flow/core/services/multiprovider_class.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
@@ -18,11 +19,8 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => ThemeController(prefs)),
-        ChangeNotifierProvider(create: (_) => SplashController()),
-      ],
-      // providers: MultiProviderClass.providersList(prefs),
+      providers: MultiProviderClass(prefs: prefs).providersList,
+
       child: ScreenUtilInit(
         designSize: const Size(375, 812),
         minTextAdapt: true,

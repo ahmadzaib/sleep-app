@@ -1,20 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 
 class CustomSvg extends StatelessWidget {
   final String path;
-  final double? height;
-  final double? width;
+  final double? size;
   final Color? color;
 
-  const CustomSvg({
-    super.key,
-    required this.path,
-    this.height,
-    this.width,
-    this.color,
-  });
+  const CustomSvg({super.key, required this.path, this.size, this.color});
 
   @override
   Widget build(BuildContext context) {
@@ -22,8 +16,8 @@ class CustomSvg extends StatelessWidget {
 
     return SvgPicture.asset(
       path,
-      height: height,
-      width: width,
+      height: size?.h,
+      width: size?.w,
       colorFilter: color == null
           ? null
           : ColorFilter.mode(iconColor, BlendMode.srcIn),

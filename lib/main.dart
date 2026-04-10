@@ -9,24 +9,20 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final prefs = await Preferences().init();
   ErrorWidget.builder = (details) {
-    return Container(
-      color: AppColors.whiteColor,
-      alignment: Alignment.center,
-      child: Builder(
-        builder: (context) {
-          final message =
-            
-              'Error: ${details.exceptionAsString()}';
-          return Text(
-            message,
-            style: const TextStyle(
-              color: AppColors.error,
-              fontWeight: FontWeight.bold,
-              fontSize: 20,
-            ),
-            textAlign: TextAlign.center,
-          );
-        },
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: Container(
+        color: AppColors.whiteColor,
+        alignment: Alignment.center,
+        child: Text(
+          'Error: ${details.exceptionAsString()}',
+          style: const TextStyle(
+            color: AppColors.error,
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+          ),
+          textAlign: TextAlign.center,
+        ),
       ),
     );
   };

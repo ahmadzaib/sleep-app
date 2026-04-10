@@ -1,4 +1,4 @@
-import 'package:avatar_flow/features/splash/avatar/views/components/avatar_appbar.dart';
+import 'package:avatar_flow/features/avatar/views/components/avatar_appbar.dart';
 import 'package:avatar_flow/widgets/bg_widget.dart';
 import 'package:flutter/material.dart';
 

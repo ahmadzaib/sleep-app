@@ -1,4 +1,5 @@
-import 'package:avatar_flow/features/splash/avatar/views/avatar_screen.dart';
+import 'package:avatar_flow/features/avatar/views/avatar_screen.dart';
+import 'package:avatar_flow/features/bottom_nav_bar/views/main_screen.dart';
 import 'package:avatar_flow/features/splash/views/splash_screen.dart';
 import 'package:avatar_flow/features/splash/views/splash_with_logo.dart';
 import 'package:avatar_flow/features/splash/views/welcome_screen.dart';
@@ -27,10 +28,11 @@ final GoRouter router = GoRouter(
       path: AppPaths.welcome,
       builder: (context, state) => const WelcomeScreen(),
     ),
+
     GoRoute(
-      name: AppRoutes.avatar,
-      path: AppPaths.avatar,
-      builder: (context, state) => const AvatarScreen(),
+      name: AppRoutes.bottomNavbar,
+      path: AppPaths.bottomNavbar,
+      builder: (context, state) => const MainScreen(),
     ),
   ],
 );
