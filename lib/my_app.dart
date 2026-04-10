@@ -7,7 +7,6 @@ import 'package:avatar_flow/core/config/appconfig.dart';
 import 'package:avatar_flow/core/router/router.dart' as router;
 import 'package:avatar_flow/core/theme/app_theme.dart';
 import 'package:avatar_flow/core/theme/theme_controller.dart';
-import 'package:avatar_flow/core/controllers/splash_controller.dart';
 import 'package:avatar_flow/core/services/preferences.dart';
 // import 'package:avatar_flow/core/localization/app_locale_provider.dart'; // if using
 

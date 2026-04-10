@@ -8,6 +8,7 @@ import 'package:avatar_flow/widgets/custom_svg.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
+import 'package:zoom_tap_animation/zoom_tap_animation.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -84,7 +85,7 @@ class _MainScreenState extends State<MainScreen> {
     final isSelected = provider.currentIndex == index;
     final textTheme = Theme.of(context).textTheme;
 
-    return GestureDetector(
+    return ZoomTapAnimation(
       onTap: () {
         provider.changeIndex(index);
 
