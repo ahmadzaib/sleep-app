@@ -1,4 +1,3 @@
-import 'package:avatar_flow/core/config/appconfig.dart';
 import 'package:avatar_flow/core/constants/app_constants.dart';
 import 'package:avatar_flow/core/constants/app_icons.dart';
 import 'package:avatar_flow/core/constants/app_images.dart';

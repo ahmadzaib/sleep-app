@@ -24,7 +24,9 @@ class CustomSvg extends StatelessWidget {
       path,
       height: height,
       width: width,
-      colorFilter: ColorFilter.mode(iconColor, BlendMode.srcIn),
+      colorFilter: color == null
+          ? null
+          : ColorFilter.mode(iconColor, BlendMode.srcIn),
       fit: BoxFit.contain,
     );
   }

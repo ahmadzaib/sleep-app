@@ -1,3 +1,4 @@
+import 'package:avatar_flow/core/constants/keys.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:avatar_flow/core/constants/app_constants.dart';
@@ -36,13 +37,15 @@ class CustomCachedNetworkImage extends StatelessWidget {
     }
 
     final screenSize = MediaQuery.sizeOf(context);
-    final finiteMaxWidth =
-        (width != null && width!.isFinite) ? width! : screenSize.width;
-    final finiteMaxHeight =
-        (height != null && height!.isFinite) ? height! : screenSize.height;
+    final finiteMaxWidth = (width != null && width!.isFinite)
+        ? width!
+        : screenSize.width;
+    final finiteMaxHeight = (height != null && height!.isFinite)
+        ? height!
+        : screenSize.height;
 
     return CachedNetworkImage(
-      imageUrl: imageUrl!,
+      imageUrl: imageUrl ?? Keys.placeHolderImage,
       height: height,
       width: width ?? screenSize.width,
       fit: cover,
@@ -60,8 +63,8 @@ class CustomCachedNetworkImage extends StatelessWidget {
           ),
         );
       },
-      progressIndicatorBuilder:
-          (context, url, downloadProgress) => Shimmer.fromColors(
+      progressIndicatorBuilder: (context, url, downloadProgress) =>
+          Shimmer.fromColors(
             baseColor: context.appColors.lightGrey,
             highlightColor: context.appColors.bubbleGray,
             child: Container(
@@ -75,18 +78,17 @@ class CustomCachedNetworkImage extends StatelessWidget {
               ),
             ),
           ),
-      errorWidget:
-          (context, url, error) => Container(
-            decoration: BoxDecoration(
-              color: context.appColors.lightGrey,
-              borderRadius: BorderRadius.circular(
-                borderRadius ?? AppConstants.profilePhotoRadius,
-              ),
-            ),
-            width: width,
-            height: height,
-            child: Icon(Icons.error_outline, color: context.appColors.grey),
+      errorWidget: (context, url, error) => Container(
+        decoration: BoxDecoration(
+          color: context.appColors.lightGrey,
+          borderRadius: BorderRadius.circular(
+            borderRadius ?? AppConstants.profilePhotoRadius,
           ),
+        ),
+        width: width,
+        height: height,
+        child: Icon(Icons.error_outline, color: context.appColors.grey),
+      ),
     );
   }
 }
