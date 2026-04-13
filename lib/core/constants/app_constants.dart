@@ -47,23 +47,10 @@ class AppConstants {
     vertical: 6.h,
   );
 
-  // PRODUCT DETAIL CONSTANTS
-  static double productDetailImageHeight = 400.h;
-  static double indicatorSize = 8.r;
-  static double sizeChipSize = 38.r;
-
-  // ICON BUTTON CONSTANTS
-  static double defaultIconButtonSize = 40.r;
-  static double defaultIconSize = 20.r;
-  // AI ASSISTANT CONSTANTS
-  static double aiBubbleRadius = 16.r;
-  static double aiProductCardRadius = 12.r;
-  static double aiInputRadius = 30.r;
-  static double aiIconSize = 16.sp;
-
-  // PRODUCT TILE CONSTANTS
-  static double primaryTileHeight = 226.h;
-  static double primaryTileWidth = 0.43.sw;
-  static double secondaryTileHeight = 120.h;
-  static double secondaryTileWidth = 0.8.sw;
+  // Default Shadow
+  static BoxShadow defaultShadow = BoxShadow(
+    color: Colors.black.withValues(alpha: 0.1),
+    blurRadius: 10.r,
+    offset: Offset(0, 5),
+  );
 }

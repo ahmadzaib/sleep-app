@@ -8,6 +8,8 @@ class AppIconsSvg {
   static const String home = "assets/icons/home.svg";
   static const String search = "assets/icons/search.svg";
   static const String speech = "assets/icons/speech.svg";
+
+  static const String edit = "assets/icons/edit.svg";
 }
 
 class AppIconsPng {}

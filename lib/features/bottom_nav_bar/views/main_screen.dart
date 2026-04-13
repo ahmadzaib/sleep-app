@@ -49,7 +49,7 @@ class _MainScreenState extends State<MainScreen> {
             Positioned(
               left: AppConstants.paddingOnly,
               right: AppConstants.paddingOnly,
-              bottom: AppConstants.paddingOnly,
+              bottom: AppConstants.paddingOnly + 10,
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 decoration: BoxDecoration(
