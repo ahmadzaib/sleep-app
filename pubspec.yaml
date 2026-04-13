@@ -60,6 +60,7 @@ dependencies:
   flutter_secure_storage: ^10.0.0
   shared_preferences: ^2.5.5
   zoom_tap_animation: ^1.1.0
+  haptic_feedback: ^0.6.4+3
 
 dev_dependencies:
   flutter_test:

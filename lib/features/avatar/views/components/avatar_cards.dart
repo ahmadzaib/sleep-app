@@ -6,9 +6,11 @@ import 'package:avatar_flow/core/utils/spacing.dart';
 import 'package:avatar_flow/widgets/custom_svg.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:zoom_tap_animation/zoom_tap_animation.dart';
 
 class AvatarCards extends StatefulWidget {
-  const AvatarCards({super.key});
+  final VoidCallback onTap;
+  const AvatarCards({super.key, required this.onTap});
 
   @override
   State<AvatarCards> createState() => _AvatarCardsState();
@@ -60,7 +62,7 @@ class _AvatarCardsState extends State<AvatarCards> {
                   child: Transform.scale(
                     scale: scale,
                     alignment: Alignment.centerLeft,
-                    child: _buildCard(index, theme),
+                    child: _buildCard(index, theme, widget.onTap),
                   ),
                 );
               },
@@ -71,63 +73,66 @@ class _AvatarCardsState extends State<AvatarCards> {
     );
   }
 
-  Widget _buildCard(int index, ThemeData theme) {
-    return Container(
-      margin: EdgeInsets.symmetric(vertical: 10.h),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(AppConstants.largeRadius),
-        boxShadow: [AppConstants.defaultShadow],
-      ),
-      child: Stack(
-        children: [
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Padding(
-              padding: AppConstants.defaultAllPadding,
-              child: Image.asset(AppImagesPng.cardVector),
-            ),
-          ),
-          Column(
-            children: [
-              Spacing.y(2),
-              Expanded(
-                child: Center(child: Image.asset(AppImagesPng.dummyImage)),
+  Widget _buildCard(int index, ThemeData theme, VoidCallback onTap) {
+    return ZoomTapAnimation(
+      onTap: onTap,
+      child: Container(
+        margin: EdgeInsets.symmetric(vertical: 10.h),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface.withValues(alpha: 0.5),
+          borderRadius: BorderRadius.circular(AppConstants.largeRadius),
+          boxShadow: [AppConstants.defaultShadow],
+        ),
+        child: Stack(
+          children: [
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding: AppConstants.defaultAllPadding,
+                child: Image.asset(AppImagesPng.cardVector),
               ),
-              Spacing.y(1),
-
-              Padding(
-                padding: EdgeInsets.only(bottom: 20.h),
-                child: Column(
-                  children: [
-                    Text(
-                      "Lilian",
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        fontSize: 18.sp,
-                      ),
-                    ),
-                    Spacing.y(.5),
-                    Text(
-                      "Linspector",
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.onSurface.withValues(alpha: .5),
-                      ),
-                    ),
-                  ],
+            ),
+            Column(
+              children: [
+                Spacing.y(2),
+                Expanded(
+                  child: Center(child: Image.asset(AppImagesPng.dummyImage)),
                 ),
-              ),
-            ],
-          ),
-          Align(
-            alignment: Alignment.topRight,
-            child: IconButton(
-              onPressed: () {},
-              icon: CustomSvg(path: AppIconsSvg.info2),
+                Spacing.y(1),
+
+                Padding(
+                  padding: EdgeInsets.only(bottom: 20.h),
+                  child: Column(
+                    children: [
+                      Text(
+                        "Lilian",
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          fontSize: 18.sp,
+                        ),
+                      ),
+                      Spacing.y(.5),
+                      Text(
+                        "Linspector",
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withValues(alpha: .5),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
+            Align(
+              alignment: Alignment.topRight,
+              child: IconButton(
+                onPressed: () {},
+                icon: CustomSvg(path: AppIconsSvg.info2),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -1,5 +1,7 @@
 import 'package:avatar_flow/core/constants/app_constants.dart';
 import 'package:avatar_flow/core/constants/app_icons.dart';
+import 'package:avatar_flow/core/router/navigation_service.dart';
+import 'package:avatar_flow/core/router/routes.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
 import 'package:avatar_flow/features/avatar/views/components/avatar_appbar.dart';
 import 'package:avatar_flow/features/avatar/views/components/avatar_cards.dart';
@@ -8,6 +10,7 @@ import 'package:avatar_flow/features/avatar/views/components/avtar_milestones_ti
 import 'package:avatar_flow/widgets/bg_widget.dart';
 import 'package:avatar_flow/widgets/custom_button.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class AvatarScreen extends StatelessWidget {
   const AvatarScreen({super.key});
@@ -24,7 +27,12 @@ class AvatarScreen extends StatelessWidget {
             Spacing.y(2),
             AvatarTabs(),
             Spacing.y(3),
-            AvatarCards(),
+            AvatarCards(
+              onTap: () {
+                HapticFeedback.lightImpact();
+                NavigationService.pushNamed(AppRoutes.avatarDetail);
+              },
+            ),
             Spacing.y(3),
 
             AvtarMilestonesTile(

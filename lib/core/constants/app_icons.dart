@@ -11,6 +11,8 @@ class AppIconsSvg {
 
   static const String edit = "assets/icons/edit.svg";
   static const String info2 = "assets/icons/info2.svg";
+  static const String arrowBack = "assets/icons/arrow_back.svg";
+  static const String moreVer = "assets/icons/more_ver.svg";
 }
 
 class AppIconsPng {}

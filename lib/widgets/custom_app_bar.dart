@@ -7,6 +7,7 @@ import 'package:avatar_flow/widgets/custom_icon_button.dart';
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final Widget? titleWidget;
+  final String? subtitleText;
   final List<Widget>? actions;
   final bool showBackButton;
   final bool isALigned;
@@ -15,6 +16,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     super.key,
     required this.title,
     this.titleWidget,
+    this.subtitleText,
     this.actions,
     this.showBackButton = true,
     this.isALigned = false,
@@ -33,8 +35,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           child: Row(
             children: [
               showBackButton
-                  ? SizedBox()
-                  // ? const CustomBackButton()
+                  ? const CustomBackButton()
                   : SizedBox(height: 50.h, width: 24.w),
               Expanded(
                 child:
@@ -42,9 +43,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                     Text(
                       title,
                       textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(),
                     ),
               ),
 

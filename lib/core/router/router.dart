@@ -1,4 +1,5 @@
 import 'package:avatar_flow/features/avatar/views/avatar_screen.dart';
+import 'package:avatar_flow/features/avatar_detail/views/avatar_detail_screen.dart';
 import 'package:avatar_flow/features/bottom_nav_bar/views/main_screen.dart';
 import 'package:avatar_flow/features/splash/views/splash_screen.dart';
 import 'package:avatar_flow/features/splash/views/splash_with_logo.dart';
@@ -33,6 +34,12 @@ final GoRouter router = GoRouter(
       name: AppRoutes.bottomNavbar,
       path: AppPaths.bottomNavbar,
       builder: (context, state) => const MainScreen(),
+    ),
+
+    GoRoute(
+      name: AppRoutes.avatarDetail,
+      path: AppPaths.avatarDetail,
+      builder: (context, state) => const AvatarDetailScreen(),
     ),
   ],
 );

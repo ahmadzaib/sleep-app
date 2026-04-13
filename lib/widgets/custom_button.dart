@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:avatar_flow/widgets/app_loading.dart';
 import 'package:svg_flutter/svg.dart';
+import 'package:zoom_tap_animation/zoom_tap_animation.dart';
 
 class CustomButton extends StatelessWidget {
   final String text;
@@ -37,67 +38,71 @@ class CustomButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialButton(
-      minWidth: 45,
-      padding: const EdgeInsets.all(12),
-      shape: RoundedRectangleBorder(
-        side: BorderSide(
-          color: isOutlineButton
-              ? buttonColor ?? context.appColors.lightGrey
-              : Colors.transparent,
+    return ZoomTapAnimation(
+      onTap: onPressed,
+      child: MaterialButton(
+        minWidth: 45,
+        padding: const EdgeInsets.all(12),
+        shape: RoundedRectangleBorder(
+          side: BorderSide(
+            color: isOutlineButton
+                ? buttonColor ?? context.appColors.lightGrey
+                : Colors.transparent,
+          ),
+          borderRadius: BorderRadius.circular(buttonBorderRadius ?? 30.r),
         ),
-        borderRadius: BorderRadius.circular(buttonBorderRadius ?? 30.r),
-      ),
-      height: height.h,
-      color: isOutlineButton
-          ? null
-          : (isDisabled)
-          ? context.appColors.grey
-          : buttonColor ?? context.appColors.secondary,
-      elevation: 0.0,
-      onPressed: (isDisabled)
-          ? () {}
-          : () {
-              HapticHelper.mediumImpact();
-              onPressed?.call();
-            },
-      child: Center(
-        child: isLoading
-            ? SizedBox(
-                width: 20.w,
-                height: 20.h,
-                child: AppLoading(
-                  color: Theme.of(context).colorScheme.onPrimary,
-                ),
-              )
-            : Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (prefixIcon != null) ...[
-                    SvgPicture.asset(
-                      prefixIcon!,
-                      colorFilter: ColorFilter.mode(
-                        preffixIconColor ??
-                            textColor ??
-                            Theme.of(context).iconTheme.color!,
-                        BlendMode.srcIn,
-                      ),
-                    ),
-                    SizedBox(width: 8.w),
-                  ],
-                  Text(
-                    text,
-                    style: Theme.of(context).textTheme.headlineSmall!.copyWith(
-                      color: isOutlineButton
-                          ? textColor
-                          : textColor ??
-                                Theme.of(context).colorScheme.onPrimary,
-                      fontSize: textFontSize ?? 15.sp,
-                      fontWeight: FontWeight.w600,
-                    ),
+        height: height.h,
+        color: isOutlineButton
+            ? null
+            : (isDisabled)
+            ? context.appColors.grey
+            : buttonColor ?? context.appColors.secondary,
+        elevation: 0.0,
+        onPressed: (isDisabled)
+            ? () {}
+            : () {
+                HapticHelper.mediumImpact();
+                onPressed?.call();
+              },
+        child: Center(
+          child: isLoading
+              ? SizedBox(
+                  width: 20.w,
+                  height: 20.h,
+                  child: AppLoading(
+                    color: Theme.of(context).colorScheme.onPrimary,
                   ),
-                ],
-              ),
+                )
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (prefixIcon != null) ...[
+                      SvgPicture.asset(
+                        prefixIcon!,
+                        colorFilter: ColorFilter.mode(
+                          preffixIconColor ??
+                              textColor ??
+                              Theme.of(context).iconTheme.color!,
+                          BlendMode.srcIn,
+                        ),
+                      ),
+                      SizedBox(width: 8.w),
+                    ],
+                    Text(
+                      text,
+                      style: Theme.of(context).textTheme.headlineSmall!
+                          .copyWith(
+                            color: isOutlineButton
+                                ? textColor
+                                : textColor ??
+                                      Theme.of(context).colorScheme.onPrimary,
+                            fontSize: textFontSize ?? 15.sp,
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                  ],
+                ),
+        ),
       ),
     );
   }

@@ -4,8 +4,10 @@ class AppRoutes {
   static const String splash = 'splash';
   static const String splashWithLogo = 'splashWithLogo';
   static const String welcome = 'welcome';
-  static const String avatar = 'avatar';
   static const String bottomNavbar = 'bottomNavbar';
+  //Avatar
+  static const String avatar = 'avatar';
+  static const String avatarDetail = 'avatarDetail';
 }
 
 class AppPaths {
@@ -14,6 +16,8 @@ class AppPaths {
   static const String splash = '/';
   static const String splashWithLogo = '/splashWithLogo';
   static const String welcome = '/welcome';
-  static const String avatar = '/avatar';
   static const String bottomNavbar = '/bottomNavbar';
+  //Avatar
+  static const String avatar = '/avatar';
+  static const String avatarDetail = '/avatarDetail';
 }
