@@ -24,23 +24,23 @@ class AvatarScreen extends StatelessWidget {
         appBar: HomeAppbar(),
         body: Column(
           children: [
-            Spacing.y(2),
+            Spacing.y(1),
             AvatarTabs(),
-            Spacing.y(3),
+            Spacing.y(2),
             AvatarCards(
               onTap: () {
                 HapticFeedback.lightImpact();
                 NavigationService.pushNamed(AppRoutes.avatarDetail);
               },
             ),
-            Spacing.y(3),
+            Spacing.y(2),
 
             AvtarMilestonesTile(
               title: 'Create 10 avatars',
               totalValue: 10,
               completedValue: 8,
             ),
-            Spacing.y(3),
+            Spacing.y(2),
             Padding(
               padding: AppConstants.defaultPaddingHorizental,
               child: CustomButton(

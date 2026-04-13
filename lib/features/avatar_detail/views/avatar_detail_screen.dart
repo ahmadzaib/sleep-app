@@ -1,9 +1,12 @@
 import 'package:avatar_flow/core/constants/app_constants.dart';
 import 'package:avatar_flow/core/constants/app_icons.dart';
 import 'package:avatar_flow/core/constants/app_images.dart';
-import 'package:avatar_flow/core/constants/mock_data.dart';
+import 'package:avatar_flow/core/theme/app_theme_extension.dart';
+import 'package:avatar_flow/core/utils/spacing.dart';
+import 'package:avatar_flow/features/avatar_detail/views/components/avatar_section.dart';
 import 'package:avatar_flow/features/avatar_detail/views/components/detail_screen_appbar.dart';
 import 'package:avatar_flow/widgets/bg_widget.dart';
+import 'package:avatar_flow/widgets/custom_divider.dart';
 import 'package:avatar_flow/widgets/custom_svg.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -13,7 +16,11 @@ class AvatarDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double width = MediaQuery.of(context).size.width;
+    final sh = MediaQuery.of(context).size.height * 0.01;
+    final sw = MediaQuery.of(context).size.width * 0.01;
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return BgWidget(
       child: Scaffold(
         backgroundColor: Colors.transparent,
@@ -36,101 +43,91 @@ class AvatarDetailScreen extends StatelessWidget {
           padding: AppConstants.defaultPaddingHorizental,
           child: Column(
             children: [
-              //Appbar
-              Container(
-                height: 300.h,
-
-                child: Stack(
-                  alignment: AlignmentGeometry.bottomCenter,
+              AvatarSection(),
+              Spacing.y(2),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                spacing: 8.w,
+                children: [
+                  _buildChip("10 Stories", AppIconsSvg.book, context),
+                  _buildChip("10 Shares", AppIconsSvg.upload, context),
+                  _buildChip("Female", AppIconsSvg.woman, context),
+                ],
+              ),
+              Spacing.y(2),
+              SizedBox(
+                height: 12 * sh,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  spacing: 8.w,
                   children: [
-                    ClipPath(
-                      clipper: MyClipper(),
-                      child: Image.network(
-                        dummyImage,
-                        width: MediaQuery.of(context).size.width,
-                        height: MediaQuery.of(context).size.width * 0.6,
-                        fit: BoxFit.cover,
-                      ),
+                    _buildSkillChip(
+                      "Adventurous",
+                      AppImagesPng.adventurous,
+                      context,
                     ),
-                    Align(
-                      alignment: Alignment.topCenter,
-                      child: Image.asset(
-                        AppImagesPng.dummyImage,
-                        height: 250.h,
-                      ),
-                    ),
+                    _buildSkillChip("Fearful", AppImagesPng.poison, context),
+                    _buildSkillChip("Brave", AppImagesPng.gold, context),
                   ],
                 ),
               ),
-
-              //
+              Spacing.y(2),
+              CustomDivider(),
+              Spacing.y(3),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text("Achievement", style: textTheme.bodyMedium),
+              ),
             ],
           ),
         ),
       ),
     );
   }
-}
 
-class MyClipper extends CustomClipper<Path> {
-  @override
-  Path getClip(Size size) {
-    Path path_0 = Path();
-
-    path_0.moveTo(size.width * 0.0700000, size.height * 0.5000000);
-    path_0.quadraticBezierTo(
-      size.width * 0.0170400,
-      size.height * 0.5261667,
-      0,
-      size.height * 0.5966667,
+  Widget _buildChip(String text, String svgPath, BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 7.h),
+      decoration: BoxDecoration(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(100.r),
+        border: Border.all(color: colorScheme.onSurface.withValues(alpha: .2)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CustomSvg(path: svgPath, size: 16, color: colorScheme.onSurface),
+          Spacing.x(1),
+          Text(text, style: textTheme.bodySmall),
+        ],
+      ),
     );
-    path_0.quadraticBezierTo(
-      size.width * -0.0005000,
-      size.height * 0.6583333,
-      size.width * -0.0020000,
-      size.height * 0.8433333,
-    );
-    path_0.quadraticBezierTo(
-      size.width * -0.0116000,
-      size.height * 1.0134333,
-      size.width * 0.1000000,
-      size.height * 1.0033333,
-    );
-    path_0.quadraticBezierTo(
-      size.width * 0.2995000,
-      size.height * 1.0008333,
-      size.width * 0.8980000,
-      size.height * 0.9933333,
-    );
-    path_0.quadraticBezierTo(
-      size.width * 1.0052400,
-      size.height * 1.0189000,
-      size.width * 1.0020000,
-      size.height * 0.8166667,
-    );
-    path_0.quadraticBezierTo(
-      size.width * 1.0010000,
-      size.height * 0.6525000,
-      size.width * 0.9980000,
-      size.height * 0.1600000,
-    );
-    path_0.quadraticBezierTo(
-      size.width * 1.0053800,
-      size.height * -0.0057000,
-      size.width * 0.8947400,
-      size.height * -0.0050667,
-    );
-    path_0.quadraticBezierTo(
-      size.width * 0.6885550,
-      size.height * 0.1212000,
-      size.width * 0.0700000,
-      size.height * 0.5000000,
-    );
-
-    path_0.close();
-    return path_0;
   }
 
-  @override
-  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
+  Widget _buildSkillChip(String text, String imagePath, BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+    return Expanded(
+      child: Container(
+        // padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 7.h),
+        decoration: BoxDecoration(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(AppConstants.mediumRadius),
+          border: Border.all(
+            color: colorScheme.onSurface.withValues(alpha: .2),
+          ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset(imagePath, height: 32),
+            Spacing.y(.6),
+            Text(text, style: textTheme.bodySmall),
+          ],
+        ),
+      ),
+    );
+  }
 }
