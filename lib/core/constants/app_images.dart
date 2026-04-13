@@ -18,6 +18,7 @@ class AppImagesPng {
   static const String appLogo = "assets/images/app_logo.png";
   static const String welcomeImage = "assets/images/welcome_image.png";
   static const String milestoneCheck = "assets/images/milestone_check.png";
+  static const String milestoneCheck2 = "assets/images/milestone_check2.png";
 
   //Skills
   static const String adventurous = "assets/images/adventure.png";

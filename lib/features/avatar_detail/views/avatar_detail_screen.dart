@@ -3,6 +3,7 @@ import 'package:avatar_flow/core/constants/app_icons.dart';
 import 'package:avatar_flow/core/constants/app_images.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
+import 'package:avatar_flow/features/avatar_detail/views/components/achievement_tile.dart';
 import 'package:avatar_flow/features/avatar_detail/views/components/avatar_section.dart';
 import 'package:avatar_flow/features/avatar_detail/views/components/detail_screen_appbar.dart';
 import 'package:avatar_flow/widgets/bg_widget.dart';
@@ -41,44 +42,51 @@ class AvatarDetailScreen extends StatelessWidget {
 
         body: Padding(
           padding: AppConstants.defaultPaddingHorizental,
-          child: Column(
-            children: [
-              AvatarSection(),
-              Spacing.y(2),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                spacing: 8.w,
-                children: [
-                  _buildChip("10 Stories", AppIconsSvg.book, context),
-                  _buildChip("10 Shares", AppIconsSvg.upload, context),
-                  _buildChip("Female", AppIconsSvg.woman, context),
-                ],
-              ),
-              Spacing.y(2),
-              SizedBox(
-                height: 12 * sh,
-                child: Row(
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                AvatarSection(),
+                Spacing.y(2),
+                Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   spacing: 8.w,
                   children: [
-                    _buildSkillChip(
-                      "Adventurous",
-                      AppImagesPng.adventurous,
-                      context,
-                    ),
-                    _buildSkillChip("Fearful", AppImagesPng.poison, context),
-                    _buildSkillChip("Brave", AppImagesPng.gold, context),
+                    _buildChip("10 Stories", AppIconsSvg.book, context),
+                    _buildChip("10 Shares", AppIconsSvg.upload, context),
+                    _buildChip("Female", AppIconsSvg.woman, context),
                   ],
                 ),
-              ),
-              Spacing.y(2),
-              CustomDivider(),
-              Spacing.y(3),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Text("Achievement", style: textTheme.bodyMedium),
-              ),
-            ],
+                Spacing.y(2),
+                SizedBox(
+                  height: 12 * sh,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    spacing: 8.w,
+                    children: [
+                      _buildSkillChip(
+                        "Adventurous",
+                        AppImagesPng.adventurous,
+                        context,
+                      ),
+                      _buildSkillChip("Fearful", AppImagesPng.poison, context),
+                      _buildSkillChip("Brave", AppImagesPng.gold, context),
+                    ],
+                  ),
+                ),
+                Spacing.y(2),
+                CustomDivider(),
+                Spacing.y(3),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text("Achievement", style: textTheme.bodyMedium),
+                ),
+                Spacing.y(1),
+                AchievementTile(
+                  title: "Hero of the Magical Forest",
+                  subtitle: "100 Stories Shared",
+                ),
+              ],
+            ),
           ),
         ),
       ),
