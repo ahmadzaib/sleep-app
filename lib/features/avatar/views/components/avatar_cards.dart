@@ -1,7 +1,9 @@
 import 'dart:ui';
 import 'package:avatar_flow/core/constants/app_constants.dart';
+import 'package:avatar_flow/core/constants/app_icons.dart';
 import 'package:avatar_flow/core/constants/app_images.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
+import 'package:avatar_flow/widgets/custom_svg.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -26,7 +28,7 @@ class _AvatarCardsState extends State<AvatarCards> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return SizedBox(
-      height: 320.h,
+      height: 340.h,
       child: ClipRRect(
         child: PageView.builder(
           controller: _pageController,
@@ -71,16 +73,11 @@ class _AvatarCardsState extends State<AvatarCards> {
 
   Widget _buildCard(int index, ThemeData theme) {
     return Container(
+      margin: EdgeInsets.symmetric(vertical: 10.h),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(AppConstants.largeRadius),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            spreadRadius: 2,
-          ),
-        ],
+        boxShadow: [AppConstants.defaultShadow],
       ),
       child: Stack(
         children: [
@@ -93,17 +90,7 @@ class _AvatarCardsState extends State<AvatarCards> {
           ),
           Column(
             children: [
-              Align(
-                alignment: Alignment.topRight,
-                child: Padding(
-                  padding: EdgeInsets.all(12.w),
-                  child: Icon(
-                    Icons.info_outline,
-                    color: Colors.deepPurple,
-                    size: 20.sp,
-                  ),
-                ),
-              ),
+              Spacing.y(2),
               Expanded(
                 child: Center(child: Image.asset(AppImagesPng.dummyImage)),
               ),
@@ -132,6 +119,13 @@ class _AvatarCardsState extends State<AvatarCards> {
                 ),
               ),
             ],
+          ),
+          Align(
+            alignment: Alignment.topRight,
+            child: IconButton(
+              onPressed: () {},
+              icon: CustomSvg(path: AppIconsSvg.info2),
+            ),
           ),
         ],
       ),

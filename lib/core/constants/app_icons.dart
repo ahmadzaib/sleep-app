@@ -10,6 +10,7 @@ class AppIconsSvg {
   static const String speech = "assets/icons/speech.svg";
 
   static const String edit = "assets/icons/edit.svg";
+  static const String info2 = "assets/icons/info2.svg";
 }
 
 class AppIconsPng {}

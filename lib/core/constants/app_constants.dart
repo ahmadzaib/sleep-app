@@ -51,6 +51,6 @@ class AppConstants {
   static BoxShadow defaultShadow = BoxShadow(
     color: Colors.black.withValues(alpha: 0.1),
     blurRadius: 10.r,
-    offset: Offset(0, 5),
+    offset: Offset(0, 2),
   );
 }
