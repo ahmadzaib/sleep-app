@@ -32,6 +32,7 @@ class AppColors {
   // Compatibility aliases
   static const primaryColor = primary100;
   static const secondaryColor = Color(0xFF2E2636);
+  static const blue = Color(0xFF048FF2);
   static const backgroundColor = lightBg;
   static const secondaryBlack900 = grey200;
   static const primaryTextColor = grey200;
@@ -43,7 +44,4 @@ class AppColors {
   static const error = message200;
   static const requiredRedColor = message200;
   static const textFieldValidationRedColor = message200;
-
-  // Rating
-  static const Color ratingStarColor = Color(0xFFFFB800);
 }

@@ -12,7 +12,7 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
   final Color iconColor;
   final Color bgGradient1;
   final Color bgGradient2;
-  final Color ratingStarColor;
+  final Color blue;
 
   const AppColorsExtension({
     required this.primary,
@@ -26,7 +26,7 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
     required this.iconColor,
     required this.bgGradient1,
     required this.bgGradient2,
-    required this.ratingStarColor,
+    required this.blue,
   });
 
   @override
@@ -42,7 +42,7 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
     Color? iconColor,
     Color? bgGradient1,
     Color? bgGradient2,
-    Color? ratingStarColor,
+    Color? blue,
   }) {
     return AppColorsExtension(
       primary: primary ?? this.primary,
@@ -56,7 +56,7 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
       iconColor: iconColor ?? this.iconColor,
       bgGradient1: bgGradient1 ?? this.bgGradient1,
       bgGradient2: bgGradient2 ?? this.bgGradient2,
-      ratingStarColor: ratingStarColor ?? this.ratingStarColor,
+      blue: blue ?? this.blue,
     );
   }
 
@@ -75,7 +75,7 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
       iconColor: Color.lerp(iconColor, other.iconColor, t)!,
       bgGradient1: Color.lerp(bgGradient1, other.bgGradient1, t)!,
       bgGradient2: Color.lerp(bgGradient2, other.bgGradient2, t)!,
-      ratingStarColor: Color.lerp(ratingStarColor, other.ratingStarColor, t)!,
+      blue: Color.lerp(blue, other.blue, t)!,
     );
   }
 }

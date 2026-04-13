@@ -85,6 +85,26 @@ class AvatarDetailScreen extends StatelessWidget {
                   title: "Hero of the Magical Forest",
                   subtitle: "100 Stories Shared",
                 ),
+                Spacing.y(1),
+                //Stories where it appears
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Stories where it appears',
+                      style: textTheme.bodyMedium,
+                    ),
+                    TextButton(
+                      onPressed: () {},
+                      child: Text(
+                        'View all',
+                        style: textTheme.bodyMedium!.copyWith(
+                          color: context.appColors.blue,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
