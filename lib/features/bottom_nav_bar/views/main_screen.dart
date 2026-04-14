@@ -25,10 +25,10 @@ class _MainScreenState extends State<MainScreen> {
     final provider = Provider.of<BottomNavProvider>(context);
 
     final List<Widget> screens = [
-      Container(color: Colors.red),
+      Center(child: Text('Home')),
       AvatarScreen(),
-      Container(color: Colors.blue),
-      Container(color: Colors.green),
+      Center(child: Text('Speak')),
+      Center(child: Text('Search')),
     ];
 
     return BgWidget(
