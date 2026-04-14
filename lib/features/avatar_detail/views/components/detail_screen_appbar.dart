@@ -13,8 +13,7 @@ class AvatarDetailAppbar extends StatelessWidget
   final String? subtitleText;
   final List<Widget>? actions;
   final bool showBackButton;
-  final VoidCallback? onInfoTap;
-  final bool showinfoButton;
+  final Widget? widgetWithTitle;
 
   const AvatarDetailAppbar({
     super.key,
@@ -22,8 +21,7 @@ class AvatarDetailAppbar extends StatelessWidget
     this.subtitleText,
     this.actions,
     this.showBackButton = true,
-    this.onInfoTap,
-    this.showinfoButton = false,
+    this.widgetWithTitle,
   });
 
   @override
@@ -60,15 +58,7 @@ class AvatarDetailAppbar extends StatelessWidget
                             context,
                           ).textTheme.bodyMedium?.copyWith(fontSize: 20.sp),
                         ),
-                        if (showinfoButton)
-                          IconButton(
-                            style: IconButton.styleFrom(
-                              alignment: Alignment.center,
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            ),
-                            onPressed: onInfoTap ?? () {},
-                            icon: CustomSvg(path: AppIconsSvg.info2, size: 16),
-                          ),
+                        if (widgetWithTitle != null) widgetWithTitle!,
                       ],
                     ),
                   ),

@@ -25,6 +25,9 @@ class AppImagesPng {
   static const String poison = "assets/images/poison.png";
   static const String gold = "assets/images/gold.png";
 
+  //Tool tip
+  static const String award = "assets/images/award.png";
+
   //dummy image
   static const String dummyImage = "assets/images/dummy_avatar.png";
 }

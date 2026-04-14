@@ -16,10 +16,18 @@ import 'package:avatar_flow/widgets/custom_divider.dart';
 import 'package:avatar_flow/widgets/custom_svg.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:super_tooltip/super_tooltip.dart';
 
-class AvatarDetailScreen extends StatelessWidget {
+class AvatarDetailScreen extends StatefulWidget {
   const AvatarDetailScreen({super.key});
 
+  @override
+  State<AvatarDetailScreen> createState() => _AvatarDetailScreenState();
+}
+
+class _AvatarDetailScreenState extends State<AvatarDetailScreen> {
+  final _infoTooltipCont = SuperTooltipController();
+  final _skillsTooltipCont = SuperTooltipController();
   @override
   Widget build(BuildContext context) {
     final sh = MediaQuery.of(context).size.height * 0.01;
@@ -31,10 +39,28 @@ class AvatarDetailScreen extends StatelessWidget {
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AvatarDetailAppbar(
-          showinfoButton: true,
           title: "Avatar",
           subtitleText: "Meet and manage your character",
-          onInfoTap: () {},
+          widgetWithTitle: CustomToolTip(
+            tooltipController: _infoTooltipCont,
+            text: "Share Lilian's profile with friends or in the community.",
+            child: IconButton(
+              style: IconButton.styleFrom(
+                alignment: Alignment.center,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+
+              onPressed: () {
+                _infoTooltipCont.showTooltip();
+              },
+
+              icon: CustomSvg(path: AppIconsSvg.info2, size: 16),
+            ),
+            onClose: () {
+              _skillsTooltipCont.showTooltip(); // 👈 open next
+            },
+          ),
+
           actions: [
             IconButton(
               style: IconButton.styleFrom(
@@ -53,14 +79,19 @@ class AvatarDetailScreen extends StatelessWidget {
               children: [
                 AvatarSection(),
                 Spacing.y(2),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  spacing: 8.w,
-                  children: [
-                    _buildChip("10 Stories", AppIconsSvg.book, context),
-                    _buildChip("10 Shares", AppIconsSvg.upload, context),
-                    _buildChip("Female", AppIconsSvg.woman, context),
-                  ],
+
+                CustomToolTip(
+                  tooltipController: _skillsTooltipCont,
+                  text: "Sword Master: Skilled in combat techniques.",
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    spacing: 8.w,
+                    children: [
+                      _buildChip("10 Stories", AppIconsSvg.book, context),
+                      _buildChip("10 Shares", AppIconsSvg.upload, context),
+                      _buildChip("Female", AppIconsSvg.woman, context),
+                    ],
+                  ),
                 ),
                 Spacing.y(2),
                 SizedBox(
@@ -172,6 +203,68 @@ class AvatarDetailScreen extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class CustomToolTip extends StatelessWidget {
+  final String text;
+  final Widget child;
+  final VoidCallback? onClose; // 👈 add this
+  const CustomToolTip({
+    super.key,
+    required SuperTooltipController tooltipController,
+    required this.text,
+    required this.child,
+    this.onClose,
+  }) : _tooltipController = tooltipController;
+
+  final SuperTooltipController _tooltipController;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    return SuperTooltip(
+      arrowConfig: ArrowConfiguration(length: 0, tipDistance: 20.h),
+      barrierConfig: BarrierConfiguration(color: Colors.transparent),
+      style: TooltipStyle(
+        boxShadows: [AppConstants.defaultShadow],
+        borderColor: Colors.transparent,
+        borderRadius: AppConstants.smallRadius,
+      ),
+
+      controller: _tooltipController,
+      content: Container(
+        padding: EdgeInsets.all(4),
+        width: 0.6.sw,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Image.asset(AppImagesPng.award, height: 35),
+            Spacing.x(2),
+            Expanded(
+              child: Text(
+                text,
+                style: textTheme.bodySmall!.copyWith(fontSize: 14.sp),
+              ),
+            ),
+            IconButton(
+              style: IconButton.styleFrom(
+                alignment: Alignment.topRight,
+                padding: EdgeInsets.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              onPressed: () {
+                _tooltipController.hideTooltip();
+                onClose?.call();
+              },
+              icon: CustomSvg(path: AppIconsSvg.cross),
+            ),
+          ],
+        ),
+      ),
+      child: child,
     );
   }
 }

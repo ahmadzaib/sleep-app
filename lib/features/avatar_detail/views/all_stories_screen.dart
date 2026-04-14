@@ -48,7 +48,6 @@ class _AllStoriesScreenState extends State<AllStoriesScreen> {
         appBar: AvatarDetailAppbar(
           title: "All Stories",
           subtitleText: "Browse all available stories",
-          onInfoTap: () {},
         ),
         backgroundColor: Colors.transparent,
         body: Consumer<StoryProvider>(
