@@ -472,6 +472,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.6.4+3"
+  horizontal_card_pager:
+    dependency: "direct main"
+    description:
+      name: horizontal_card_pager
+      sha256: "3d89054553d793371ed9108bfd60398c565ee91184a8845ba0183f28ab3be199"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.1"
   http:
     dependency: transitive
     description:
