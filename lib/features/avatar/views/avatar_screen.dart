@@ -47,7 +47,9 @@ class AvatarScreen extends StatelessWidget {
                 preffixIconColor: Theme.of(context).colorScheme.onPrimary,
                 prefixIcon: AppIconsSvg.edit,
                 text: "Create a New Avatar",
-                onPressed: () {},
+                onPressed: () {
+                  NavigationService.pushNamed(AppRoutes.createAvatar);
+                },
               ),
             ),
           ],

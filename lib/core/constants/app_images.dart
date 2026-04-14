@@ -27,6 +27,7 @@ class AppImagesPng {
 
   //Tool tip
   static const String award = "assets/images/award.png";
+  static const String add = "assets/images/add.png";
 
   //dummy image
   static const String dummyImage = "assets/images/dummy_avatar.png";

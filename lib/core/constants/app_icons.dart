@@ -22,6 +22,7 @@ class AppIconsSvg {
   static const String book = "assets/icons/book.svg";
   static const String cross = "assets/icons/cross.svg";
   static const String delete = "assets/icons/delete.svg";
+  static const String magic = "assets/icons/magic.svg";
 }
 
 class AppIconsPng {}
