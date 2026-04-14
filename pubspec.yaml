@@ -64,6 +64,7 @@ dependencies:
   horizontal_card_pager: ^1.1.1
   flutter_staggered_grid_view: ^0.7.0
   super_tooltip: ^2.1.1
+  lottie: ^3.3.3
 
 dev_dependencies:
   flutter_test:
@@ -90,6 +91,7 @@ flutter:
   assets:
     - assets/icons/
     - assets/images/
+    - assets/lottie/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
