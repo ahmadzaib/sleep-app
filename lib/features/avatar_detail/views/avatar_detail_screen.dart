@@ -9,6 +9,7 @@ import 'package:avatar_flow/features/avatar_detail/views/components/detail_scree
 import 'package:avatar_flow/features/avatar_detail/views/components/shared_with_users_section.dart';
 import 'package:avatar_flow/features/avatar_detail/views/components/story_cards.dart';
 import 'package:avatar_flow/widgets/bg_widget.dart';
+import 'package:avatar_flow/widgets/custom_button.dart';
 import 'package:avatar_flow/widgets/custom_divider.dart';
 import 'package:avatar_flow/widgets/custom_svg.dart';
 import 'package:flutter/material.dart';
@@ -110,9 +111,11 @@ class AvatarDetailScreen extends StatelessWidget {
                 StoryCards(),
                 Spacing.y(2),
                 SharedWithUsersSection(),
+                Spacing.y(2),
+                CustomButton(text: "Start an Adventure", onPressed: () {}),
 
                 //
-                Spacing.y(10),
+                Spacing.y(2),
               ],
             ),
           ),
