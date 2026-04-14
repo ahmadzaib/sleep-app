@@ -1,5 +1,6 @@
 import 'package:avatar_flow/core/constants/app_constants.dart';
 import 'package:avatar_flow/core/constants/app_icons.dart';
+import 'package:avatar_flow/core/constants/app_images.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
 import 'package:avatar_flow/widgets/bg_widget.dart';
@@ -10,11 +11,6 @@ import 'package:avatar_flow/widgets/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import 'package:avatar_flow/core/router/navigation_service.dart';
-import 'package:avatar_flow/core/router/routes.dart';
-import 'package:avatar_flow/features/avatar/providers/avatar_provider.dart';
-import 'package:provider/provider.dart';
-
 class CreateAvatarScreen extends StatelessWidget {
   const CreateAvatarScreen({super.key});
 
@@ -24,7 +20,7 @@ class CreateAvatarScreen extends StatelessWidget {
     return BgWidget(
       child: Scaffold(
         bottomNavigationBar: SizedBox(
-          height: 0.12.sh,
+          height: 0.09.sh,
           child: Padding(
             padding: AppConstants.defaultAllPadding,
             child: Center(
@@ -42,90 +38,66 @@ class CreateAvatarScreen extends StatelessWidget {
           title: "Create a new avatar",
           isALigned: true,
         ),
-        body: Consumer<AvatarProvider>(
-          builder: (context, provider, child) {
-            return Padding(
-              padding: AppConstants.defaultPaddingHorizental,
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    Spacing.y(4),
-                    // Big card
-                    GestureDetector(
-                      onTap: () {
-                        NavigationService.pushNamed(AppRoutes.promptAvatar);
-                      },
-                      child: Container(
-                        height: .35.sh,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surface,
-                          borderRadius: BorderRadius.circular(
-                            AppConstants.mediumRadius,
-                          ),
-                          boxShadow: [AppConstants.defaultShadow],
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              padding: EdgeInsets.all(12.r),
-                              decoration: BoxDecoration(
-                                color: context.appColors.primary.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(12.r),
-                              ),
-                              child: CustomSvg(
-                                path: AppIconsSvg.magic,
-                                color: context.appColors.primary,
-                                size: 30,
-                              ),
-                            ),
-                            Spacing.y(2),
-                            Text(
-                              "Create New\nAvatar",
-                              textAlign: TextAlign.center,
-                              style: textTheme.titleMedium?.copyWith(
-                                color: context.appColors.primary,
-                                fontWeight: FontWeight.w600,
-                                height: 1.2,
-                                fontSize: 18.sp,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+        body: Padding(
+          padding: AppConstants.defaultPaddingHorizental,
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                Spacing.y(4),
+                // Big card
+                Container(
+                  height: .35.sh,
+                  width: double.infinity,
+
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: BorderRadius.circular(
+                      AppConstants.mediumRadius,
                     ),
-                    Spacing.y(3),
-                    // TextField
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surface,
-                        borderRadius: BorderRadius.circular(12.r),
-                        boxShadow: [AppConstants.defaultShadow],
-                      ),
-                      child: CustomTextField(
-                        initialValue: provider.avatarName,
-                        onChanged: (val) {
-                          provider.updateName(val ?? "");
-                          return null;
-                        },
-                        hintText: "Avatars 's Name",
-                        isFilled: true,
-                        fillColor: Theme.of(context).colorScheme.surface,
-                        textfieldBorderRadius: 12.r,
-                        prefixIcon: CustomSvg(
-                          path: AppIconsSvg.user,
-                          size: 20,
-                          color: Theme.of(context).colorScheme.onSurface,
+                    boxShadow: [AppConstants.defaultShadow],
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Image.asset(AppImagesPng.add, height: 50),
+                      Spacing.y(1.5),
+                      Text(
+                        "Create New\nAvatar",
+                        textAlign: TextAlign.center,
+                        style: textTheme.titleMedium?.copyWith(
+                          color: context.appColors.primary,
+                          fontWeight: FontWeight.w500,
+                          height: 1.2,
+                          fontSize: 16.sp,
                         ),
-                        borderColor: Colors.transparent,
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            );
-          },
+                Spacing.y(3),
+                // TextField
+                Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: BorderRadius.circular(12.r),
+                    boxShadow: [AppConstants.defaultShadow],
+                  ),
+                  child: CustomTextField(
+                    hintText: "Avatars 's Name",
+                    isFilled: true,
+                    fillColor: Theme.of(context).colorScheme.surface,
+                    textfieldBorderRadius: 12.r,
+                    prefixIcon: CustomSvg(
+                      path: AppIconsSvg.user,
+                      size: 20,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                    borderColor: Colors.transparent,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
