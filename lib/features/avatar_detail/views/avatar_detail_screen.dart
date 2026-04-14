@@ -1,13 +1,15 @@
 import 'package:avatar_flow/core/constants/app_constants.dart';
 import 'package:avatar_flow/core/constants/app_icons.dart';
 import 'package:avatar_flow/core/constants/app_images.dart';
+import 'package:avatar_flow/core/router/navigation_service.dart';
+import 'package:avatar_flow/core/router/routes.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
 import 'package:avatar_flow/features/avatar_detail/views/components/achievement_tile.dart';
 import 'package:avatar_flow/features/avatar_detail/views/components/avatar_section.dart';
 import 'package:avatar_flow/features/avatar_detail/views/components/detail_screen_appbar.dart';
 import 'package:avatar_flow/features/avatar_detail/views/components/shared_with_users_section.dart';
-import 'package:avatar_flow/features/avatar_detail/views/components/story_cards.dart';
+import 'package:avatar_flow/features/avatar_detail/views/components/story_cards_carousal.dart';
 import 'package:avatar_flow/widgets/bg_widget.dart';
 import 'package:avatar_flow/widgets/custom_button.dart';
 import 'package:avatar_flow/widgets/custom_divider.dart';
@@ -29,6 +31,7 @@ class AvatarDetailScreen extends StatelessWidget {
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AvatarDetailAppbar(
+          showinfoButton: true,
           title: "Avatar",
           subtitleText: "Meet and manage your character",
           onInfoTap: () {},
@@ -98,7 +101,9 @@ class AvatarDetailScreen extends StatelessWidget {
                       style: textTheme.bodyMedium,
                     ),
                     TextButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        NavigationService.pushNamed(AppRoutes.allStories);
+                      },
                       child: Text(
                         'View all',
                         style: textTheme.bodyMedium!.copyWith(

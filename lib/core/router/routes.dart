@@ -8,6 +8,7 @@ class AppRoutes {
   //Avatar
   static const String avatar = 'avatar';
   static const String avatarDetail = 'avatarDetail';
+  static const String allStories = 'allStories';
 }
 
 class AppPaths {
@@ -20,4 +21,5 @@ class AppPaths {
   //Avatar
   static const String avatar = '/avatar';
   static const String avatarDetail = '/avatarDetail';
+  static const String allStories = '/allStories';
 }
