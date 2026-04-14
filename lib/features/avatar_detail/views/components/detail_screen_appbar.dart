@@ -31,7 +31,7 @@ class AvatarDetailAppbar extends StatelessWidget
       child: SafeArea(
         child: Padding(
           padding: AppConstants.defaultPaddingHorizental.copyWith(
-            bottom: 10.h,
+            // bottom: 10.h,
             top: 10.h,
             right: 0,
           ),

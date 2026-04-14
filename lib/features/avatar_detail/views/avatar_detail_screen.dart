@@ -12,9 +12,12 @@ import 'package:avatar_flow/features/avatar_detail/views/components/shared_with_
 import 'package:avatar_flow/features/avatar_detail/views/components/story_cards_carousal.dart';
 import 'package:avatar_flow/features/avatar_detail/views/components/tool_tip_widget.dart';
 import 'package:avatar_flow/widgets/bg_widget.dart';
+import 'package:avatar_flow/widgets/circled_icon_widget.dart';
+import 'package:avatar_flow/widgets/confirmation_dialog.dart';
 import 'package:avatar_flow/widgets/custom_button.dart';
 import 'package:avatar_flow/widgets/custom_divider.dart';
 import 'package:avatar_flow/widgets/custom_svg.dart';
+import 'package:avatar_flow/widgets/pop_menu_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:super_tooltip/super_tooltip.dart';
@@ -154,14 +157,45 @@ class _AvatarDetailScreenState extends State<AvatarDetailScreen> {
       ),
 
       actions: [
-        IconButton(
-          style: IconButton.styleFrom(
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
-          onPressed: () {},
-          icon: CustomSvg(path: AppIconsSvg.moreVer),
+        ReusablePopupMenu(
+          iconPath: AppIconsSvg.moreVer,
+          items: const [
+            MenuItemConfig(
+              value: 'edit',
+              iconPath: AppIconsSvg.edit,
+              label: 'Edit Avatar',
+            ),
+            MenuItemConfig(
+              value: 'delete',
+              iconPath: AppIconsSvg.delete,
+              label: 'Delete Avatar',
+            ),
+          ],
+          onSelected: (value) {
+            switch (value) {
+              case 'edit':
+                break;
+              case 'delete':
+                _deleteAvatar();
+                break;
+            }
+          },
         ),
       ],
+    );
+  }
+
+  _deleteAvatar() {
+    ConfirmationDialog.show(
+      content: CircledIconWidget(
+        color: context.appColors.error,
+        icon: Icons.delete,
+      ),
+      context: context,
+      title: "Delete Avatar",
+      subtitle: "Are you sure, You want to delete this avatar?",
+      confirmText: "Delete",
+      cancelText: "Cancel",
     );
   }
 
