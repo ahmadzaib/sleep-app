@@ -26,25 +26,12 @@ class AppConstants {
   static final EdgeInsets defaultAllPadding = EdgeInsets.all(paddingOnly);
 
   // TILE BORDER - Instagram style
-  static Border tileBorder(BuildContext context) => Border.all(
-    color: Theme.of(context).brightness == Brightness.light
-        ? context.appColors.lightGrey
-        : context.appColors.bubbleGray,
-    width: 0.8.r,
-  );
 
   // GRADIENTS - now use theme colors
   static LinearGradient defaultGradient(BuildContext context) => LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [context.appColors.bgGradient1, context.appColors.bgGradient2],
-  );
-
-  // Chip Styling
-  static double chipRadius = 20.r;
-  static EdgeInsets chipPadding = EdgeInsets.symmetric(
-    horizontal: 16.w,
-    vertical: 6.h,
   );
 
   // Default Shadow

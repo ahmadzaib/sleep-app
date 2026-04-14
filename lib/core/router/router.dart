@@ -1,4 +1,5 @@
-import 'package:avatar_flow/features/avatar/views/avatar_screen.dart';
+import 'package:avatar_flow/features/avatar/views/edit_avatar_screen.dart';
+import 'package:avatar_flow/features/avatar/views/prompt_avatar_screen.dart';
 import 'package:avatar_flow/features/avatar/views/create_avatar_screen.dart';
 import 'package:avatar_flow/features/avatar_detail/views/all_stories_screen.dart';
 import 'package:avatar_flow/features/avatar_detail/views/avatar_detail_screen.dart';
@@ -53,6 +54,16 @@ final GoRouter router = GoRouter(
       name: AppRoutes.createAvatar,
       path: AppPaths.createAvatar,
       builder: (context, state) => const CreateAvatarScreen(),
+    ),
+    GoRoute(
+      name: AppRoutes.editAvatar,
+      path: AppPaths.editAvatar,
+      builder: (context, state) => const EditAvatarScreen(),
+    ),
+    GoRoute(
+      name: AppRoutes.promptAvatar,
+      path: AppPaths.promptAvatar,
+      builder: (context, state) => const PromptAvatarScreen(),
     ),
   ],
 );

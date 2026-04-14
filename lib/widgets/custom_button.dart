@@ -24,7 +24,7 @@ class CustomButton extends StatelessWidget {
     super.key,
     required this.text,
     required this.onPressed,
-    this.height = 49,
+    this.height = 46,
     this.textColor,
     this.buttonColor,
     this.buttonBorderRadius,

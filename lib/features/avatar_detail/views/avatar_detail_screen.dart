@@ -152,7 +152,7 @@ class _AvatarDetailScreenState extends State<AvatarDetailScreen> {
           icon: CustomSvg(path: AppIconsSvg.info2, size: 16),
         ),
         onClose: () {
-          _skillsTooltipCont.showTooltip(); // 👈 open next
+          _skillsTooltipCont.showTooltip();
         },
       ),
 
@@ -174,6 +174,7 @@ class _AvatarDetailScreenState extends State<AvatarDetailScreen> {
           onSelected: (value) {
             switch (value) {
               case 'edit':
+                NavigationService.pushNamed(AppRoutes.editAvatar);
                 break;
               case 'delete':
                 _deleteAvatar();
