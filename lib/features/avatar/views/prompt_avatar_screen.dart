@@ -3,6 +3,7 @@ import 'package:avatar_flow/core/constants/app_icons.dart';
 import 'package:avatar_flow/core/router/navigation_service.dart';
 import 'package:avatar_flow/core/router/routes.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
+import 'package:avatar_flow/core/utils/image_picker_helper.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
 import 'package:avatar_flow/widgets/bg_widget.dart';
 import 'package:avatar_flow/widgets/custom_svg.dart';
@@ -139,18 +140,23 @@ class PromptAvatarScreen extends StatelessWidget {
                             ),
                           ),
                           Spacing.x(2),
-                          Container(
-                            padding: EdgeInsets.all(8.r),
-                            decoration: BoxDecoration(
-                              color: context.appColors.primary.withValues(
-                                alpha: 0.05,
+                          GestureDetector(
+                            onTap: () {
+                              ImagePickerHelper.pickFromCamera();
+                            },
+                            child: Container(
+                              padding: EdgeInsets.all(8.r),
+                              decoration: BoxDecoration(
+                                color: context.appColors.primary.withValues(
+                                  alpha: 0.05,
+                                ),
+                                shape: BoxShape.circle,
                               ),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              Icons.add,
-                              color: context.appColors.primary,
-                              size: 16.sp,
+                              child: Icon(
+                                Icons.add,
+                                color: context.appColors.primary,
+                                size: 16.sp,
+                              ),
                             ),
                           ),
                         ],

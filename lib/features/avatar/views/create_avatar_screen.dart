@@ -1,6 +1,8 @@
 import 'package:avatar_flow/core/constants/app_constants.dart';
 import 'package:avatar_flow/core/constants/app_icons.dart';
 import 'package:avatar_flow/core/constants/app_images.dart';
+import 'package:avatar_flow/core/router/navigation_service.dart';
+import 'package:avatar_flow/core/router/routes.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
 import 'package:avatar_flow/widgets/bg_widget.dart';
@@ -28,7 +30,9 @@ class CreateAvatarScreen extends StatelessWidget {
                 prefixIcon: AppIconsSvg.magic,
                 preffixIconColor: Theme.of(context).colorScheme.onPrimary,
                 text: "Need Inspiration?",
-                onPressed: () {},
+                onPressed: () {
+                  NavigationService.pushNamed(AppRoutes.promptAvatar);
+                },
               ),
             ),
           ),
