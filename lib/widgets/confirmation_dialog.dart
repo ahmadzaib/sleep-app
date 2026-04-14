@@ -39,16 +39,15 @@ class ConfirmationDialog extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder:
-          (context) => ConfirmationDialog(
-            title: title,
-            subtitle: subtitle,
-            confirmText: confirmText,
-            cancelText: cancelText,
-            content: content,
-            onConfirm: onConfirm,
-            onCancel: onCancel,
-          ),
+      builder: (context) => ConfirmationDialog(
+        title: title,
+        subtitle: subtitle,
+        confirmText: confirmText,
+        cancelText: cancelText,
+        content: content,
+        onConfirm: onConfirm,
+        onCancel: onCancel,
+      ),
     );
   }
 
@@ -56,18 +55,24 @@ class ConfirmationDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
+        boxShadow: [
+          BoxShadow(
+            color: context.appColors.error,
+            blurRadius: 0,
+            offset: Offset(0, -3),
+          ),
+        ],
         color: Theme.of(context).bottomSheetTheme.backgroundColor,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(AppConstants.largeRadius),
-          topRight: Radius.circular(AppConstants.largeRadius),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppConstants.largeRadius),
         ),
       ),
       padding: AppConstants.defaultAllPadding.copyWith(top: 0),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // const BottomsheetHandle(),
-          Spacing.y(10),
+          Spacing.y(4),
+          if (content != null) ...[content!, Spacing.y(2)],
           // Title
           Text(
             title ?? "Are you sure?",
@@ -77,9 +82,7 @@ class ConfirmationDialog extends StatelessWidget {
             ),
           ),
 
-          Spacing.y(6),
-
-          if (content != null) ...[content!, SizedBox(height: 16.h)],
+          Spacing.y(1),
 
           // Subtitle
           Text(
@@ -90,8 +93,7 @@ class ConfirmationDialog extends StatelessWidget {
             ).textTheme.titleMedium?.copyWith(color: context.appColors.grey),
           ),
 
-                    Spacing.y(24),
-
+          Spacing.y(3),
 
           // Action Buttons
           Column(
@@ -106,13 +108,12 @@ class ConfirmationDialog extends StatelessWidget {
                     },
               ),
 
-              SizedBox(height: 16.h),
+              Spacing.y(2),
 
               // Cancel Button
               CustomButton(
                 isOutlineButton: true,
-                textColor: Theme.of(context).colorScheme.onSurface,
-                buttonColor: Theme.of(context).colorScheme.onSurface,
+                textColor: context.appColors.error,
                 text: cancelText ?? 'Go Back',
                 onPressed:
                     onCancel ??

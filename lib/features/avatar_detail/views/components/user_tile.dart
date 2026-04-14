@@ -6,7 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class UserTile extends StatelessWidget {
-  const UserTile({super.key});
+  final VoidCallback onRemoveTap;
+  const UserTile({super.key, required this.onRemoveTap});
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +43,7 @@ class UserTile extends StatelessWidget {
             ),
           ),
           TextButton(
-            onPressed: () {},
+            onPressed: onRemoveTap,
             style: TextButton.styleFrom(
               padding: EdgeInsets.symmetric(horizontal: 16.w),
               minimumSize: Size.zero,

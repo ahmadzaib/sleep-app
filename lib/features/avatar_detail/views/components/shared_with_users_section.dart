@@ -2,6 +2,8 @@ import 'package:avatar_flow/core/theme/app_colors.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
 import 'package:avatar_flow/features/avatar_detail/views/components/user_tile.dart';
+import 'package:avatar_flow/widgets/circled_icon_widget.dart';
+import 'package:avatar_flow/widgets/confirmation_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -32,7 +34,19 @@ class _SharedWithUsersSectionState extends State<SharedWithUsersSection> {
                 minimumSize: Size.zero,
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
-              onPressed: () {},
+              onPressed: () {
+                ConfirmationDialog.show(
+                  content: CircledIconWidget(
+                    color: context.appColors.error,
+                    icon: Icons.warning,
+                  ),
+                  context: context,
+                  title: "Remove All Users",
+                  subtitle: "Are you sure, You want to remove all users?",
+                  confirmText: "Remove All",
+                  cancelText: "Cancel",
+                );
+              },
               child: Text(
                 'Remove all',
                 style: textTheme.bodyMedium!.copyWith(
@@ -56,7 +70,21 @@ class _SharedWithUsersSectionState extends State<SharedWithUsersSection> {
             thickness: 1.4,
           ),
           itemBuilder: (context, index) {
-            return UserTile();
+            return UserTile(
+              onRemoveTap: () {
+                ConfirmationDialog.show(
+                  content: CircledIconWidget(
+                    color: context.appColors.error,
+                    icon: Icons.warning,
+                  ),
+                  context: context,
+                  title: "Remove User",
+                  subtitle: "Are you sure, You want to remove this user?",
+                  confirmText: "Remove",
+                  cancelText: "Cancel",
+                );
+              },
+            );
           },
         ),
         if (_visibleCount < _totalUsers)
