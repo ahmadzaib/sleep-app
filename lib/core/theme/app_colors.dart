@@ -23,7 +23,7 @@ class AppColors {
 
   // Message colors
   static const message100 = Color(0xFF2FB344); // green success
-  static const message200 = Color(0xFFE5484D); // soft red error
+  static const message200 = Color(0xFFEE2222); // soft red error
 
   // Gradient background (key match from your design)
   static const bgGradient1 = Color(0xFFFFE6D6); // warm peach

@@ -6,6 +6,8 @@ import 'package:avatar_flow/core/utils/spacing.dart';
 import 'package:avatar_flow/features/avatar_detail/views/components/achievement_tile.dart';
 import 'package:avatar_flow/features/avatar_detail/views/components/avatar_section.dart';
 import 'package:avatar_flow/features/avatar_detail/views/components/detail_screen_appbar.dart';
+import 'package:avatar_flow/features/avatar_detail/views/components/shared_with_users_section.dart';
+import 'package:avatar_flow/features/avatar_detail/views/components/story_cards.dart';
 import 'package:avatar_flow/widgets/bg_widget.dart';
 import 'package:avatar_flow/widgets/custom_divider.dart';
 import 'package:avatar_flow/widgets/custom_svg.dart';
@@ -105,6 +107,12 @@ class AvatarDetailScreen extends StatelessWidget {
                     ),
                   ],
                 ),
+                StoryCards(),
+                Spacing.y(2),
+                SharedWithUsersSection(),
+
+                //
+                Spacing.y(10),
               ],
             ),
           ),
