@@ -37,7 +37,7 @@ class _PromptAvatarScreenState extends State<PromptAvatarScreen> {
     return BgWidget(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: const CustomAppBar(title: "AI Chat"),
+        appBar: const CustomAppBar(title: ""),
 
         bottomNavigationBar: _buildInput(),
 
