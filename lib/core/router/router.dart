@@ -1,5 +1,5 @@
 import 'package:avatar_flow/features/avatar/views/edit_avatar_screen.dart';
-import 'package:avatar_flow/features/avatar/views/prompt_avatar_screen.dart';
+import 'package:avatar_flow/features/prompt_ai/views/prompt_avatar_screen.dart';
 import 'package:avatar_flow/features/avatar/views/create_avatar_screen.dart';
 import 'package:avatar_flow/features/avatar_detail/views/all_stories_screen.dart';
 import 'package:avatar_flow/features/avatar_detail/views/avatar_detail_screen.dart';

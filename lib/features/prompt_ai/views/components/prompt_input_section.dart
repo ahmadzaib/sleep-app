@@ -1,39 +1,37 @@
-import 'package:avatar_flow/core/constants/app_constants.dart';
-import 'package:avatar_flow/core/constants/app_icons.dart';
 import 'package:avatar_flow/core/constants/app_images.dart';
-import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
-import 'package:avatar_flow/features/avatar/providers/avatar_provider.dart';
-import 'package:avatar_flow/widgets/custom_svg.dart';
+import 'package:avatar_flow/features/prompt_ai/providers/prompt_ai_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
-import 'package:zoom_tap_animation/zoom_tap_animation.dart';
+
+import 'package:avatar_flow/core/constants/app_constants.dart';
+import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 
 class PromptInputSection extends StatelessWidget {
-  const PromptInputSection({super.key});
+  final List<Widget> actions;
+
+  const PromptInputSection({super.key,required this.actions});
 
   @override
   Widget build(BuildContext context) {
-    final TextTheme textTheme = Theme.of(context).textTheme;
-    final provider = Provider.of<AvatarProvider>(context, listen: false);
+    final provider = Provider.of<PromptAiProvider>(context);
+    final textTheme = Theme.of(context).textTheme;
 
     return Container(
-      height: 80.h,
-      padding: EdgeInsets.symmetric(horizontal: 12.w),
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadiusGeometry.vertical(
-          top: Radius.circular(AppConstants.mediumRadius),
-        ),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
         boxShadow: [AppConstants.defaultShadow],
       ),
       child: Row(
         children: [
-          Expanded(
+         Expanded(
             child: SizedBox(
               height: 40.h,
               child: TextField(
+                controller: provider.promptController,
                 textAlignVertical: TextAlignVertical.center,
                 onChanged: (val) => provider.updatePrompt(val),
                 decoration: InputDecoration(
@@ -70,34 +68,11 @@ class PromptInputSection extends StatelessWidget {
               ),
             ),
           ),
-          Spacing.x(2),
 
-          _buildIconButton(() {}, AppIconsSvg.user2, context),
+         Spacing.x(2),
 
-          Spacing.x(2),
-          _buildIconButton(() {}, AppIconsSvg.add, context),
+         ...actions
         ],
-      ),
-    );
-  }
-
-  Widget _buildIconButton(
-    VoidCallback onTap,
-    String svgPath,
-    BuildContext context,
-  ) {
-    return ZoomTapAnimation(
-      onTap: onTap,
-      child: SizedBox(
-        height: 40.h,
-        child: CircleAvatar(
-          backgroundColor: context.appColors.primary.withValues(alpha: 0.05),
-          child: CustomSvg(
-            path: svgPath,
-            color: context.appColors.primary,
-            size: 16,
-          ),
-        ),
       ),
     );
   }
