@@ -6,6 +6,7 @@ import 'package:avatar_flow/core/router/routes.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
 import 'package:avatar_flow/features/avatar/providers/avatar_provider.dart';
+import 'package:avatar_flow/features/avatar/views/components/trait_selection_bottom_sheet.dart';
 import 'package:avatar_flow/features/avatar/views/components/voice_note_tile.dart';
 import 'package:avatar_flow/features/avatar_detail/views/components/avatar_section.dart';
 import 'package:avatar_flow/widgets/bg_widget.dart';
@@ -115,7 +116,12 @@ class CreateAvatarScreen extends StatelessWidget {
                             ),
                           ),
                           TextButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              TraitSelectionBottomSheet.show(
+                                context,
+                                provider: provider,
+                              );
+                            },
                             child: Text(
                               "Add +",
                               style: textTheme.bodyMedium?.copyWith(
