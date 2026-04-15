@@ -35,9 +35,7 @@ class _AvatarDetailScreenState extends State<AvatarDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final sh = MediaQuery.of(context).size.height * 0.01;
-    final sw = MediaQuery.of(context).size.width * 0.01;
     final textTheme = Theme.of(context).textTheme;
-    final colorScheme = Theme.of(context).colorScheme;
 
     return BgWidget(
       child: Scaffold(
@@ -174,7 +172,10 @@ class _AvatarDetailScreenState extends State<AvatarDetailScreen> {
           onSelected: (value) {
             switch (value) {
               case 'edit':
-                NavigationService.pushNamed(AppRoutes.editAvatar);
+                NavigationService.pushNamed(
+                  AppRoutes.createAvatar,
+                  extra: true,
+                );
                 break;
               case 'delete':
                 _deleteAvatar();

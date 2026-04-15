@@ -10,7 +10,6 @@ class AppRoutes {
   static const String avatarDetail = 'avatarDetail';
   static const String allStories = 'allStories';
   static const String createAvatar = 'createAvatar';
-  static const String editAvatar = 'editAvatar';
   static const String promptAvatar = 'promptAvatar';
   static const String choosePerson = 'choosePerson';
 }
@@ -27,7 +26,6 @@ class AppPaths {
   static const String avatarDetail = '/avatarDetail';
   static const String allStories = '/allStories';
   static const String createAvatar = '/createAvatar';
-  static const String editAvatar = '/editAvatar';
   static const String promptAvatar = '/promptAvatar';
   static const String choosePerson = '/choosePerson';
 }

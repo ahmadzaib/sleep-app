@@ -1,7 +1,6 @@
-import 'package:avatar_flow/features/avatar/views/edit_avatar_screen.dart';
+import 'package:avatar_flow/features/avatar/views/create_avatar_screen.dart';
 import 'package:avatar_flow/features/prompt_ai/views/prompt_avatar_screen.dart';
 import 'package:avatar_flow/features/prompt_ai/views/choose_person_screen.dart';
-import 'package:avatar_flow/features/avatar/views/create_avatar_screen.dart';
 import 'package:avatar_flow/features/avatar_detail/views/all_stories_screen.dart';
 import 'package:avatar_flow/features/avatar_detail/views/avatar_detail_screen.dart';
 import 'package:avatar_flow/features/bottom_nav_bar/views/main_screen.dart';
@@ -50,16 +49,14 @@ final GoRouter router = GoRouter(
       path: AppPaths.allStories,
       builder: (context, state) => const AllStoriesScreen(),
     ),
-    //Create avatar
     GoRoute(
       name: AppRoutes.createAvatar,
       path: AppPaths.createAvatar,
-      builder: (context, state) => const CreateAvatarScreen(),
-    ),
-    GoRoute(
-      name: AppRoutes.editAvatar,
-      path: AppPaths.editAvatar,
-      builder: (context, state) => const EditAvatarScreen(),
+      builder: (context, state) {
+        final isEdit = state.extra as bool? ?? false;
+
+        return CreateAvatarScreen(isEdit: isEdit);
+      },
     ),
     GoRoute(
       name: AppRoutes.promptAvatar,

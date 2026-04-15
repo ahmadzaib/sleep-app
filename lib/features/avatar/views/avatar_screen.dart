@@ -2,7 +2,6 @@ import 'package:avatar_flow/core/constants/app_constants.dart';
 import 'package:avatar_flow/core/constants/app_icons.dart';
 import 'package:avatar_flow/core/router/navigation_service.dart';
 import 'package:avatar_flow/core/router/routes.dart';
-import 'package:avatar_flow/core/theme/app_colors.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
 import 'package:avatar_flow/features/avatar/views/components/avatar_appbar.dart';
 import 'package:avatar_flow/features/avatar/views/components/avatar_cards.dart';
@@ -48,7 +47,10 @@ class AvatarScreen extends StatelessWidget {
                 prefixIcon: AppIconsSvg.edit,
                 text: "Create a New Avatar",
                 onPressed: () {
-                  NavigationService.pushNamed(AppRoutes.createAvatar);
+                  NavigationService.pushNamed(
+                    AppRoutes.createAvatar,
+                    queryParameters: const {'isEdit': 'false'},
+                  );
                 },
               ),
             ),
