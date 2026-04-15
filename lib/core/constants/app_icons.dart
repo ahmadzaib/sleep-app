@@ -24,6 +24,6 @@ class AppIconsSvg {
   static const String delete = "assets/icons/delete.svg";
   static const String magic = "assets/icons/magic.svg";
   static const String speaking = "assets/icons/speaking.svg";
+  static const String add = "assets/icons/add.svg";
+  static const String user2 = "assets/icons/user2.svg";
 }
-
-class AppIconsPng {}

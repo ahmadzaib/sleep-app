@@ -163,7 +163,7 @@ class _EditAvatarScreenState extends State<EditAvatarScreen> {
                         TextButton(
                           onPressed: () {},
                           child: Text(
-                            "Search",
+                            "Add +",
                             style: textTheme.bodyMedium?.copyWith(
                               color: context.appColors.blue,
                             ),
