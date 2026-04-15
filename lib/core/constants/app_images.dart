@@ -34,4 +34,9 @@ class AppImagesPng {
 
   // Lottie Animation
   static const String ai = "assets/lottie/ai.json";
+
+  //
+  static const String vector3d = "assets/images/3d.png";
+  static const String cartoon = "assets/images/cartoon.png";
+  static const String special = "assets/images/special.png";
 }

@@ -1,8 +1,10 @@
 import 'dart:io';
 import 'package:avatar_flow/core/constants/app_constants.dart';
 import 'package:avatar_flow/core/constants/app_icons.dart';
+import 'package:avatar_flow/core/utils/image_picker_helper.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
 import 'package:avatar_flow/features/prompt_ai/providers/prompt_ai_provider.dart';
+import 'package:avatar_flow/widgets/app_loading.dart';
 import 'package:avatar_flow/widgets/custom_svg.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -36,77 +38,7 @@ class _PromptAvatarScreenState extends State<PromptAvatarScreen> {
         backgroundColor: Colors.transparent,
         appBar: const CustomAppBar(title: "AI Chat"),
 
-        bottomNavigationBar: SafeArea(
-          child: Padding(
-            padding: EdgeInsets.only(
-              bottom: MediaQuery.of(context).viewInsets.bottom,
-            ),
-            child: PromptInputSection(
-              actions: [
-                SuperTooltip(
-                  // arrowConfig: ArrowConfiguration(length: 0, tipDistance: 20.h),
-                  barrierConfig: BarrierConfiguration(
-                    color: Colors.transparent,
-                  ),
-                  style: TooltipStyle(
-                    boxShadows: [AppConstants.defaultShadow],
-                    borderColor: Colors.transparent,
-                    borderRadius: AppConstants.smallRadius,
-                  ),
-
-                  controller: _tooltipController,
-                  content: Container(
-                    padding: EdgeInsets.all(4),
-                    width: 0.6.sw,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Image.asset(AppImagesPng.award, height: 35),
-                        Spacing.x(2),
-                        Expanded(
-                          child: Text(
-                            "adsd",
-                            style: textTheme.bodySmall!.copyWith(
-                              fontSize: 14.sp,
-                            ),
-                          ),
-                        ),
-                        IconButton(
-                          style: IconButton.styleFrom(
-                            alignment: Alignment.topRight,
-                            padding: EdgeInsets.zero,
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          ),
-                          onPressed: () {
-                            _tooltipController.hideTooltip();
-                          },
-                          icon: CustomSvg(path: AppIconsSvg.cross),
-                        ),
-                      ],
-                    ),
-                  ),
-                  child: _iconButton(
-                    icon: AppIconsSvg.add,
-                    onTap: () {
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        _tooltipController.showTooltip();
-                      });
-                    },
-                    context: context,
-                  ),
-                ),
-
-                Spacing.x(2),
-                _iconButton(
-                  icon: AppIconsSvg.send,
-                  onTap: () {},
-                  context: context,
-                ),
-              ],
-            ),
-          ),
-        ),
+        bottomNavigationBar: _buildInput(),
 
         body: Consumer<PromptAiProvider>(
           builder: (context, provider, child) {
@@ -116,9 +48,8 @@ class _PromptAvatarScreenState extends State<PromptAvatarScreen> {
             if (messages.isEmpty) {
               return Center(
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Lottie.asset(AppImagesPng.ai, height: 250),
+                    Lottie.asset(AppImagesPng.ai, height: 250.h),
                     SizedBox(height: 20.h),
                     Text(
                       "Describe an image or add\nsomething from your library.",
@@ -141,11 +72,17 @@ class _PromptAvatarScreenState extends State<PromptAvatarScreen> {
               itemCount: messages.length + (provider.isLoading ? 1 : 0),
               itemBuilder: (context, index) {
                 if (index == messages.length && provider.isLoading) {
-                  return const Padding(
+                  return Padding(
                     padding: EdgeInsets.all(12),
                     child: Align(
                       alignment: Alignment.centerLeft,
-                      child: Text("AI is thinking..."),
+                      child: Row(
+                        children: [
+                          AppLoading(size: 25),
+                          Spacing.x(2),
+                          Text("AI is thinking..."),
+                        ],
+                      ),
                     ),
                   );
                 }
@@ -218,6 +155,141 @@ class _PromptAvatarScreenState extends State<PromptAvatarScreen> {
             color: context.appColors.primary,
             size: 16,
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _columnInfo(String imagePath, String text, TextTheme textTheme) {
+    return Column(
+      children: [
+        CircleAvatar(
+          backgroundColor: context.appColors.primary.withValues(alpha: .3),
+          backgroundImage: AssetImage(imagePath),
+        ),
+        Spacing.y(.5),
+        Text(text, style: textTheme.bodySmall!.copyWith(fontSize: 12.sp)),
+      ],
+    );
+  }
+
+  Widget _rowInfo(
+    VoidCallback onTap,
+    String title,
+    String svgPath,
+    TextTheme textTheme,
+  ) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        color: Colors.transparent,
+        padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 6.w),
+        child: Row(
+          children: [
+            Text(
+              title,
+              style: textTheme.bodySmall!.copyWith(fontWeight: FontWeight.w600),
+            ),
+            Spacer(),
+            CustomSvg(path: svgPath, color: context.appColors.grey, size: 18),
+          ],
+        ),
+      ),
+    );
+  }
+
+  _buildInput() {
+    final textTheme = Theme.of(context).textTheme;
+    return SafeArea(
+      child: Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: PromptInputSection(
+          actions: [
+            SuperTooltip(
+              arrowConfig: ArrowConfiguration(
+                length: 20.h,
+                tipDistance: 14.h,
+                baseWidth: 18.w,
+              ),
+              barrierConfig: BarrierConfiguration(color: Colors.transparent),
+              positionConfig: PositionConfiguration(
+                preferredDirection: TooltipDirection.up,
+                // verticalOffset: -30.h,
+              ),
+              style: TooltipStyle(
+                boxShadows: [AppConstants.defaultShadow],
+                borderColor: Colors.transparent,
+                borderRadius: AppConstants.mediumRadius,
+              ),
+
+              controller: _tooltipController,
+              content: Container(
+                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
+                width: 0.55.sw,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text("Choose style", style: textTheme.bodyMedium),
+                    Spacing.y(2),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _columnInfo(
+                          AppImagesPng.vector3d,
+                          "Vector 3D",
+                          textTheme,
+                        ),
+                        _columnInfo(AppImagesPng.cartoon, "Cartoon", textTheme),
+                        _columnInfo(AppImagesPng.special, "Special", textTheme),
+                      ],
+                    ),
+                    Spacing.y(1.5),
+                    Text(
+                      'Create an image based on a photo of pets, nature or food.',
+                      style: textTheme.bodySmall,
+                    ),
+                    Spacing.y(1.5),
+                    _rowInfo(
+                      () async {
+                        await ImagePickerHelper.pickFromGallery();
+                      },
+                      "Choose Photo",
+                      AppIconsSvg.gallery,
+                      textTheme,
+                    ),
+                    _rowInfo(
+                      () async {
+                        await ImagePickerHelper.pickFromCamera();
+                      },
+                      "Take Photo",
+                      AppIconsSvg.camera,
+                      textTheme,
+                    ),
+                  ],
+                ),
+              ),
+              child: _iconButton(
+                icon: AppIconsSvg.add,
+                onTap: () {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    _tooltipController.showTooltip();
+                  });
+                },
+                context: context,
+              ),
+            ),
+
+            Spacing.x(2),
+            _iconButton(
+              icon: AppIconsSvg.send,
+              onTap: () {
+                context.read<PromptAiProvider>().sendMessage();
+              },
+              context: context,
+            ),
+          ],
         ),
       ),
     );
