@@ -4,6 +4,7 @@ import 'package:avatar_flow/core/constants/app_images.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
 import 'package:avatar_flow/features/avatar/views/components/voice_note_tile.dart';
+import 'package:avatar_flow/features/avatar_detail/views/components/avatar_section.dart';
 import 'package:avatar_flow/widgets/bg_widget.dart';
 import 'package:avatar_flow/widgets/custom_app_bar.dart';
 import 'package:avatar_flow/widgets/custom_button.dart';
@@ -56,6 +57,20 @@ class _EditAvatarScreenState extends State<EditAvatarScreen> {
                         ),
                         child: Stack(
                           children: [
+                            Align(
+                              alignment: Alignment.bottomCenter,
+                              child: Padding(
+                                padding: AppConstants.defaultAllPadding,
+                                child: ClipPath(
+                                  clipper: MyClipper(),
+                                  child: Container(
+                                    width: 1.sw,
+                                    height: 0.16.sh,
+                                    color: Colors.yellow.withValues(alpha: .3),
+                                  ),
+                                ),
+                              ),
+                            ),
                             Center(
                               child: Image.asset(
                                 AppImagesPng.dummyImage,
