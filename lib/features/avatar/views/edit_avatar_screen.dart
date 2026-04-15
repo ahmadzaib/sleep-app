@@ -60,7 +60,7 @@ class _EditAvatarScreenState extends State<EditAvatarScreen> {
                             Align(
                               alignment: Alignment.bottomCenter,
                               child: Padding(
-                                padding: AppConstants.defaultAllPadding,
+                                padding: EdgeInsets.all(8),
                                 child: ClipPath(
                                   clipper: MyClipper(),
                                   child: Container(
@@ -187,7 +187,11 @@ class _EditAvatarScreenState extends State<EditAvatarScreen> {
                       ),
                     ),
                     Spacing.y(1.5),
-                    VoiceNoteTile(),
+                    VoiceNoteTile(
+                      title: 'Avatar Voice',
+                      audioPath: 'assets/audio/music.mp3',
+                      isNetwork: false,
+                    ),
 
                     Spacing.y(4),
                     // Save Button
