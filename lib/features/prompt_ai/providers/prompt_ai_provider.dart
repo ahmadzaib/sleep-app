@@ -4,6 +4,18 @@ import 'package:avatar_flow/features/prompt_ai/models/chat_model.dart';
 import 'package:flutter/material.dart';
 
 class PromptAiProvider extends ChangeNotifier {
+  static const List<String> peopleOptions = [
+    'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=500&q=80',
+    'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=500&q=80',
+    'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=500&q=80',
+    'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=500&q=80',
+    'https://images.unsplash.com/photo-1507591064344-4c6ce005b128?auto=format&fit=crop&w=500&q=80',
+    'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=500&q=80',
+    'https://images.unsplash.com/photo-1506795660187-7795f6cad9d4?auto=format&fit=crop&w=500&q=80',
+    'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?auto=format&fit=crop&w=500&q=80',
+    'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=500&q=80',
+  ];
+
   final TextEditingController promptController = TextEditingController();
 
   final List<ChatMessage> _messages = [];
@@ -14,6 +26,13 @@ class PromptAiProvider extends ChangeNotifier {
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
+  String? _selectedPersonImageUrl;
+  String? get selectedPersonImageUrl => _selectedPersonImageUrl;
+
+  void setSelectedPerson(String imageUrl) {
+    _selectedPersonImageUrl = imageUrl;
+    notifyListeners();
+  }
 
   void updatePrompt(String val) {
     notifyListeners();

@@ -1,8 +1,8 @@
-import 'dart:io';
 import 'package:avatar_flow/core/constants/app_constants.dart';
 import 'package:avatar_flow/core/constants/app_icons.dart';
+import 'package:avatar_flow/core/router/navigation_service.dart';
+import 'package:avatar_flow/core/router/routes.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
-import 'package:avatar_flow/features/prompt_ai/models/chat_model.dart';
 import 'package:avatar_flow/features/prompt_ai/providers/prompt_ai_provider.dart';
 import 'package:avatar_flow/features/prompt_ai/views/components/chat_bubble_widget.dart';
 import 'package:avatar_flow/widgets/app_loading.dart';
@@ -91,7 +91,23 @@ class _PromptAvatarScreenState extends State<PromptAvatarScreen> {
                 final msg = messages[index];
                 final isUser = msg.isUser;
 
-                return ChatBubble(isUser: isUser, msg: msg);
+                return ChatBubble(
+                  isUser: isUser,
+                  msg: msg,
+                  onUseAsAvatar:
+                      (!isUser &&
+                          (msg.imagePath != null || msg.imageUrl != null))
+                      ? () {
+                          NavigationService.pushNamed(
+                            AppRoutes.choosePerson,
+                            extra: <String, dynamic>{
+                              'imagePath': msg.imagePath,
+                              'imageUrl': msg.imageUrl,
+                            },
+                          );
+                        }
+                      : null,
+                );
               },
             );
           },
@@ -169,6 +185,15 @@ class _PromptAvatarScreenState extends State<PromptAvatarScreen> {
         ),
         child: PromptInputSection(
           actions: [
+            _iconButton(
+              icon: AppIconsSvg.user2,
+              onTap: () {
+                NavigationService.pushNamed(AppRoutes.choosePerson);
+              },
+              context: context,
+            ),
+            Spacing.x(2),
+
             SuperTooltip(
               arrowConfig: ArrowConfiguration(
                 length: 20.h,

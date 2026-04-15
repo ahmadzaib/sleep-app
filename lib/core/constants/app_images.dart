@@ -31,6 +31,7 @@ class AppImagesPng {
 
   //dummy image
   static const String dummyImage = "assets/images/dummy_avatar.png";
+  static const String shield = "assets/images/shield.png";
 
   // Lottie Animation
   static const String ai = "assets/lottie/ai.json";

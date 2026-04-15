@@ -12,6 +12,7 @@ class AppRoutes {
   static const String createAvatar = 'createAvatar';
   static const String editAvatar = 'editAvatar';
   static const String promptAvatar = 'promptAvatar';
+  static const String choosePerson = 'choosePerson';
 }
 
 class AppPaths {
@@ -28,4 +29,5 @@ class AppPaths {
   static const String createAvatar = '/createAvatar';
   static const String editAvatar = '/editAvatar';
   static const String promptAvatar = '/promptAvatar';
+  static const String choosePerson = '/choosePerson';
 }

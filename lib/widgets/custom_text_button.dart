@@ -9,6 +9,7 @@ class CustomTextButton extends StatelessWidget {
   final Color? textColor;
   final EdgeInsetsGeometry? padding;
   final double? borderRadius;
+  final TextStyle? textStyle;
 
   // prefix icon support
   final Widget? prefixIcon;
@@ -24,6 +25,7 @@ class CustomTextButton extends StatelessWidget {
     this.borderRadius,
     this.prefixIcon,
     this.iconSpacing = 8,
+    this.textStyle,
   });
 
   @override
@@ -49,10 +51,12 @@ class CustomTextButton extends StatelessWidget {
           ],
           Text(
             text,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: textColor ?? context.appColors.primary,
-              fontSize: 13.sp,
-            ),
+            style:
+                textStyle ??
+                Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: textColor ?? context.appColors.primary,
+                  fontSize: 13.sp,
+                ),
           ),
         ],
       ),
