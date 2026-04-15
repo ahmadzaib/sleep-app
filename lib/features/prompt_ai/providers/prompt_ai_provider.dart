@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:avatar_flow/core/utils/image_picker_helper.dart';
 import 'package:avatar_flow/features/prompt_ai/models/chat_model.dart';
 import 'package:flutter/material.dart';
 
@@ -21,6 +22,22 @@ class PromptAiProvider extends ChangeNotifier {
   void setImage(File? file) {
     _selectedImage = file;
     notifyListeners();
+  }
+
+  Future<void> pickImageFromGalleryAndSend() async {
+    final file = await ImagePickerHelper.pickFromGallery();
+    if (file == null) return;
+
+    _selectedImage = file;
+    await sendMessage();
+  }
+
+  Future<void> pickImageFromCameraAndSend() async {
+    final file = await ImagePickerHelper.pickFromCamera();
+    if (file == null) return;
+
+    _selectedImage = file;
+    await sendMessage();
   }
 
   /// SEND USER MESSAGE
@@ -52,6 +69,7 @@ class PromptAiProvider extends ChangeNotifier {
     // 3. Fake AI response (replace with API later)
     _messages.add(
       ChatMessage(
+        imagePath: image?.path,
         text: image != null
             ? "I received your image. Here is my analysis ✨"
             : "You said: $text",
@@ -67,5 +85,11 @@ class PromptAiProvider extends ChangeNotifier {
   void clearChat() {
     _messages.clear();
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    promptController.dispose();
+    super.dispose();
   }
 }

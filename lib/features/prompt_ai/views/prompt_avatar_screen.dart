@@ -1,9 +1,10 @@
 import 'dart:io';
 import 'package:avatar_flow/core/constants/app_constants.dart';
 import 'package:avatar_flow/core/constants/app_icons.dart';
-import 'package:avatar_flow/core/utils/image_picker_helper.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
+import 'package:avatar_flow/features/prompt_ai/models/chat_model.dart';
 import 'package:avatar_flow/features/prompt_ai/providers/prompt_ai_provider.dart';
+import 'package:avatar_flow/features/prompt_ai/views/components/chat_bubble_widget.dart';
 import 'package:avatar_flow/widgets/app_loading.dart';
 import 'package:avatar_flow/widgets/custom_svg.dart';
 import 'package:flutter/material.dart';
@@ -90,46 +91,7 @@ class _PromptAvatarScreenState extends State<PromptAvatarScreen> {
                 final msg = messages[index];
                 final isUser = msg.isUser;
 
-                return Align(
-                  alignment: isUser
-                      ? Alignment.centerRight
-                      : Alignment.centerLeft,
-                  child: Container(
-                    margin: EdgeInsets.symmetric(vertical: 6.h),
-                    padding: EdgeInsets.all(10.w),
-                    constraints: BoxConstraints(maxWidth: 0.75.sw),
-                    decoration: BoxDecoration(
-                      color: isUser
-                          ? context.appColors.primary
-                          : context.appColors.lightGrey,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (msg.text != null)
-                          Text(
-                            msg.text!,
-                            style: TextStyle(
-                              color: isUser ? Colors.white : Colors.black,
-                            ),
-                          ),
-                        if (msg.imagePath != null) ...[
-                          SizedBox(height: 8.h),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: Image.file(
-                              File(msg.imagePath!),
-                              height: 150,
-                              width: 150,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                );
+                return ChatBubble(isUser: isUser, msg: msg);
               },
             );
           },
@@ -253,7 +215,9 @@ class _PromptAvatarScreenState extends State<PromptAvatarScreen> {
                     Spacing.y(1.5),
                     _rowInfo(
                       () async {
-                        await ImagePickerHelper.pickFromGallery();
+                        final provider = context.read<PromptAiProvider>();
+                        await _tooltipController.hideTooltip();
+                        await provider.pickImageFromGalleryAndSend();
                       },
                       "Choose Photo",
                       AppIconsSvg.gallery,
@@ -261,7 +225,9 @@ class _PromptAvatarScreenState extends State<PromptAvatarScreen> {
                     ),
                     _rowInfo(
                       () async {
-                        await ImagePickerHelper.pickFromCamera();
+                        final provider = context.read<PromptAiProvider>();
+                        await _tooltipController.hideTooltip();
+                        await provider.pickImageFromCameraAndSend();
                       },
                       "Take Photo",
                       AppIconsSvg.camera,

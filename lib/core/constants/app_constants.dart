@@ -7,7 +7,6 @@ class AppConstants {
 
   static Duration pageTransitionDuration = const Duration(milliseconds: 300);
   static Duration defaultDuration = const Duration(milliseconds: 300);
-  static Duration bannerDuration = const Duration(milliseconds: 800);
 
   static double profilePhotoRadius = 100.r;
 
@@ -15,7 +14,6 @@ class AppConstants {
   static double mediumRadius = 18.r;
   static double smallRadius = 12.r;
   static double extraLargeRadius = 36.r;
-  static double circleRadius = 50.r;
 
   static double paddingOnly = 12.w;
 
