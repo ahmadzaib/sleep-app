@@ -7,7 +7,6 @@ import 'package:avatar_flow/widgets/bg_widget.dart';
 import 'package:avatar_flow/widgets/circled_icon_widget.dart';
 import 'package:avatar_flow/widgets/custom_app_bar.dart';
 import 'package:avatar_flow/widgets/custom_button.dart';
-import 'package:avatar_flow/widgets/custom_divider.dart';
 import 'package:avatar_flow/widgets/custom_icon_button.dart';
 import 'package:avatar_flow/widgets/custom_svg.dart';
 import 'package:flutter/material.dart';
@@ -29,8 +28,6 @@ class _CloneVoiceView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<CloneVoiceProvider>();
-    final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
 
     return BgWidget(
       child: Scaffold(
@@ -67,9 +64,6 @@ class _StepIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
-    final colorScheme = theme.colorScheme;
     const labels = ['Agreement', 'Record', 'Characteristics'];
 
     return Padding(
@@ -199,7 +193,15 @@ class _AgreementPage extends StatelessWidget {
                 ),
                 Spacing.y(4),
                 //
-                CustomButton(text: "Next", onPressed: () {}),
+                Consumer<CloneVoiceProvider>(
+                  builder: (context, value, child) => CustomButton(
+                    isDisabled: !value.isAgreed,
+                    text: "Next",
+                    onPressed: () {
+                      value.nextStep();
+                    },
+                  ),
+                ),
               ],
             ),
           ),
@@ -223,7 +225,7 @@ class _AgreementPage extends StatelessWidget {
           ),
           Spacing.y(1.5),
           TextButton(
-            onPressed: () {},
+            onPressed: () => context.read<CloneVoiceProvider>().nextStep(),
             child: Text(
               "Skip and create",
               style: textTheme.bodyMedium!.copyWith(
@@ -240,11 +242,15 @@ class _AgreementPage extends StatelessWidget {
 class _RecordVoicePage extends StatelessWidget {
   const _RecordVoicePage();
 
+  String _formatDuration(Duration duration) {
+    final minutes = duration.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final seconds = duration.inSeconds.remainder(60).toString().padLeft(2, '0');
+    return '$minutes:$seconds';
+  }
+
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
-    final colorScheme = theme.colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
     final isRecording = context.select<CloneVoiceProvider, bool>(
       (p) => p.isRecording,
@@ -252,76 +258,186 @@ class _RecordVoicePage extends StatelessWidget {
     final audioPath = context.select<CloneVoiceProvider, String?>(
       (p) => p.audioPath,
     );
+    final transcript = context.select<CloneVoiceProvider, String?>(
+      (p) => p.transcript,
+    );
+    final voiceDuration = context.select<CloneVoiceProvider, Duration?>(
+      (p) => p.voiceDuration,
+    );
+    final recordingElapsed = context.select<CloneVoiceProvider, Duration>(
+      (p) => p.recordingElapsed,
+    );
+    final isPlaying = context.select<CloneVoiceProvider, bool>(
+      (p) => p.isPlaying,
+    );
+    final hasRecording = audioPath != null;
 
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 10.h),
+      padding: AppConstants.defaultPaddingHorizental.copyWith(
+        bottom: 10.h,
+        top: 10.h,
+      ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Spacing.y(2.5),
+          Spacer(),
           Container(
-            width: 92.w,
-            height: 92.w,
+            width: 1.sw,
+            padding: AppConstants.defaultAllPadding,
             decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: isRecording
-                  ? colorScheme.error.withValues(alpha: 0.12)
-                  : colorScheme.primary.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(AppConstants.largeRadius),
+              color: Theme.of(context).colorScheme.surface,
             ),
-            child: Icon(
-              Icons.mic_rounded,
-              size: 42.sp,
-              color: isRecording ? colorScheme.error : colorScheme.primary,
+            child: Column(
+              children: [
+                Spacing.y(2),
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    CustomSvg(path: AppIconsSvg.wave),
+                    CircledIconWidget(
+                      color: context.appColors.primary,
+                      icon: isRecording ? Icons.mic : Icons.graphic_eq,
+                    ),
+                  ],
+                ),
+                if (isRecording) ...[
+                  Spacing.y(1.2),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        width: 18.r,
+                        height: 18.r,
+                        child: const CircularProgressIndicator(
+                          strokeWidth: 2.2,
+                        ),
+                      ),
+                      Spacing.x(2),
+                      Text(
+                        "Recording…",
+                        style: textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: context.appColors.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+                Spacing.y(2),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    "Name of voice",
+                    style: textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                Spacing.y(0.8),
+                Divider(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: .3),
+                  thickness: 0.5,
+                ),
+                Spacing.y(1.8),
+                Text(
+                  hasRecording
+                      ? (transcript ?? "Transcript not available")
+                      : "Record your voice to generate transcript",
+                  textAlign: TextAlign.center,
+                  style: textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.w500,
+                    color: Theme.of(context).colorScheme.onSurface.withValues(
+                      alpha: hasRecording ? .9 : .6,
+                    ),
+                    height: 1.4,
+                  ),
+                ),
+                Spacing.y(2.2),
+                Text(
+                  isRecording
+                      ? _formatDuration(recordingElapsed)
+                      : hasRecording && voiceDuration != null
+                      ? _formatDuration(voiceDuration)
+                      : "00:00",
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: .65),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Spacing.y(1.2),
+                CustomIconButton(
+                  svgPath: isPlaying ? AppIconsSvg.pause : AppIconsSvg.play,
+                  onPressed: hasRecording
+                      ? () async {
+                          await context
+                              .read<CloneVoiceProvider>()
+                              .togglePlayback();
+                        }
+                      : () {},
+                ),
+                Spacing.y(1.6),
+                TextButton(
+                  onPressed: hasRecording
+                      ? () async {
+                          await context
+                              .read<CloneVoiceProvider>()
+                              .retakeRecording();
+                        }
+                      : null,
+                  child: Text(
+                    "Retake voice",
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: hasRecording
+                          ? context.appColors.primary
+                          : Theme.of(
+                              context,
+                            ).colorScheme.onSurface.withValues(alpha: .4),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                Spacing.y(1),
+                CustomButton(
+                  text: isRecording ? 'Stop Recording' : 'Start Recording',
+                  onPressed: () async {
+                    final provider = context.read<CloneVoiceProvider>();
+                    if (isRecording) {
+                      await provider.stopRecording();
+                    } else {
+                      await provider.startRecording();
+                    }
+                  },
+                ),
+              ],
             ),
           ),
-          Spacing.y(1.6),
-          Text(
-            isRecording ? 'Recording in progress...' : 'Ready to record',
-            style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-          ),
-          Spacing.y(0.6),
-          Text(
-            audioPath == null ? 'No recording yet' : 'Recording captured',
-            style: textTheme.bodyMedium?.copyWith(
-              color: colorScheme.onSurface.withValues(alpha: 0.7),
-            ),
-          ),
-          Spacing.y(2.2),
+          Spacer(),
+
           CustomButton(
-            text: isRecording ? 'Stop Recording' : 'Start Recording',
-            buttonColor: isRecording ? colorScheme.error : null,
-            onPressed: () {
-              final provider = context.read<CloneVoiceProvider>();
-              if (isRecording) {
-                provider.stopRecording();
-              } else {
-                provider.startRecording();
-              }
-            },
+            text: 'Create Character',
+            isDisabled: !hasRecording || isRecording,
+            onPressed: !hasRecording || isRecording
+                ? null
+                : () => context.read<CloneVoiceProvider>().nextStep(),
           ),
-          const Spacer(),
-          Row(
-            children: [
-              Expanded(
-                child: CustomButton(
-                  text: 'Back',
-                  isOutlineButton: true,
-                  onPressed: () =>
-                      context.read<CloneVoiceProvider>().previousStep(),
-                ),
+
+          Spacing.y(1.2),
+          TextButton(
+            onPressed: isRecording
+                ? null
+                : () => context.read<CloneVoiceProvider>().nextStep(),
+            child: Text(
+              "Skip and create",
+              style: textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w500,
               ),
-              SizedBox(width: 10.w),
-              Expanded(
-                child: CustomButton(
-                  text: 'Next',
-                  isDisabled: audioPath == null,
-                  onPressed: audioPath == null
-                      ? null
-                      : () => context.read<CloneVoiceProvider>().nextStep(),
-                ),
-              ),
-            ],
+            ),
           ),
-          Spacing.y(1.5),
         ],
       ),
     );
