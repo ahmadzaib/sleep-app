@@ -1,4 +1,6 @@
 import 'package:avatar_flow/core/constants/app_icons.dart';
+import 'package:avatar_flow/core/router/navigation_service.dart';
+import 'package:avatar_flow/core/router/routes.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
 import 'package:avatar_flow/features/create_avatar/providers/clone_voice_provider.dart';
@@ -154,11 +156,7 @@ class _CharacterCharacteristicsPageState
               CustomButton(
                 text: 'Next',
                 onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Character characteristics saved'),
-                    ),
-                  );
+                  NavigationService.pushNamed(AppRoutes.avatarPreview);
                 },
               ),
               Spacing.y(1.5),

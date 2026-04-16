@@ -10,6 +10,7 @@ class AppRoutes {
   static const String avatarDetail = 'avatarDetail';
   static const String allStories = 'allStories';
   static const String createAvatar = 'createAvatar';
+  static const String avatarPreview = 'avatarPreview';
   static const String promptAvatar = 'promptAvatar';
   static const String choosePerson = 'choosePerson';
   static const String cloneVoice = 'cloneVoice';
@@ -27,6 +28,7 @@ class AppPaths {
   static const String avatarDetail = '/avatarDetail';
   static const String allStories = '/allStories';
   static const String createAvatar = '/createAvatar';
+  static const String avatarPreview = '/avatarPreview';
   static const String promptAvatar = '/promptAvatar';
   static const String choosePerson = '/choosePerson';
   static const String cloneVoice = '/cloneVoice';

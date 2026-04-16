@@ -1,4 +1,5 @@
 import 'package:avatar_flow/features/create_avatar/views/create_avatar_screen.dart';
+import 'package:avatar_flow/features/create_avatar/views/avatar_preview_screen.dart';
 import 'package:avatar_flow/features/create_avatar/views/clone_voice_screen.dart';
 import 'package:avatar_flow/features/prompt_ai/views/prompt_avatar_screen.dart';
 import 'package:avatar_flow/features/prompt_ai/views/choose_person_screen.dart';
@@ -58,6 +59,11 @@ final GoRouter router = GoRouter(
 
         return CreateAvatarScreen(isEdit: isEdit);
       },
+    ),
+    GoRoute(
+      name: AppRoutes.avatarPreview,
+      path: AppPaths.avatarPreview,
+      builder: (context, state) => const AvatarPreviewScreen(),
     ),
     GoRoute(
       name: AppRoutes.promptAvatar,
