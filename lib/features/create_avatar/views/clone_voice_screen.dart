@@ -8,6 +8,7 @@ import 'package:avatar_flow/widgets/circled_icon_widget.dart';
 import 'package:avatar_flow/widgets/custom_app_bar.dart';
 import 'package:avatar_flow/widgets/custom_button.dart';
 import 'package:avatar_flow/widgets/custom_svg.dart';
+import 'package:avatar_flow/widgets/custom_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -45,7 +46,7 @@ class _CloneVoiceView extends StatelessWidget {
                   children: const [
                     _AgreementPage(),
                     _RecordVoicePage(),
-                    _VoiceCharacteristicsPage(),
+                    _CharacterCharacteristicsPage(),
                   ],
                 ),
               ),
@@ -64,7 +65,7 @@ class _StepIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const labels = ['Agreement', 'Record', 'Characteristics'];
+    const labels = ['Agreement', 'Record', 'Character'];
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
@@ -418,77 +419,162 @@ class _RecordVoicePage extends StatelessWidget {
   }
 }
 
-class _VoiceCharacteristicsPage extends StatelessWidget {
-  const _VoiceCharacteristicsPage();
+class _CharacterCharacteristicsPage extends StatefulWidget {
+  const _CharacterCharacteristicsPage();
+
+  @override
+  State<_CharacterCharacteristicsPage> createState() =>
+      _CharacterCharacteristicsPageState();
+}
+
+class _CharacterCharacteristicsPageState
+    extends State<_CharacterCharacteristicsPage> {
+  final TextEditingController _searchController = TextEditingController();
+  String _query = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
 
-    final pitch = context.select<CloneVoiceProvider, double>((p) => p.pitch);
-    final speed = context.select<CloneVoiceProvider, double>((p) => p.speed);
-
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 10.h),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Voice Characteristics',
-            style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
-          ),
-          Spacing.y(2.0),
-          Text(
-            'Pitch (${pitch.toStringAsFixed(2)})',
-            style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
-          ),
-          Slider(
-            value: pitch,
-            min: 0.5,
-            max: 2.0,
-            onChanged: (value) =>
-                context.read<CloneVoiceProvider>().updatePitch(value),
-          ),
-          Spacing.y(1.2),
-          Text(
-            'Speed (${speed.toStringAsFixed(2)})',
-            style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
-          ),
-          Slider(
-            value: speed,
-            min: 0.5,
-            max: 2.0,
-            onChanged: (value) =>
-                context.read<CloneVoiceProvider>().updateSpeed(value),
-          ),
-          const Spacer(),
-          Row(
+      child: Consumer<CloneVoiceProvider>(
+        builder: (context, provider, _) {
+          final selectedTraits = provider.traits;
+          final query = _query.trim().toLowerCase();
+
+          final suggestions = CloneVoiceProvider.traitSuggestions
+              .where(
+                (t) =>
+                    !selectedTraits.contains(t) &&
+                    (query.isEmpty || t.toLowerCase().contains(query)),
+              )
+              .toList();
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: CustomButton(
-                  text: 'Back',
-                  isOutlineButton: true,
-                  onPressed: () =>
-                      context.read<CloneVoiceProvider>().previousStep(),
+              Text(
+                'Character Characteristics',
+                style: textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
                 ),
               ),
-              SizedBox(width: 10.w),
-              Expanded(
-                child: CustomButton(
-                  text: 'Finish',
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Voice cloning setup complete'),
+              Spacing.y(2.0),
+              if (selectedTraits.isNotEmpty) ...[
+                Wrap(
+                  spacing: 8.w,
+                  runSpacing: 8.h,
+                  children: selectedTraits.map((trait) {
+                    return InkWell(
+                      onTap: () => provider.toggleTrait(trait),
+                      borderRadius: BorderRadius.circular(100.r),
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 12.w,
+                          vertical: 8.h,
+                        ),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(999.r),
+
+                          color: Theme.of(context).colorScheme.surface,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              trait,
+                              style: textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            Spacing.x(2),
+                            Icon(
+                              Icons.close_rounded,
+                              size: 16.sp,
+                              color: context.appColors.primary,
+                            ),
+                          ],
+                        ),
                       ),
                     );
-                  },
+                  }).toList(),
                 ),
+                Spacing.y(2.0),
+              ],
+              CustomTextField(
+                controller: _searchController,
+                hintText: 'Search',
+                prefixIcon: CustomSvg(path: AppIconsSvg.search, size: 20),
+                onChanged: (val) {
+                  setState(() {
+                    _query = val ?? '';
+                  });
+                  return null;
+                },
               ),
+              Spacing.y(2),
+              Text('All', style: textTheme.headlineMedium),
+              Spacing.y(2),
+
+              Wrap(
+                spacing: 8.w,
+                runSpacing: 8.h,
+                children: suggestions.isNotEmpty
+                    ? suggestions
+                          .map(
+                            (trait) => InkWell(
+                              onTap: () => provider.toggleTrait(trait),
+                              borderRadius: BorderRadius.circular(999.r),
+                              child: Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 12.w,
+                                  vertical: 8.h,
+                                ),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(999.r),
+                                  border: Border.all(
+                                    color: context.appColors.lightGrey,
+                                  ),
+                                ),
+                                child: Text(
+                                  trait,
+                                  style: textTheme.bodySmall?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          )
+                          .toList()
+                    : [
+                        Text(
+                          'No traits found',
+                          style: textTheme.bodySmall?.copyWith(),
+                        ),
+                      ],
+              ),
+              const Spacer(),
+              CustomButton(
+                text: 'Next',
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Character characteristics saved'),
+                    ),
+                  );
+                },
+              ),
+              Spacing.y(1.5),
             ],
-          ),
-          Spacing.y(1.5),
-        ],
+          );
+        },
       ),
     );
   }

@@ -51,6 +51,38 @@ class CloneVoiceProvider extends ChangeNotifier {
   Duration? voiceDuration;
   Duration recordingElapsed = Duration.zero;
 
+  // -------------------------
+  // Character characteristics
+  // -------------------------
+  final List<String> traits = [];
+
+  static const List<String> traitSuggestions = [
+    'Adventurous',
+    'Brave',
+    'Bold',
+    'Calm',
+    'Charismatic',
+    'Cheerful',
+    'Curious',
+    'Creative',
+    'Fearless',
+    'Friendly',
+    'Kind',
+    'Loyal',
+    'Playful',
+    'Smart',
+    'Wise',
+  ];
+
+  void toggleTrait(String trait) {
+    if (traits.contains(trait)) {
+      traits.remove(trait);
+    } else {
+      traits.add(trait);
+    }
+    notifyListeners();
+  }
+
   final AudioRecorder _recorder = AudioRecorder();
   Timer? _recordingTimer;
   DateTime? _recordingStartAt;
@@ -124,24 +156,6 @@ class CloneVoiceProvider extends ChangeNotifier {
     voiceDuration = null;
     recordingElapsed = Duration.zero;
     _recordingStartAt = null;
-    notifyListeners();
-  }
-
-  // -------------------------
-  // Voice characteristics
-  // -------------------------
-  double pitch = 1.0;
-  double speed = 1.0;
-
-  void updatePitch(double value) {
-    if (pitch == value) return;
-    pitch = value;
-    notifyListeners();
-  }
-
-  void updateSpeed(double value) {
-    if (speed == value) return;
-    speed = value;
     notifyListeners();
   }
 

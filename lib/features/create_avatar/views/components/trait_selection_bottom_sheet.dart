@@ -1,8 +1,10 @@
 import 'package:avatar_flow/core/constants/app_constants.dart';
+import 'package:avatar_flow/core/constants/app_icons.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
 import 'package:avatar_flow/features/create_avatar/providers/create_avatar_provider.dart';
 import 'package:avatar_flow/widgets/custom_button.dart';
+import 'package:avatar_flow/widgets/custom_svg.dart';
 import 'package:avatar_flow/widgets/custom_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -110,10 +112,10 @@ class TraitSelectionBottomSheet extends StatelessWidget {
                   horizontal: 14.w,
                   vertical: 12.h,
                 ),
-                prefixIcon: Icon(
-                  Icons.search,
+                prefixIcon: CustomSvg(
+                  path: AppIconsSvg.search,
                   color: context.appColors.grey,
-                  size: 20.sp,
+                  size: 20,
                 ),
                 onChanged: (value) {
                   setModalState(() {
