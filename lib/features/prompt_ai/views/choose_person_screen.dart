@@ -1,5 +1,7 @@
 import 'package:avatar_flow/core/constants/app_constants.dart';
 import 'package:avatar_flow/core/constants/app_images.dart';
+import 'package:avatar_flow/core/router/navigation_service.dart';
+import 'package:avatar_flow/core/router/routes.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
 import 'package:avatar_flow/features/prompt_ai/providers/prompt_ai_provider.dart';
@@ -94,7 +96,10 @@ class _ChoosePersonScreenState extends State<ChoosePersonScreen> {
                               fontSize: 14.sp,
                               fontWeight: FontWeight.w600,
                             ),
-                        onPressed: () {},
+                        onPressed: () {
+                          provider.setSelectedPerson(options[_selectedIndex]);
+                          NavigationService.pushNamed(AppRoutes.cloneVoice);
+                        },
                         borderRadius: 100,
                       ),
                       Spacing.y(2.4),

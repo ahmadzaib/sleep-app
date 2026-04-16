@@ -1,4 +1,5 @@
 import 'package:avatar_flow/features/create_avatar/views/create_avatar_screen.dart';
+import 'package:avatar_flow/features/create_avatar/views/clone_voice_screen.dart';
 import 'package:avatar_flow/features/prompt_ai/views/prompt_avatar_screen.dart';
 import 'package:avatar_flow/features/prompt_ai/views/choose_person_screen.dart';
 import 'package:avatar_flow/features/avatar_detail/views/all_stories_screen.dart';
@@ -72,6 +73,11 @@ final GoRouter router = GoRouter(
         sourceImageUrl:
             (state.extra as Map<String, dynamic>?)?['imageUrl'] as String?,
       ),
+    ),
+    GoRoute(
+      name: AppRoutes.cloneVoice,
+      path: AppPaths.cloneVoice,
+      builder: (context, state) => const CloneVoiceScreen(),
     ),
   ],
 );
