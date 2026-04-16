@@ -7,7 +7,7 @@ import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
 import 'package:avatar_flow/features/create_avatar/providers/create_avatar_provider.dart';
 import 'package:avatar_flow/features/create_avatar/views/components/trait_selection_bottom_sheet.dart';
-import 'package:avatar_flow/features/create_avatar/views/components/voice_note_tile.dart';
+import 'package:avatar_flow/features/create_avatar/views/components/voice_note_bs_tile.dart';
 import 'package:avatar_flow/features/avatar_detail/views/components/avatar_section.dart';
 import 'package:avatar_flow/widgets/bg_widget.dart';
 import 'package:avatar_flow/widgets/circled_icon_widget.dart';
@@ -149,7 +149,7 @@ class CreateAvatarScreen extends StatelessWidget {
                         ),
                       ),
                       Spacing.y(1.5),
-                      const VoiceNoteTile(
+                      const VoiceNoteBSTile(
                         title: 'Avatar Voice',
                         audioPath: 'assets/audio/music.mp3',
                         isNetwork: false,

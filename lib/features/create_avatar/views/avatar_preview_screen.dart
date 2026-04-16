@@ -8,7 +8,7 @@ import 'package:avatar_flow/core/utils/spacing.dart';
 import 'package:avatar_flow/features/create_avatar/providers/create_avatar_provider.dart';
 import 'package:avatar_flow/features/create_avatar/views/components/sample_voices_bottom_sheet.dart';
 import 'package:avatar_flow/features/create_avatar/views/components/trait_selection_bottom_sheet.dart';
-import 'package:avatar_flow/features/create_avatar/views/components/voice_note_tile.dart';
+import 'package:avatar_flow/features/create_avatar/views/components/voice_note_bs_tile.dart';
 import 'package:avatar_flow/widgets/bg_widget.dart';
 import 'package:avatar_flow/widgets/circled_icon_widget.dart';
 import 'package:avatar_flow/widgets/confirmation_dialog.dart';
@@ -269,7 +269,7 @@ class _DetailsCard extends StatelessWidget {
             ),
           ],
         ),
-        VoiceNoteTile(
+        VoiceNoteBSTile(
           title: provider.selectedVoice,
           audioPath: 'assets/audio/music.mp3',
           isNetwork: false,

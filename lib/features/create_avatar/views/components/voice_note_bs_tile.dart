@@ -7,12 +7,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:just_audio/just_audio.dart';
 
-class VoiceNoteTile extends StatefulWidget {
+class VoiceNoteBSTile extends StatefulWidget {
   final String title;
   final String audioPath;
   final bool isNetwork;
 
-  const VoiceNoteTile({
+  const VoiceNoteBSTile({
     super.key,
     required this.title,
     required this.audioPath,
@@ -20,10 +20,10 @@ class VoiceNoteTile extends StatefulWidget {
   });
 
   @override
-  State<VoiceNoteTile> createState() => _VoiceNoteTileState();
+  State<VoiceNoteBSTile> createState() => _VoiceNoteBSTileState();
 }
 
-class _VoiceNoteTileState extends State<VoiceNoteTile> {
+class _VoiceNoteBSTileState extends State<VoiceNoteBSTile> {
   final AudioPlayer _player = AudioPlayer();
   bool isPlaying = false;
 
