@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class AvatarProvider extends ChangeNotifier {
+class CreateAvatarProvider extends ChangeNotifier {
   int currentIndex = 0;
   String avatarName = "Lilian";
   String selectedGender = "Female";

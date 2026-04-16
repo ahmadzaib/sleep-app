@@ -1,7 +1,7 @@
 import 'package:avatar_flow/core/constants/app_constants.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
-import 'package:avatar_flow/features/avatar/providers/avatar_provider.dart';
+import 'package:avatar_flow/features/create_avatar/providers/create_avatar_provider.dart';
 import 'package:avatar_flow/widgets/custom_button.dart';
 import 'package:avatar_flow/widgets/custom_textfield.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +10,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 class TraitSelectionBottomSheet extends StatelessWidget {
   const TraitSelectionBottomSheet({super.key, required this.provider});
 
-  final AvatarProvider provider;
+  final CreateAvatarProvider provider;
 
   static const List<String> traitSuggestions = [
     'Adventurous',
@@ -32,7 +32,7 @@ class TraitSelectionBottomSheet extends StatelessWidget {
 
   static Future<void> show(
     BuildContext context, {
-    required AvatarProvider provider,
+    required CreateAvatarProvider provider,
   }) {
     return showModalBottomSheet<void>(
       context: context,
