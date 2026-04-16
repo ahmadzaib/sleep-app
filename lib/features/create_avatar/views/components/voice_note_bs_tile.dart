@@ -11,12 +11,14 @@ class VoiceNoteBSTile extends StatefulWidget {
   final String title;
   final String audioPath;
   final bool isNetwork;
+  final bool isFile;
 
   const VoiceNoteBSTile({
     super.key,
     required this.title,
     required this.audioPath,
     this.isNetwork = false,
+    this.isFile = false,
   });
 
   @override
@@ -46,6 +48,8 @@ class _VoiceNoteBSTileState extends State<VoiceNoteBSTile> {
     try {
       if (widget.isNetwork) {
         await _player.setUrl(widget.audioPath);
+      } else if (widget.isFile) {
+        await _player.setFilePath(widget.audioPath);
       } else {
         await _player.setAsset(widget.audioPath);
       }

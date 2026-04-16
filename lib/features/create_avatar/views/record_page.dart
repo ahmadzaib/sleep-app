@@ -10,6 +10,7 @@ import 'package:avatar_flow/widgets/custom_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:provider/provider.dart';
 
 class RecordVoicePage extends StatefulWidget {
@@ -22,7 +23,10 @@ class RecordVoicePage extends StatefulWidget {
 class _RecordVoicePageState extends State<RecordVoicePage> {
   final TextEditingController _voiceNameController = TextEditingController();
   final FocusNode _voiceNameFocusNode = FocusNode();
+  final AudioPlayer _player = AudioPlayer();
   bool _isEditingVoiceName = false;
+  bool _isPlaying = false;
+  String? _loadedAudioPath;
 
   @override
   void initState() {
@@ -33,12 +37,27 @@ class _RecordVoicePageState extends State<RecordVoicePage> {
         _finishVoiceNameEditing(provider);
       }
     });
+    _player.playerStateStream.listen((state) {
+      if (!mounted) return;
+
+      final isActive =
+          state.playing &&
+          state.processingState != ProcessingState.completed &&
+          state.processingState != ProcessingState.idle;
+
+      if (_isPlaying != isActive) {
+        setState(() {
+          _isPlaying = isActive;
+        });
+      }
+    });
   }
 
   @override
   void dispose() {
     _voiceNameController.dispose();
     _voiceNameFocusNode.dispose();
+    _player.dispose();
     super.dispose();
   }
 
@@ -92,6 +111,12 @@ class _RecordVoicePageState extends State<RecordVoicePage> {
           final voiceName = provider.voiceName.isEmpty
               ? "Name of voice"
               : provider.voiceName;
+
+          if (!hasRecording && _loadedAudioPath != null) {
+            _loadedAudioPath = null;
+            _player.stop();
+            _isPlaying = false;
+          }
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -187,6 +212,23 @@ class _RecordVoicePageState extends State<RecordVoicePage> {
                     ),
                     Spacing.y(1.6),
                     if (hasRecording) ...[
+                      IconButton(
+                        onPressed: () async {
+                          await _togglePlayback(provider.audioPath!);
+                        },
+                        style: IconButton.styleFrom(
+                          backgroundColor: context.appColors.primary.withValues(
+                            alpha: 0.12,
+                          ),
+                          minimumSize: Size(52.w, 52.w),
+                        ),
+                        icon: Icon(
+                          _isPlaying ? Icons.pause : Icons.play_arrow,
+                          color: context.appColors.primary,
+                          size: 28.sp,
+                        ),
+                      ),
+                      Spacing.y(1.2),
                       TextButton(
                         onPressed: () async => provider.retakeRecording(),
                         child: Text(
@@ -261,6 +303,36 @@ class _RecordVoicePageState extends State<RecordVoicePage> {
       setState(() {
         _isEditingVoiceName = false;
       });
+    }
+  }
+
+  Future<void> _togglePlayback(String audioPath) async {
+    try {
+      if (_loadedAudioPath != audioPath) {
+        await _player.setFilePath(audioPath);
+        _loadedAudioPath = audioPath;
+      }
+
+      if (_player.playing) {
+        await _player.pause();
+        if (mounted) {
+          setState(() {
+            _isPlaying = false;
+          });
+        }
+      } else {
+        if (_player.processingState == ProcessingState.completed) {
+          await _player.seek(Duration.zero);
+        }
+        if (mounted) {
+          setState(() {
+            _isPlaying = true;
+          });
+        }
+        await _player.play();
+      }
+    } catch (e) {
+      debugPrint('Audio playback error: $e');
     }
   }
 }

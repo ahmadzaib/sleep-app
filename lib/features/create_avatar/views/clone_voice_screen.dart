@@ -1,3 +1,4 @@
+import 'package:avatar_flow/core/router/navigation_service.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
 import 'package:avatar_flow/features/create_avatar/providers/clone_voice_provider.dart';
 import 'package:avatar_flow/features/create_avatar/views/agreement_page.dart';
@@ -28,7 +29,17 @@ class _CloneVoiceView extends StatelessWidget {
     return BgWidget(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: CustomAppBar(title: "Clone Voice"),
+        appBar: CustomAppBar(
+          title: "Clone Voice",
+          onBackBtnPress: () {
+            if (provider.currentStep > 0) {
+              provider.previousStep();
+              return;
+            }
+            NavigationService.pop();
+            return;
+          },
+        ),
         body: SafeArea(
           child: Column(
             children: [

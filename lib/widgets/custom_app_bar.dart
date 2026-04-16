@@ -11,6 +11,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final List<Widget>? actions;
   final bool showBackButton;
   final bool isALigned;
+  final VoidCallback? onBackBtnPress;
 
   const CustomAppBar({
     super.key,
@@ -20,6 +21,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.actions,
     this.showBackButton = true,
     this.isALigned = false,
+    this.onBackBtnPress,
   });
 
   @override
@@ -35,7 +37,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           child: Row(
             children: [
               showBackButton
-                  ? const CustomBackButton()
+                  ? CustomBackButton(onPressed: onBackBtnPress)
                   : SizedBox(height: 50.h, width: 24.w),
               Expanded(
                 child:
