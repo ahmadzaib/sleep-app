@@ -3,6 +3,7 @@ import 'package:avatar_flow/core/constants/app_icons.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
 import 'package:avatar_flow/features/create_avatar/providers/clone_voice_provider.dart';
+import 'package:avatar_flow/features/create_avatar/views/components/sample_voices_bottom_sheet.dart';
 import 'package:avatar_flow/widgets/circled_icon_widget.dart';
 import 'package:avatar_flow/widgets/custom_button.dart';
 import 'package:avatar_flow/widgets/custom_svg.dart';
@@ -123,15 +124,7 @@ class AgreementPage extends StatelessWidget {
             text: "view sample voices",
             onPressed: () {
               // context.read<CloneVoiceProvider>().nextStep();
-              showModalBottomSheet(
-                context: context,
-                builder: (context) {
-                  return SizedBox(
-                    height: 200.h,
-                    child: Column(children: []),
-                  );
-                },
-              );
+              SampleVoicesBottomSheet.show(context);
             },
           ),
           Spacing.y(1.5),

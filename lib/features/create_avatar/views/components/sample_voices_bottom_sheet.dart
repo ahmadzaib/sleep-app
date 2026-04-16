@@ -6,7 +6,6 @@ import 'package:avatar_flow/features/create_avatar/providers/create_avatar_provi
 import 'package:avatar_flow/features/create_avatar/providers/clone_voice_provider.dart';
 import 'package:avatar_flow/widgets/custom_button.dart';
 import 'package:avatar_flow/widgets/custom_svg.dart';
-import 'package:avatar_flow/widgets/custom_text_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
