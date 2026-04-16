@@ -6,13 +6,41 @@ import 'package:avatar_flow/features/create_avatar/providers/clone_voice_provide
 import 'package:avatar_flow/widgets/circled_icon_widget.dart';
 import 'package:avatar_flow/widgets/custom_button.dart';
 import 'package:avatar_flow/widgets/custom_svg.dart';
+import 'package:avatar_flow/widgets/custom_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:provider/provider.dart';
 
-class RecordVoicePage extends StatelessWidget {
-  const RecordVoicePage();
+class RecordVoicePage extends StatefulWidget {
+  const RecordVoicePage({super.key});
+
+  @override
+  State<RecordVoicePage> createState() => _RecordVoicePageState();
+}
+
+class _RecordVoicePageState extends State<RecordVoicePage> {
+  final TextEditingController _voiceNameController = TextEditingController();
+  final FocusNode _voiceNameFocusNode = FocusNode();
+  bool _isEditingVoiceName = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _voiceNameFocusNode.addListener(() {
+      if (!_voiceNameFocusNode.hasFocus && _isEditingVoiceName && mounted) {
+        final provider = context.read<CloneVoiceProvider>();
+        _finishVoiceNameEditing(provider);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _voiceNameController.dispose();
+    _voiceNameFocusNode.dispose();
+    super.dispose();
+  }
 
   String _formatDuration(Duration duration) {
     final minutes = duration.inMinutes.remainder(60).toString().padLeft(2, '0');
@@ -61,6 +89,9 @@ class RecordVoicePage extends StatelessWidget {
           final transcript = provider.transcript;
           final voiceDuration = provider.voiceDuration;
           final recordingElapsed = provider.recordingElapsed;
+          final voiceName = provider.voiceName.isEmpty
+              ? "Name of voice"
+              : provider.voiceName;
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -91,12 +122,34 @@ class RecordVoicePage extends StatelessWidget {
                     Spacing.y(2),
                     Align(
                       alignment: Alignment.centerLeft,
-                      child: Text(
-                        "Name of voice",
-                        style: textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                      child: _isEditingVoiceName
+                          ? SizedBox(
+                              width: 1.sw,
+                              child: CustomTextField(
+                                controller: _voiceNameController,
+                                focusNode: _voiceNameFocusNode,
+                                hintText: "Name of voice",
+                                borderColor: Colors.transparent,
+                                fillColor: Colors.transparent,
+                                contentPadding: EdgeInsets.zero,
+                                textfieldBorderRadius: AppConstants.smallRadius,
+                                onChanged: (value) {
+                                  provider.updateVoiceName(value ?? "");
+                                  return null;
+                                },
+                                onFieldSubmitted: (_) =>
+                                    _finishVoiceNameEditing(provider),
+                              ),
+                            )
+                          : InkWell(
+                              onTap: () => _startVoiceNameEditing(provider),
+                              child: Text(
+                                voiceName,
+                                style: textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
                     ),
                     Spacing.y(0.8),
                     Divider(
@@ -133,34 +186,30 @@ class RecordVoicePage extends StatelessWidget {
                       ),
                     ),
                     Spacing.y(1.6),
-                    TextButton(
-                      onPressed: hasRecording
-                          ? () async => provider.retakeRecording()
-                          : null,
-                      child: Text(
-                        "Retake voice",
-                        style: textTheme.bodyMedium?.copyWith(
-                          color: hasRecording
-                              ? context.appColors.primary
-                              : Theme.of(
-                                  context,
-                                ).colorScheme.onSurface.withValues(alpha: .4),
-                          fontWeight: FontWeight.w600,
+                    if (hasRecording) ...[
+                      TextButton(
+                        onPressed: () async => provider.retakeRecording(),
+                        child: Text(
+                          "Retake voice",
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: context.appColors.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
-                    ),
-                    Spacing.y(1),
-                    CustomButton(
-                      text: isRecording ? 'Stop' : 'Start Recording',
-                      // isLoading: isRecording,
-                      onPressed: () async {
-                        if (isRecording) {
-                          await provider.stopRecording();
-                        } else {
-                          await provider.startRecording();
-                        }
-                      },
-                    ),
+                    ] else ...[
+                      Spacing.y(1),
+                      CustomButton(
+                        text: isRecording ? 'Stop' : 'Start Recording',
+                        onPressed: () async {
+                          if (isRecording) {
+                            await provider.stopRecording();
+                          } else {
+                            await provider.startRecording();
+                          }
+                        },
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -187,5 +236,31 @@ class RecordVoicePage extends StatelessWidget {
         },
       ),
     );
+  }
+
+  void _startVoiceNameEditing(CloneVoiceProvider provider) {
+    _voiceNameController
+      ..text = provider.voiceName
+      ..selection = TextSelection.collapsed(offset: provider.voiceName.length);
+
+    setState(() {
+      _isEditingVoiceName = true;
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _voiceNameFocusNode.requestFocus();
+      }
+    });
+  }
+
+  void _finishVoiceNameEditing(CloneVoiceProvider provider) {
+    provider.updateVoiceName(_voiceNameController.text);
+
+    if (mounted) {
+      setState(() {
+        _isEditingVoiceName = false;
+      });
+    }
   }
 }

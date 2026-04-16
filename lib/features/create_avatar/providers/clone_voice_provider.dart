@@ -50,6 +50,7 @@ class CloneVoiceProvider extends ChangeNotifier {
   String? transcript;
   Duration? voiceDuration;
   Duration recordingElapsed = Duration.zero;
+  String voiceName = '';
 
   // -------------------------
   // Character characteristics
@@ -156,6 +157,11 @@ class CloneVoiceProvider extends ChangeNotifier {
     voiceDuration = null;
     recordingElapsed = Duration.zero;
     _recordingStartAt = null;
+    notifyListeners();
+  }
+
+  void updateVoiceName(String value) {
+    voiceName = value.trim();
     notifyListeners();
   }
 
