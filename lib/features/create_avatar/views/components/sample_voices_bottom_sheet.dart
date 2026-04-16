@@ -4,13 +4,14 @@ import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
 import 'package:avatar_flow/features/create_avatar/providers/create_avatar_provider.dart';
 import 'package:avatar_flow/features/create_avatar/providers/clone_voice_provider.dart';
+import 'package:avatar_flow/features/create_avatar/providers/sample_voices_provider.dart';
 import 'package:avatar_flow/widgets/custom_button.dart';
 import 'package:avatar_flow/widgets/custom_svg.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
-class SampleVoicesBottomSheet extends StatefulWidget {
+class SampleVoicesBottomSheet extends StatelessWidget {
   const SampleVoicesBottomSheet({super.key});
 
   static Future<void> show(BuildContext context) {
@@ -23,56 +24,15 @@ class SampleVoicesBottomSheet extends StatefulWidget {
           top: Radius.circular(AppConstants.extraLargeRadius),
         ),
       ),
-      builder: (_) => const SampleVoicesBottomSheet(),
+      builder: (_) => ChangeNotifierProvider(
+        create: (_) => SampleVoicesProvider(),
+        child: const SampleVoicesBottomSheet(),
+      ),
     );
   }
 
   @override
-  State<SampleVoicesBottomSheet> createState() =>
-      _SampleVoicesBottomSheetState();
-}
-
-class _SampleVoicesBottomSheetState extends State<SampleVoicesBottomSheet> {
-  static const List<String> categoryLabels = [
-    'All',
-    'Man',
-    'Woman',
-    'Excited',
-    'Calm',
-    'Serious',
-    'Deep',
-    'Random',
-  ];
-
-  final List<Map<String, dynamic>> voices = const [
-    {
-      'name': 'Voice 1',
-      'tags': ['Man', 'Serious', 'Deep'],
-    },
-    {
-      'name': 'Voice 2',
-      'tags': ['Woman', 'Calm', 'Random'],
-    },
-    {
-      'name': 'Voice 3',
-      'tags': ['Excited', 'Random'],
-    },
-  ];
-
-  String _activeCategory = categoryLabels.first;
-
-  List<Map<String, dynamic>> get _filteredVoices {
-    if (_activeCategory == 'All') return voices;
-    return voices
-        .where((v) => (v['tags'] as List<String>).contains(_activeCategory))
-        .toList();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final createProvider = context.watch<CreateAvatarProvider>();
-
     return Padding(
       padding: EdgeInsets.only(
         left: AppConstants.paddingOnly,
@@ -85,139 +45,16 @@ class _SampleVoicesBottomSheetState extends State<SampleVoicesBottomSheet> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Center(
-              child: Container(
-                width: 42.w,
-                height: 4.h,
-                decoration: BoxDecoration(
-                  color: context.appColors.lightGrey,
-                  borderRadius: BorderRadius.circular(999.r),
-                ),
-              ),
-            ),
+            const _BottomSheetHandle(),
             Spacing.y(1.6),
-            Center(
-              child: Text(
-                "Choose Your Hero's Voice!",
-                style: textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 18.sp,
-                ),
-              ),
-            ),
+            const _Title(),
             Spacing.y(2),
-            Wrap(
-              spacing: 8.w,
-              runSpacing: 8.h,
-              children: categoryLabels.map((label) {
-                final isActive = label == _activeCategory;
-                return InkWell(
-                  borderRadius: BorderRadius.circular(999.r),
-                  onTap: () {
-                    setState(() {
-                      _activeCategory = label;
-                    });
-
-                    final createProvider = context.read<CreateAvatarProvider>();
-                    final selected = createProvider.selectedVoice;
-                    final filtered = _filteredVoices;
-
-                    if (filtered.isEmpty) return;
-
-                    final idx = filtered.indexWhere(
-                      (v) => v['name'] as String == selected,
-                    );
-                    if (idx < 0) {
-                      final firstVoice = filtered.first['name'] as String;
-                      createProvider.updateVoice(firstVoice);
-                    }
-                  },
-                  child: Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 14.w,
-                      vertical: 10.h,
-                    ),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(999.r),
-                      border: !isActive
-                          ? Border.all(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurface.withValues(alpha: .3),
-                            )
-                          : null,
-                      color: isActive
-                          ? context.appColors.secondary
-                          : Colors.transparent,
-                    ),
-                    child: Text(
-                      label,
-                      style: textTheme.bodySmall?.copyWith(
-                        color: isActive
-                            ? Theme.of(context).colorScheme.onPrimary
-                            : label == "Random"
-                            ? context.appColors.primary
-                            : context.appColors.grey,
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
+            const _CategoryChips(),
             Spacing.y(2),
-            Expanded(
-              child: ListView.separated(
-                itemCount: _filteredVoices.length,
-                separatorBuilder: (_, __) => SizedBox(height: 10.h),
-                itemBuilder: (context, index) {
-                  final voice = _filteredVoices[index];
-                  final name = voice['name'] as String;
-
-                  return InkWell(
-                    borderRadius: BorderRadius.circular(16.r),
-                    onTap: () {
-                      createProvider.updateVoice(name);
-                    },
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 6.w),
-                      child: Row(
-                        children: [
-                          Radio<String>(
-                            value: name,
-
-                            groupValue: createProvider.selectedVoice,
-                            onChanged: (_) {
-                              createProvider.updateVoice(name);
-                            },
-                          ),
-                          Expanded(
-                            child: Text(
-                              name,
-                              style: textTheme.bodyMedium?.copyWith(
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-
-                          IconButton(
-                            onPressed: () {},
-                            icon: CustomSvg(path: AppIconsSvg.heart),
-                          ),
-                          IconButton(
-                            onPressed: () {},
-                            icon: CustomSvg(path: AppIconsSvg.play),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
+            const Expanded(child: _VoicesList()),
             Spacing.y(1.2),
             CustomButton(
               buttonColor: context.appColors.primary.withValues(alpha: .2),
-
               textColor: context.appColors.primary,
               text: "Clone your voice",
               onPressed: () {
@@ -225,7 +62,6 @@ class _SampleVoicesBottomSheetState extends State<SampleVoicesBottomSheet> {
                 context.read<CloneVoiceProvider>().nextStep();
               },
             ),
-
             Spacing.y(1),
             CustomButton(
               text: "Save",
@@ -234,6 +70,297 @@ class _SampleVoicesBottomSheetState extends State<SampleVoicesBottomSheet> {
               },
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _BottomSheetHandle extends StatelessWidget {
+  const _BottomSheetHandle();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Container(
+        width: 42.w,
+        height: 4.h,
+        decoration: BoxDecoration(
+          color: context.appColors.lightGrey,
+          borderRadius: BorderRadius.circular(999.r),
+        ),
+      ),
+    );
+  }
+}
+
+class _Title extends StatelessWidget {
+  const _Title();
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+
+    return Center(
+      child: Text(
+        "Choose Your Hero's Voice!",
+        style: textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.w700,
+          fontSize: 18.sp,
+        ),
+      ),
+    );
+  }
+}
+
+class _CategoryChips extends StatelessWidget {
+  const _CategoryChips();
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+
+    return Wrap(
+      spacing: 8.w,
+      runSpacing: 8.h,
+      children: SampleVoicesProvider.categoryLabels.map((label) {
+        return Selector<SampleVoicesProvider, bool>(
+          selector: (_, provider) => provider.selectedCategory == label,
+          builder: (context, isActive, _) {
+            return InkWell(
+              borderRadius: BorderRadius.circular(999.r),
+              onTap: () {
+                final sampleProvider = context.read<SampleVoicesProvider>();
+                final createProvider = context.read<CreateAvatarProvider>();
+
+                sampleProvider.selectCategory(label);
+
+                if (sampleProvider.containsVoice(
+                  createProvider.selectedVoice,
+                )) {
+                  return;
+                }
+
+                final fallbackVoice = sampleProvider.firstFilteredVoiceName;
+                if (fallbackVoice != null) {
+                  createProvider.updateVoice(fallbackVoice);
+                }
+              },
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(999.r),
+                  border: isActive
+                      ? null
+                      : Border.all(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withValues(alpha: .3),
+                        ),
+                  color: isActive
+                      ? context.appColors.secondary
+                      : Colors.transparent,
+                ),
+                child: Text(
+                  label,
+                  style: textTheme.bodySmall?.copyWith(
+                    color: isActive
+                        ? Theme.of(context).colorScheme.onPrimary
+                        : label == 'Random'
+                        ? context.appColors.primary
+                        : context.appColors.grey,
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      }).toList(),
+    );
+  }
+}
+
+class _VoicesList extends StatelessWidget {
+  const _VoicesList();
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<SampleVoicesProvider>(
+      builder: (context, provider, _) {
+        final voices = provider.filteredVoices;
+
+        if (voices.isEmpty) {
+          return Center(
+            child: Text(
+              'No sample voices found for this category.',
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: context.appColors.grey),
+            ),
+          );
+        }
+
+        return ListView.separated(
+          itemCount: voices.length,
+          separatorBuilder: (_, __) => SizedBox(height: 12.h),
+          itemBuilder: (context, index) =>
+              _SampleVoiceTile(voice: voices[index]),
+        );
+      },
+    );
+  }
+}
+
+class _SampleVoiceTile extends StatelessWidget {
+  const _SampleVoiceTile({required this.voice});
+
+  final SampleVoice voice;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final isSelected = context.select<CreateAvatarProvider, bool>(
+      (provider) => provider.selectedVoice == voice.name,
+    );
+    final isFavorite = context.select<SampleVoicesProvider, bool>(
+      (provider) => provider.isFavorite(voice.id),
+    );
+    final isPlaying = context.select<SampleVoicesProvider, bool>(
+      (provider) => provider.isPlaying(voice.id),
+    );
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(16.r),
+      onTap: () => context.read<CreateAvatarProvider>().updateVoice(voice.name),
+      child: AnimatedContainer(
+        duration: AppConstants.defaultDuration,
+        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? context.appColors.primary.withValues(alpha: 0.08)
+              : Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(16.r),
+          border: Border.all(
+            color: isSelected
+                ? context.appColors.primary.withValues(alpha: 0.4)
+                : Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.12),
+          ),
+        ),
+        child: Row(
+          children: [
+            _VoiceSelectionIndicator(isSelected: isSelected),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    voice.name,
+                    style: textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  SizedBox(height: 6.h),
+                  Text(
+                    voice.tags.join(' • '),
+                    style: textTheme.bodySmall?.copyWith(
+                      color: context.appColors.grey,
+                    ),
+                  ),
+                  SizedBox(height: 10.h),
+                  _Waveform(isActive: isPlaying),
+                ],
+              ),
+            ),
+            SizedBox(width: 8.w),
+            IconButton(
+              onPressed: () {
+                context.read<SampleVoicesProvider>().toggleFavorite(voice.id);
+              },
+              icon: CustomSvg(
+                path: AppIconsSvg.heart,
+                color: isFavorite
+                    ? context.appColors.error
+                    : context.appColors.grey,
+              ),
+            ),
+            IconButton(
+              onPressed: () {
+                context.read<SampleVoicesProvider>().togglePlayback(voice);
+              },
+              icon: CustomSvg(
+                path: isPlaying ? AppIconsSvg.pause : AppIconsSvg.play,
+                color: context.appColors.primary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _VoiceSelectionIndicator extends StatelessWidget {
+  const _VoiceSelectionIndicator({required this.isSelected});
+
+  final bool isSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: AppConstants.defaultDuration,
+      width: 22.w,
+      height: 22.w,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: isSelected
+              ? context.appColors.primary
+              : context.appColors.grey.withValues(alpha: 0.5),
+          width: 1.6,
+        ),
+      ),
+      child: Center(
+        child: AnimatedContainer(
+          duration: AppConstants.defaultDuration,
+          width: 10.w,
+          height: 10.w,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: isSelected ? context.appColors.primary : Colors.transparent,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _Waveform extends StatelessWidget {
+  const _Waveform({required this.isActive});
+
+  final bool isActive;
+
+  @override
+  Widget build(BuildContext context) {
+    final baseColor = isActive
+        ? context.appColors.primary
+        : context.appColors.grey.withValues(alpha: 0.45);
+
+    return Row(
+      children: List.generate(
+        14,
+        (index) => Container(
+          margin: EdgeInsets.only(right: 3.w),
+          width: 3.w,
+          height: ((index % 4) + 2) * 4.h,
+          decoration: BoxDecoration(
+            color: baseColor.withValues(
+              alpha: isActive ? (0.45 + (index % 4) * 0.12) : 1,
+            ),
+            borderRadius: BorderRadius.circular(2.r),
+          ),
         ),
       ),
     );
