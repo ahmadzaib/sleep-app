@@ -39,70 +39,65 @@ class CustomButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ZoomTapAnimation(
-      onTap: onPressed,
-      child: MaterialButton(
-        minWidth: 45,
+      onTap: (isDisabled)
+          ? null
+          : () {
+              HapticHelper.mediumImpact();
+              onPressed?.call();
+            },
+      child: Container(
+        alignment: Alignment.center,
+        height: height.h,
         padding: const EdgeInsets.all(12),
-        shape: RoundedRectangleBorder(
-          side: BorderSide(
+        decoration: BoxDecoration(
+          color: isOutlineButton
+              ? Colors.transparent
+              : (isDisabled)
+              ? context.appColors.grey
+              : buttonColor ?? context.appColors.secondary,
+          borderRadius: BorderRadius.circular(buttonBorderRadius ?? 30.r),
+          border: Border.all(
             color: isOutlineButton
                 ? buttonColor ?? context.appColors.lightGrey
                 : Colors.transparent,
           ),
-          borderRadius: BorderRadius.circular(buttonBorderRadius ?? 30.r),
         ),
-        height: height.h,
-        color: isOutlineButton
-            ? null
-            : (isDisabled)
-            ? context.appColors.grey
-            : buttonColor ?? context.appColors.secondary,
-        elevation: 0.0,
-        onPressed: (isDisabled)
-            ? () {}
-            : () {
-                HapticHelper.mediumImpact();
-                onPressed?.call();
-              },
-        child: Center(
-          child: isLoading
-              ? SizedBox(
-                  width: 20.w,
-                  height: 20.h,
-                  child: AppLoading(
-                    color: Theme.of(context).colorScheme.onPrimary,
-                  ),
-                )
-              : Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    if (prefixIcon != null) ...[
-                      SvgPicture.asset(
-                        prefixIcon!,
-                        colorFilter: ColorFilter.mode(
-                          preffixIconColor ??
-                              textColor ??
-                              Theme.of(context).iconTheme.color!,
-                          BlendMode.srcIn,
-                        ),
-                      ),
-                      SizedBox(width: 8.w),
-                    ],
-                    Text(
-                      text,
-                      style: Theme.of(context).textTheme.headlineSmall!
-                          .copyWith(
-                            color: isOutlineButton
-                                ? textColor
-                                : textColor ??
-                                      Theme.of(context).colorScheme.onPrimary,
-                            fontSize: textFontSize ?? 15.sp,
-                            fontWeight: FontWeight.w600,
-                          ),
-                    ),
-                  ],
+        child: isLoading
+            ? SizedBox(
+                width: 20.w,
+                height: 20.h,
+                child: AppLoading(
+                  color: Theme.of(context).colorScheme.onPrimary,
                 ),
-        ),
+              )
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (prefixIcon != null) ...[
+                    SvgPicture.asset(
+                      prefixIcon!,
+                      colorFilter: ColorFilter.mode(
+                        preffixIconColor ??
+                            textColor ??
+                            Theme.of(context).iconTheme.color!,
+                        BlendMode.srcIn,
+                      ),
+                    ),
+                    SizedBox(width: 8.w),
+                  ],
+                  Text(
+                    text,
+                    style: Theme.of(context).textTheme.headlineSmall!.copyWith(
+                      color: isOutlineButton
+                          ? textColor
+                          : textColor ??
+                                Theme.of(context).colorScheme.onPrimary,
+                      fontSize: textFontSize ?? 15.sp,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
       ),
     );
   }
