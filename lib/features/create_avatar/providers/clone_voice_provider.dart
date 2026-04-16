@@ -1,12 +1,9 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:just_audio/just_audio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:record/record.dart';
-import 'package:flutter_tts/flutter_tts.dart';
 
 class CloneVoiceProvider extends ChangeNotifier {
   bool isAgreed = false;
@@ -52,24 +49,13 @@ class CloneVoiceProvider extends ChangeNotifier {
   String? audioPath;
   String? transcript;
   Duration? voiceDuration;
-  bool isPlaying = false;
   Duration recordingElapsed = Duration.zero;
 
   final AudioRecorder _recorder = AudioRecorder();
-  final AudioPlayer _player = AudioPlayer();
-  final FlutterTts _tts = FlutterTts();
   Timer? _recordingTimer;
   DateTime? _recordingStartAt;
-  StreamSubscription<PlayerState>? _playerStateSub;
 
-  CloneVoiceProvider() {
-    _playerStateSub = _player.playerStateStream.listen((state) {
-      if (state.processingState == ProcessingState.completed && isPlaying) {
-        isPlaying = false;
-        notifyListeners();
-      }
-    });
-  }
+  CloneVoiceProvider();
 
   Future<void> startRecording() async {
     if (isRecording) {
@@ -79,11 +65,6 @@ class CloneVoiceProvider extends ChangeNotifier {
     final micGranted = await Permission.microphone.request();
     if (!micGranted.isGranted) {
       return;
-    }
-
-    if (isPlaying) {
-      await _player.stop();
-      isPlaying = false;
     }
 
     final dir = await getTemporaryDirectory();
@@ -128,35 +109,6 @@ class CloneVoiceProvider extends ChangeNotifier {
     }
     transcript =
         'Your voice recording is ready. Tap play to preview or retake if needed.';
-    isPlaying = false;
-    notifyListeners();
-
-    await _tts.stop();
-    await _tts.speak(transcript!);
-  }
-
-  Future<void> togglePlayback() async {
-    final path = audioPath;
-    if (path == null || isRecording) {
-      return;
-    }
-
-    if (isPlaying) {
-      await _player.pause();
-      isPlaying = false;
-      notifyListeners();
-      return;
-    }
-
-    final file = File(path);
-    if (!await file.exists()) {
-      return;
-    }
-
-    await _player.setFilePath(path);
-    await _player.seek(Duration.zero);
-    await _player.play();
-    isPlaying = true;
     notifyListeners();
   }
 
@@ -165,12 +117,8 @@ class CloneVoiceProvider extends ChangeNotifier {
     if (isRecording) {
       await _recorder.stop();
     }
-    if (isPlaying) {
-      await _player.stop();
-    }
 
     isRecording = false;
-    isPlaying = false;
     audioPath = null;
     transcript = null;
     voiceDuration = null;
@@ -200,9 +148,7 @@ class CloneVoiceProvider extends ChangeNotifier {
   @override
   void dispose() {
     _recordingTimer?.cancel();
-    _playerStateSub?.cancel();
     _recorder.dispose();
-    _player.dispose();
     pageController.dispose();
     super.dispose();
   }
