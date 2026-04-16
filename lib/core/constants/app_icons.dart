@@ -29,6 +29,7 @@ class AppIconsSvg {
   static const String send = "assets/icons/send.svg";
   static const String mic = "assets/icons/mic.svg";
   static const String wave = "assets/icons/wave.svg";
+  static const String heart = "assets/icons/heart.svg";
 
   // media pick
   static const String camera = "assets/icons/camera.svg";
