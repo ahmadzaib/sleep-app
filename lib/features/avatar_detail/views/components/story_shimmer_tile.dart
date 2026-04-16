@@ -1,5 +1,4 @@
 import 'package:avatar_flow/core/constants/app_constants.dart';
-import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:shimmer/shimmer.dart';
