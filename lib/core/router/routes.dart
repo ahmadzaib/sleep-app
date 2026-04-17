@@ -4,6 +4,10 @@ class AppRoutes {
   static const String splash = 'splash';
   static const String splashWithLogo = 'splashWithLogo';
   static const String welcome = 'welcome';
+  static const String signIn = 'signIn';
+  static const String signUp = 'signUp';
+  static const String forgotPassword = 'forgotPassword';
+  static const String otpVerification = 'otpVerification';
   static const String bottomNavbar = 'bottomNavbar';
   //Avatar
   static const String avatar = 'avatar';
@@ -22,6 +26,10 @@ class AppPaths {
   static const String splash = '/';
   static const String splashWithLogo = '/splashWithLogo';
   static const String welcome = '/welcome';
+  static const String signIn = '/signIn';
+  static const String signUp = '/signUp';
+  static const String forgotPassword = '/forgotPassword';
+  static const String otpVerification = '/otpVerification';
   static const String bottomNavbar = '/bottomNavbar';
   //Avatar
   static const String avatar = '/avatar';

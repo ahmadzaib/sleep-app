@@ -1,6 +1,11 @@
 import 'package:avatar_flow/features/create_avatar/views/create_avatar_screen.dart';
 import 'package:avatar_flow/features/create_avatar/views/avatar_preview_screen.dart';
 import 'package:avatar_flow/features/create_avatar/views/clone_voice_screen.dart';
+import 'package:avatar_flow/features/auth/providers/auth_provider.dart';
+import 'package:avatar_flow/features/auth/views/forgot_password_screen.dart';
+import 'package:avatar_flow/features/auth/views/otp_verification_screen.dart';
+import 'package:avatar_flow/features/auth/views/sign_in_screen.dart';
+import 'package:avatar_flow/features/auth/views/sign_up_screen.dart';
 import 'package:avatar_flow/features/prompt_ai/views/prompt_avatar_screen.dart';
 import 'package:avatar_flow/features/prompt_ai/views/choose_person_screen.dart';
 import 'package:avatar_flow/features/avatar_detail/views/all_stories_screen.dart';
@@ -33,6 +38,39 @@ final GoRouter router = GoRouter(
       name: AppRoutes.welcome,
       path: AppPaths.welcome,
       builder: (context, state) => const WelcomeScreen(),
+    ),
+    GoRoute(
+      name: AppRoutes.signIn,
+      path: AppPaths.signIn,
+      builder: (context, state) => const SignInScreen(),
+    ),
+    GoRoute(
+      name: AppRoutes.signUp,
+      path: AppPaths.signUp,
+      builder: (context, state) => const SignUpScreen(),
+    ),
+    GoRoute(
+      name: AppRoutes.forgotPassword,
+      path: AppPaths.forgotPassword,
+      builder: (context, state) => const ForgotPasswordScreen(),
+    ),
+    GoRoute(
+      name: AppRoutes.otpVerification,
+      path: AppPaths.otpVerification,
+      builder: (context, state) {
+        final Map<String, dynamic> extra =
+            state.extra as Map<String, dynamic>? ?? <String, dynamic>{};
+        final String flowName =
+            extra['flow'] as String? ?? AuthOtpFlow.signUp.name;
+        final AuthOtpFlow flow = flowName == AuthOtpFlow.resetPassword.name
+            ? AuthOtpFlow.resetPassword
+            : AuthOtpFlow.signUp;
+
+        return OtpVerificationScreen(
+          flow: flow,
+          destination: extra['destination'] as String? ?? '',
+        );
+      },
     ),
 
     GoRoute(
