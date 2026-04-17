@@ -1,10 +1,10 @@
-import 'package:avatar_flow/core/router/navigation_service.dart';
-import 'package:avatar_flow/core/router/routes.dart';
+import 'package:avatar_flow/core/constants/app_constants.dart';
+import 'package:avatar_flow/core/constants/app_icons.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
+import 'package:avatar_flow/core/utils/spacing.dart';
 import 'package:avatar_flow/features/auth/providers/auth_provider.dart';
-import 'package:avatar_flow/features/auth/views/components/auth_flow_shell.dart';
-import 'package:avatar_flow/features/auth/views/components/auth_prompt_row.dart';
 import 'package:avatar_flow/widgets/custom_button.dart';
+import 'package:avatar_flow/widgets/custom_svg.dart';
 import 'package:avatar_flow/widgets/custom_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -15,80 +15,164 @@ class ForgotPasswordScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<AuthProvider>(
-      builder: (context, authProvider, _) {
-        return AuthFlowShell(
-          badgeText: 'Recover access',
-          badgeIcon: Icons.mark_email_unread_outlined,
-          title: 'Forgot your password?',
-          subtitle:
-              'Enter the email tied to your account and we\'ll send a one-time verification code.',
-          footer: AuthPromptRow(
-            message: 'Remembered it?',
-            actionText: 'Back to sign in',
-            onTap: () {
-              NavigationService.pushNamed(AppRoutes.signIn);
-            },
+    final colors = context.appColors;
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Scaffold(
+      resizeToAvoidBottomInset: true,
+      body: Stack(
+        children: [
+          // ── Gradient header ────────────────────────────────────────────
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 0.38.sh,
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: AppConstants.defaultGradient(context),
+              ),
+            ),
           ),
-          child: Form(
-            key: authProvider.forgotPasswordFormKey,
+
+          // ── Header text ────────────────────────────────────────────────
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 16.h,
+            left: 24.w,
+            right: 24.w,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CustomTextField(
-                  title: 'Email',
-                  hintText: 'name@example.com',
-                  controller: authProvider.forgotPasswordEmailController,
-                  textInputType: TextInputType.emailAddress,
-                  textInputAction: TextInputAction.done,
-                  onFieldSubmitted: (_) => authProvider.requestPasswordReset(),
-                  prefixIcon: Icon(
-                    Icons.alternate_email_rounded,
-                    color: context.appColors.grey,
-                  ),
-                  validator: (value) {
-                    return authProvider.validateEmail(context, value);
-                  },
-                ),
-                SizedBox(height: 16.h),
-                Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.all(16.w),
-                  decoration: BoxDecoration(
-                    color: context.appColors.primary.withValues(alpha: .08),
-                    borderRadius: BorderRadius.circular(20.r),
-                  ),
-                  child: Row(
+                RichText(
+                  text: TextSpan(
+                    style: textTheme.displaySmall?.copyWith(
+                      color: scheme.onPrimary,
+                      height: 1.35,
+                    ),
                     children: [
-                      Icon(
-                        Icons.info_outline_rounded,
-                        color: context.appColors.primary,
-                      ),
-                      SizedBox(width: 12.w),
-                      Expanded(
-                        child: Text(
-                          'This UI flow sends a mock OTP so you can review the full recovery journey before backend integration.',
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(
-                                color: context.appColors.secondaryBlack,
-                                height: 1.45,
-                              ),
+                      const TextSpan(text: 'Recover your\n'),
+                      TextSpan(
+                        text: 'StoryPal ',
+                        style: TextStyle(
+                          color: scheme.onPrimary.withValues(alpha: 0.65),
                         ),
                       ),
+                      const TextSpan(text: 'account.'),
                     ],
                   ),
                 ),
-                SizedBox(height: 24.h),
-                CustomButton(
-                  text: 'Send OTP',
-                  onPressed: authProvider.requestPasswordReset,
-                  isLoading: authProvider.isSubmitting,
+                Spacing.y(1),
+                Text(
+                  "We'll send a code to get you back to your stories.",
+                  style: textTheme.bodySmall?.copyWith(
+                    color: scheme.onPrimary.withValues(alpha: 0.75),
+                  ),
                 ),
               ],
             ),
           ),
-        );
-      },
+
+          // ── Keyboard-aware bottom card ─────────────────────────────────
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: AnimatedPadding(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeOut,
+              padding: EdgeInsets.only(
+                bottom: 10,
+                // bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
+              child: Container(
+                height: 0.62.sh,
+                decoration: BoxDecoration(
+                  color: scheme.surface,
+                  borderRadius: BorderRadius.vertical(
+                    top: Radius.circular(28.r),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: colors.secondary.withValues(alpha: 0.08),
+                      blurRadius: 20,
+                      offset: const Offset(0, -4),
+                    ),
+                  ],
+                ),
+                child: SingleChildScrollView(
+                  physics: const ClampingScrollPhysics(),
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(24.w, 28.h, 24.w, 32.h),
+                    child: Consumer<AuthProvider>(
+                      builder: (context, authProvider, _) {
+                        return Form(
+                          key: authProvider.forgotPasswordFormKey,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'Forgot Password?',
+                                style: textTheme.headlineLarge?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Spacing.y(0.8),
+                              Text(
+                                'Enter the email linked to your StoryPal account and we\'ll send you a reset code.',
+                                style: textTheme.bodySmall?.copyWith(
+                                  color: colors.grey,
+                                ),
+                              ),
+                              Spacing.y(2.5),
+
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: scheme.surface,
+                                  borderRadius: BorderRadius.circular(
+                                    AppConstants.smallRadius,
+                                  ),
+                                  boxShadow: [AppConstants.defaultShadow],
+                                ),
+                                child: CustomTextField(
+                                  textfieldBorderRadius:
+                                      AppConstants.smallRadius,
+                                  hintText: 'name@example.com',
+                                  controller: authProvider
+                                      .forgotPasswordEmailController,
+                                  textInputType: TextInputType.emailAddress,
+                                  textInputAction: TextInputAction.done,
+                                  onFieldSubmitted: (_) =>
+                                      authProvider.requestPasswordReset(),
+                                  prefixIcon: CustomSvg(
+                                    path: AppIconsSvg.email,
+                                    size: 20,
+                                    color: colors.grey,
+                                  ),
+                                  validator: (value) => authProvider
+                                      .validateEmail(context, value),
+                                ),
+                              ),
+                              Spacing.y(3),
+
+                              CustomButton(
+                                text: 'Send Reset Code',
+                                onPressed: authProvider.requestPasswordReset,
+                                isLoading: authProvider.isSubmitting,
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
