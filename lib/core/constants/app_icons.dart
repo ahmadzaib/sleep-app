@@ -32,6 +32,7 @@ class AppIconsSvg {
   static const String heart = "assets/icons/heart.svg";
   static const String email = "assets/icons/email.svg";
   static const String lock = "assets/icons/lock.svg";
+  static const String dollar = "assets/icons/dollar.svg";
 
   // media pick
   static const String camera = "assets/icons/camera.svg";

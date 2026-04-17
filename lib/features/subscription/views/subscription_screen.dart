@@ -1,6 +1,11 @@
 import 'package:avatar_flow/core/constants/app_constants.dart';
+import 'package:avatar_flow/core/constants/app_icons.dart';
 import 'package:avatar_flow/core/constants/app_images.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
+import 'package:avatar_flow/core/utils/spacing.dart';
+import 'package:avatar_flow/widgets/bg_widget.dart';
+import 'package:avatar_flow/widgets/custom_button.dart';
+import 'package:avatar_flow/widgets/custom_svg.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -20,15 +25,14 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     final textTheme = Theme.of(context).textTheme;
     final colors = context.appColors;
 
-    return Scaffold(
-      backgroundColor: scheme.surface,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(horizontal: 24.w),
+    return BgWidget(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: Padding(
+          padding: AppConstants.defaultPaddingHorizental,
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              SizedBox(height: 16.h),
-
               // ── Hero image ─────────────────────────────────────────
               SizedBox(
                 height: 200.h,
@@ -40,49 +44,50 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                       top: 0,
                       child: Image.asset(
                         AppImagesPng.triangle,
-                        height: 180.h,
+                        height: 250.h,
                         fit: BoxFit.contain,
                       ),
                     ),
                     // Stars scattered
-                    Positioned(
-                      bottom: 20.h,
+                    Align(
+                      alignment: Alignment.center,
                       child: Image.asset(
                         AppImagesPng.stars,
-                        height: 160.h,
+                        height: 100.h,
+                        width: 0.5.sw,
                         fit: BoxFit.contain,
                       ),
                     ),
                     // Badge center
-                    Positioned(
-                      bottom: 0,
+                    Align(
+                      alignment: Alignment.bottomCenter,
                       child: Image.asset(
                         AppImagesPng.badge,
-                        height: 100.h,
+                        height: 120.h,
                         fit: BoxFit.contain,
                       ),
                     ),
                   ],
                 ),
               ),
-              SizedBox(height: 20.h),
+              Spacing.y(1),
 
               // ── Title ──────────────────────────────────────────────
               Text(
                 'Unlock Unlimited Stories &\nCharacters!',
                 textAlign: TextAlign.center,
                 style: textTheme.headlineLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
                   height: 1.3,
+                  fontSize: 25.sp,
                 ),
               ),
-              SizedBox(height: 10.h),
               Text(
                 'One simple plan for full access to all stories,\ncharacters, and creative tools.',
                 textAlign: TextAlign.center,
-                style: textTheme.bodySmall?.copyWith(color: colors.grey),
+                style: textTheme.bodyMedium?.copyWith(color: colors.grey),
               ),
-              SizedBox(height: 24.h),
+              Spacing.y(1),
 
               // ── Annual plan card ───────────────────────────────────
               _PlanCard(
@@ -94,7 +99,6 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                 onTap: () => setState(() => _isAnnual = true),
                 badge: _BestValueBadge(),
               ),
-              SizedBox(height: 12.h),
 
               // ── Monthly plan card ──────────────────────────────────
               _PlanCard(
@@ -105,38 +109,23 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                 rightSub: "That's \$19.99/mo",
                 onTap: () => setState(() => _isAnnual = false),
               ),
-              SizedBox(height: 24.h),
+              Spacing.y(1),
 
               // ── Trust badges ───────────────────────────────────────
               _TrustRow(
-                icon: Icons.lock_outline_rounded,
+                svgPath: AppIconsSvg.lock,
                 text: 'Secure payment processing',
                 colors: colors,
                 textTheme: textTheme,
               ),
-              SizedBox(height: 10.h),
               _TrustRow(
-                icon: Icons.replay_rounded,
+                svgPath: AppIconsSvg.dollar,
                 text: '30-day money-back guarantee—no questions asked',
                 colors: colors,
                 textTheme: textTheme,
               ),
-              SizedBox(height: 10.h),
-              _TrustRow(
-                icon: Icons.star_rounded,
-                text:
-                    '"Perfect for creating bedtime stories my kids love!" – Sarah',
-                colors: colors,
-                textTheme: textTheme,
-                iconColor: Colors.amber,
-                trailing: Text(
-                  '4.5',
-                  style: textTheme.bodySmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              SizedBox(height: 24.h),
+
+              Spacing.y(1),
 
               // ── Free trial CTA ─────────────────────────────────────
               Text(
@@ -147,34 +136,11 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              SizedBox(height: 14.h),
+              Spacing.y(1),
 
               // ── Get full access button ─────────────────────────────
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: colors.secondary,
-                    foregroundColor: scheme.onPrimary,
-                    padding: EdgeInsets.symmetric(vertical: 16.h),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(
-                        AppConstants.extraLargeRadius,
-                      ),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: Text(
-                    'Get Full Access Now',
-                    style: textTheme.headlineSmall?.copyWith(
-                      color: scheme.onPrimary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(height: 16.h),
+              CustomButton(text: "Get Full Access Now", onPressed: () {}),
+              Spacing.y(1),
 
               // ── Free plan ─────────────────────────────────────────
               GestureDetector(
@@ -195,7 +161,6 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                   ],
                 ),
               ),
-              SizedBox(height: 24.h),
             ],
           ),
         ),
@@ -246,7 +211,7 @@ class _PlanCard extends StatelessWidget {
               ),
               border: Border.all(
                 color: isSelected ? scheme.primary : colors.lightGrey,
-                width: isSelected ? 2 : 1,
+                width: 1,
               ),
             ),
             child: Row(
@@ -283,8 +248,8 @@ class _PlanCard extends StatelessWidget {
                     Text(
                       price,
                       style: textTheme.headlineSmall?.copyWith(
-                        color: scheme.primary,
-                        fontWeight: FontWeight.bold,
+                        color: context.appColors.blue,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                     Text(
@@ -304,6 +269,7 @@ class _PlanCard extends StatelessWidget {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
+                    Spacing.y(.5),
                     Text(
                       rightSub,
                       style: textTheme.bodySmall?.copyWith(color: colors.grey),
@@ -367,7 +333,7 @@ class _BestValueBadge extends StatelessWidget {
 
 // ── Trust row ─────────────────────────────────────────────────────────────────
 class _TrustRow extends StatelessWidget {
-  final IconData icon;
+  final String svgPath;
   final String text;
   final AppColorsExtension colors;
   final TextTheme textTheme;
@@ -375,7 +341,7 @@ class _TrustRow extends StatelessWidget {
   final Widget? trailing;
 
   const _TrustRow({
-    required this.icon,
+    required this.svgPath,
     required this.text,
     required this.colors,
     required this.textTheme,
@@ -388,7 +354,11 @@ class _TrustRow extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 18.sp, color: iconColor ?? colors.primary),
+        CustomSvg(
+          path: svgPath,
+          size: 18.sp,
+          color: iconColor ?? colors.primary,
+        ),
         SizedBox(width: 10.w),
         Expanded(
           child: Text(
