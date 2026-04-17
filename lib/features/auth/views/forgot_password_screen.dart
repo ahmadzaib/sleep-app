@@ -1,3 +1,5 @@
+import 'package:avatar_flow/core/constants/app_constants.dart';
+import 'package:avatar_flow/core/constants/app_icons.dart';
 import 'package:avatar_flow/core/router/navigation_service.dart';
 import 'package:avatar_flow/core/router/routes.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
@@ -5,6 +7,7 @@ import 'package:avatar_flow/features/auth/providers/auth_provider.dart';
 import 'package:avatar_flow/features/auth/views/components/auth_flow_shell.dart';
 import 'package:avatar_flow/features/auth/views/components/auth_prompt_row.dart';
 import 'package:avatar_flow/widgets/custom_button.dart';
+import 'package:avatar_flow/widgets/custom_svg.dart';
 import 'package:avatar_flow/widgets/custom_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -27,7 +30,7 @@ class ForgotPasswordScreen extends StatelessWidget {
             message: 'Remembered it?',
             actionText: 'Back to sign in',
             onTap: () {
-              NavigationService.pushNamed(AppRoutes.signIn);
+              NavigationService.pop();
             },
           ),
           child: Form(
@@ -36,48 +39,23 @@ class ForgotPasswordScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CustomTextField(
+                  textfieldBorderRadius: AppConstants.smallRadius,
                   title: 'Email',
                   hintText: 'name@example.com',
                   controller: authProvider.forgotPasswordEmailController,
                   textInputType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.done,
                   onFieldSubmitted: (_) => authProvider.requestPasswordReset(),
-                  prefixIcon: Icon(
-                    Icons.alternate_email_rounded,
+                  prefixIcon: CustomSvg(
+                    path: AppIconsSvg.email,
+                    size: 20,
                     color: context.appColors.grey,
                   ),
                   validator: (value) {
                     return authProvider.validateEmail(context, value);
                   },
                 ),
-                SizedBox(height: 16.h),
-                Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.all(16.w),
-                  decoration: BoxDecoration(
-                    color: context.appColors.primary.withValues(alpha: .08),
-                    borderRadius: BorderRadius.circular(20.r),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.info_outline_rounded,
-                        color: context.appColors.primary,
-                      ),
-                      SizedBox(width: 12.w),
-                      Expanded(
-                        child: Text(
-                          'This UI flow sends a mock OTP so you can review the full recovery journey before backend integration.',
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(
-                                color: context.appColors.secondaryBlack,
-                                height: 1.45,
-                              ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+
                 SizedBox(height: 24.h),
                 CustomButton(
                   text: 'Send OTP',

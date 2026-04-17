@@ -1,3 +1,5 @@
+import 'package:avatar_flow/core/constants/app_constants.dart';
+import 'package:avatar_flow/core/constants/app_icons.dart';
 import 'package:avatar_flow/core/router/navigation_service.dart';
 import 'package:avatar_flow/core/router/routes.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
@@ -5,6 +7,7 @@ import 'package:avatar_flow/features/auth/providers/auth_provider.dart';
 import 'package:avatar_flow/features/auth/views/components/auth_flow_shell.dart';
 import 'package:avatar_flow/features/auth/views/components/auth_prompt_row.dart';
 import 'package:avatar_flow/widgets/custom_button.dart';
+import 'package:avatar_flow/widgets/custom_svg.dart';
 import 'package:avatar_flow/widgets/custom_text_button.dart';
 import 'package:avatar_flow/widgets/custom_textfield.dart';
 import 'package:flutter/material.dart';
@@ -37,13 +40,15 @@ class SignInScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CustomTextField(
+                  textfieldBorderRadius: AppConstants.smallRadius,
                   title: 'Email',
                   hintText: 'name@example.com',
                   controller: authProvider.signInEmailController,
                   textInputType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.next,
-                  prefixIcon: Icon(
-                    Icons.mail_outline_rounded,
+                  prefixIcon: CustomSvg(
+                    path: AppIconsSvg.lock,
+                    size: 20,
                     color: context.appColors.grey,
                   ),
                   validator: (value) {
@@ -52,15 +57,17 @@ class SignInScreen extends StatelessWidget {
                 ),
                 SizedBox(height: 16.h),
                 CustomTextField(
+                  textfieldBorderRadius: AppConstants.smallRadius,
                   title: 'Password',
                   hintText: 'Enter your password',
                   controller: authProvider.signInPasswordController,
                   obscureText: authProvider.isSignInPasswordHidden,
                   textInputAction: TextInputAction.done,
                   onFieldSubmitted: (_) => authProvider.signIn(),
-                  prefixIcon: Icon(
-                    Icons.lock_outline_rounded,
+                  prefixIcon: CustomSvg(
+                    path: AppIconsSvg.lock,
                     color: context.appColors.grey,
+                    size: 20,
                   ),
                   suffixIcon: IconButton(
                     onPressed: authProvider.toggleSignInPasswordVisibility,

@@ -1,6 +1,7 @@
 import 'package:avatar_flow/core/router/navigation_service.dart';
 import 'package:avatar_flow/core/router/routes.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
+import 'package:avatar_flow/core/utils/spacing.dart';
 import 'package:avatar_flow/features/auth/providers/auth_provider.dart';
 import 'package:avatar_flow/features/auth/views/components/auth_flow_shell.dart';
 import 'package:avatar_flow/features/auth/views/components/auth_prompt_row.dart';
@@ -66,7 +67,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                 : 'Need to update details?',
             actionText: isResetFlow ? 'Try again' : 'Back to sign up',
             onTap: () {
-              NavigationService.goNamed(
+              NavigationService.pushNamed(
                 isResetFlow ? AppRoutes.forgotPassword : AppRoutes.signUp,
               );
             },
@@ -76,31 +77,15 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.all(16.w),
-                  decoration: BoxDecoration(
-                    color: context.appColors.primary.withValues(alpha: .08),
-                    borderRadius: BorderRadius.circular(20.r),
-                  ),
-                  child: Text(
-                    'Tip: use any six digits for this UI-only demo flow. Backend verification can be connected later without changing the screen layout.',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: context.appColors.secondaryBlack,
-                      height: 1.45,
-                    ),
-                  ),
-                ),
-                SizedBox(height: 18.h),
                 _OtpInputField(authProvider: authProvider),
-                SizedBox(height: 6.h),
+                Spacing.y(4),
                 Text(
                   'OTP code',
                   style: Theme.of(
                     context,
                   ).textTheme.headlineSmall?.copyWith(fontSize: 13.sp),
                 ),
-                SizedBox(height: 8.h),
+                Spacing.y(1),
                 Row(
                   children: [
                     Icon(
@@ -166,7 +151,7 @@ class _OtpInputField extends StatelessWidget {
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final AppColorsExtension colors = context.appColors;
-    final double radius = AppConstants.largeRadius;
+    final double radius = AppConstants.smallRadius;
 
     final TextStyle fieldStyle = theme.textTheme.titleSmall!.copyWith(
       color: theme.textTheme.titleMedium?.color,
