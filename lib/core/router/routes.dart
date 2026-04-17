@@ -18,6 +18,8 @@ class AppRoutes {
   static const String promptAvatar = 'promptAvatar';
   static const String choosePerson = 'choosePerson';
   static const String cloneVoice = 'cloneVoice';
+  static const String subscription = 'subscription';
+  static const String profile = 'profile';
 }
 
 class AppPaths {
@@ -40,4 +42,6 @@ class AppPaths {
   static const String promptAvatar = '/promptAvatar';
   static const String choosePerson = '/choosePerson';
   static const String cloneVoice = '/cloneVoice';
+  static const String subscription = '/subscription';
+  static const String profile = '/profile';
 }

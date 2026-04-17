@@ -1,3 +1,5 @@
+import 'package:avatar_flow/core/router/navigation_service.dart';
+import 'package:avatar_flow/core/router/routes.dart';
 import 'package:avatar_flow/core/constants/app_constants.dart';
 import 'package:avatar_flow/core/constants/app_icons.dart';
 import 'package:avatar_flow/core/constants/keys.dart';
@@ -52,10 +54,13 @@ class HomeAppbar extends StatelessWidget implements PreferredSizeWidget {
                 Spacing.x(4),
                 CustomSvg(path: AppIconsSvg.shield),
                 Spacing.x(2),
-                CustomCachedNetworkImage(
-                  imageUrl: Keys.placeHolderImage,
-                  height: 44.h,
-                  width: 44.w,
+                GestureDetector(
+                  onTap: () => NavigationService.pushNamed(AppRoutes.profile),
+                  child: CustomCachedNetworkImage(
+                    imageUrl: Keys.placeHolderImage,
+                    height: 44.h,
+                    width: 44.w,
+                  ),
                 ),
               ],
             ),

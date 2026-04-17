@@ -1,3 +1,5 @@
+import 'package:avatar_flow/features/subscription/views/subscription_screen.dart';
+import 'package:avatar_flow/features/profile/views/profile_screen.dart';
 import 'package:avatar_flow/features/create_avatar/views/create_avatar_screen.dart';
 import 'package:avatar_flow/features/create_avatar/views/avatar_preview_screen.dart';
 import 'package:avatar_flow/features/create_avatar/views/clone_voice_screen.dart';
@@ -122,6 +124,16 @@ final GoRouter router = GoRouter(
       name: AppRoutes.cloneVoice,
       path: AppPaths.cloneVoice,
       builder: (context, state) => const CloneVoiceScreen(),
+    ),
+    GoRoute(
+      name: AppRoutes.subscription,
+      path: AppPaths.subscription,
+      builder: (context, state) => const SubscriptionScreen(),
+    ),
+    GoRoute(
+      name: AppRoutes.profile,
+      path: AppPaths.profile,
+      builder: (context, state) => const ProfileScreen(),
     ),
   ],
 );

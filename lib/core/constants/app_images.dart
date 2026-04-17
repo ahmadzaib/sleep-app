@@ -20,6 +20,11 @@ class AppImagesPng {
   static const String milestoneCheck = "assets/images/milestone_check.png";
   static const String milestoneCheck2 = "assets/images/milestone_check2.png";
 
+  //Paywall
+  static const String triangle = "assets/images/triangle.png";
+  static const String badge = "assets/images/badge.png";
+  static const String stars = "assets/images/stars.png";
+
   //Skills
   static const String adventurous = "assets/images/adventure.png";
   static const String poison = "assets/images/poison.png";
