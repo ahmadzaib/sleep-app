@@ -89,14 +89,14 @@ class WelcomeScreen extends StatelessWidget {
                               CustomButton(
                                 text: "Login",
                                 onPressed: () {
-                                  NavigationService.pushNamed(AppRoutes.signIn);
+                                  NavigationService.goNamed(AppRoutes.signIn);
                                 },
                               ),
                               Spacing.y(2),
                               CustomButton(
                                 text: "Sign Up",
                                 onPressed: () {
-                                  NavigationService.pushNamed(AppRoutes.signUp);
+                                  NavigationService.goNamed(AppRoutes.signUp);
                                 },
                                 isOutlineButton: true,
                               ),
