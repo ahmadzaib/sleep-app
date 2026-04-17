@@ -1,16 +1,12 @@
-import 'package:avatar_flow/core/constants/app_constants.dart';
-import 'package:avatar_flow/core/constants/app_icons.dart';
-import 'package:avatar_flow/core/router/navigation_service.dart';
-import 'package:avatar_flow/core/router/routes.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
 import 'package:avatar_flow/features/avatar/views/components/avatar_appbar.dart';
-import 'package:avatar_flow/features/avatar/views/components/avatar_cards.dart';
 import 'package:avatar_flow/features/avatar/views/components/avatar_tabs.dart';
-import 'package:avatar_flow/features/avatar/views/components/avtar_milestones_tile.dart';
+import 'package:avatar_flow/features/avatar/views/components/my_avatars_view.dart';
+import 'package:avatar_flow/features/avatar/views/components/shared_avatars_view.dart';
+import 'package:avatar_flow/features/create_avatar/providers/create_avatar_provider.dart';
 import 'package:avatar_flow/widgets/bg_widget.dart';
-import 'package:avatar_flow/widgets/custom_button.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 
 class AvatarScreen extends StatelessWidget {
   const AvatarScreen({super.key});
@@ -20,36 +16,17 @@ class AvatarScreen extends StatelessWidget {
     return BgWidget(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-
-        appBar: HomeAppbar(),
+        appBar: const HomeAppbar(),
         body: Column(
           children: [
             Spacing.y(1),
-            AvatarTabs(),
-            Spacing.y(2),
-            AvatarCards(
-              onTap: () {
-                HapticFeedback.lightImpact();
-                NavigationService.pushNamed(AppRoutes.avatarDetail);
-              },
-            ),
-            Spacing.y(2),
-            AvtarMilestonesTile(
-              title: 'Create 10 avatars',
-              totalValue: 10,
-              completedValue: 8,
-            ),
-            Spacing.y(2),
-            Padding(
-              padding: AppConstants.defaultPaddingHorizental,
-              child: CustomButton(
-                preffixIconColor: Theme.of(context).colorScheme.onPrimary,
-                prefixIcon: AppIconsSvg.edit,
-                text: "Create a New Avatar",
-                onPressed: () {
-                  NavigationService.pushNamed(
-                    AppRoutes.createAvatar,
-                    queryParameters: const {'isEdit': 'false'},
+            const AvatarTabs(),
+            Expanded(
+              child: Consumer<CreateAvatarProvider>(
+                builder: (context, provider, child) {
+                  return IndexedStack(
+                    index: provider.currentIndex,
+                    children: const [MyAvatarsView(), SharedAvatarsView()],
                   );
                 },
               ),

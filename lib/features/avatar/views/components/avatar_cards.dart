@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:avatar_flow/core/constants/app_constants.dart';
 import 'package:avatar_flow/core/constants/app_icons.dart';
 import 'package:avatar_flow/core/constants/app_images.dart';
+import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
 import 'package:avatar_flow/widgets/custom_svg.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +11,14 @@ import 'package:zoom_tap_animation/zoom_tap_animation.dart';
 
 class AvatarCards extends StatefulWidget {
   final VoidCallback onTap;
-  const AvatarCards({super.key, required this.onTap});
+  final bool? showRemoveButton;
+  final VoidCallback? onRemoveTap;
+  const AvatarCards({
+    super.key,
+    required this.onTap,
+    this.showRemoveButton,
+    this.onRemoveTap,
+  });
 
   @override
   State<AvatarCards> createState() => _AvatarCardsState();
@@ -62,7 +70,13 @@ class _AvatarCardsState extends State<AvatarCards> {
                   child: Transform.scale(
                     scale: scale,
                     alignment: Alignment.centerLeft,
-                    child: _buildCard(index, theme, widget.onTap),
+                    child: _buildCard(
+                      index,
+                      theme,
+                      widget.onTap,
+                      widget.showRemoveButton ?? false,
+                      widget.onRemoveTap ?? () {},
+                    ),
                   ),
                 );
               },
@@ -73,67 +87,90 @@ class _AvatarCardsState extends State<AvatarCards> {
     );
   }
 
-  Widget _buildCard(int index, ThemeData theme, VoidCallback onTap) {
-    return ZoomTapAnimation(
-      onTap: onTap,
-      child: Container(
-        margin: EdgeInsets.symmetric(vertical: 10.h),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surface.withValues(alpha: 0.5),
-          borderRadius: BorderRadius.circular(AppConstants.largeRadius),
-          boxShadow: [AppConstants.defaultShadow],
-        ),
-        child: Stack(
-          children: [
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: Padding(
-                padding: AppConstants.defaultAllPadding,
-                child: Image.asset(AppImagesPng.cardVector),
+  Widget _buildCard(
+    int index,
+    ThemeData theme,
+    VoidCallback onTap,
+    bool showRemoveButton,
+    VoidCallback onRemoveTap,
+  ) {
+    return Column(
+      children: [
+        Expanded(
+          child: ZoomTapAnimation(
+            onTap: onTap,
+            child: Container(
+              margin: EdgeInsets.symmetric(vertical: 10.h),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(AppConstants.largeRadius),
+                boxShadow: [AppConstants.defaultShadow],
               ),
-            ),
-            Column(
-              children: [
-                Spacing.y(2),
-                Expanded(
-                  child: Center(child: Image.asset(AppImagesPng.dummyImage)),
-                ),
-                Spacing.y(1),
-
-                Padding(
-                  padding: EdgeInsets.only(bottom: 20.h),
-                  child: Column(
+              child: Stack(
+                children: [
+                  Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Padding(
+                      padding: AppConstants.defaultAllPadding,
+                      child: Image.asset(AppImagesPng.cardVector),
+                    ),
+                  ),
+                  Column(
                     children: [
-                      Text(
-                        "Lilian",
-                        style: theme.textTheme.headlineSmall?.copyWith(
-                          fontSize: 18.sp,
+                      Spacing.y(2),
+                      Expanded(
+                        child: Center(
+                          child: Image.asset(AppImagesPng.dummyImage),
                         ),
                       ),
-                      Spacing.y(.5),
-                      Text(
-                        "Linspector",
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onSurface.withValues(alpha: .5),
+                      Spacing.y(1),
+                      Padding(
+                        padding: EdgeInsets.only(bottom: 20.h),
+                        child: Column(
+                          children: [
+                            Text(
+                              "Lilian",
+                              style: theme.textTheme.headlineSmall?.copyWith(
+                                fontSize: 18.sp,
+                              ),
+                            ),
+                            Spacing.y(.5),
+                            Text(
+                              "Linspector",
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurface.withValues(alpha: .5),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
-                ),
-              ],
-            ),
-            Align(
-              alignment: Alignment.topRight,
-              child: IconButton(
-                onPressed: () {},
-                icon: CustomSvg(path: AppIconsSvg.info2),
+                  Align(
+                    alignment: Alignment.topRight,
+                    child: IconButton(
+                      onPressed: () {},
+                      icon: CustomSvg(path: AppIconsSvg.info2),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
+          ),
         ),
-      ),
+        if (showRemoveButton)
+          TextButton(
+            onPressed: onRemoveTap,
+            child: Text(
+              "Remove",
+              style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                color: Theme.of(context).colorScheme.error,
+              ),
+            ),
+          ),
+      ],
     );
   }
 
