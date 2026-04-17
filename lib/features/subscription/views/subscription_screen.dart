@@ -1,29 +1,27 @@
 import 'package:avatar_flow/core/constants/app_constants.dart';
 import 'package:avatar_flow/core/constants/app_icons.dart';
-import 'package:avatar_flow/core/constants/app_images.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
+import 'package:avatar_flow/features/subscription/providers/subscription_provider.dart';
+import 'package:avatar_flow/features/subscription/views/components/free_plan_button.dart';
+import 'package:avatar_flow/features/subscription/views/components/plan_card.dart';
+import 'package:avatar_flow/features/subscription/views/components/subscription_hero.dart';
+import 'package:avatar_flow/features/subscription/views/components/trust_row.dart';
 import 'package:avatar_flow/widgets/bg_widget.dart';
 import 'package:avatar_flow/widgets/custom_button.dart';
-import 'package:avatar_flow/widgets/custom_svg.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
 
-class SubscriptionScreen extends StatefulWidget {
+class SubscriptionScreen extends StatelessWidget {
   const SubscriptionScreen({super.key});
-
-  @override
-  State<SubscriptionScreen> createState() => _SubscriptionScreenState();
-}
-
-class _SubscriptionScreenState extends State<SubscriptionScreen> {
-  bool _isAnnual = true;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final colors = context.appColors;
+    final subscriptionProvider = context.watch<SubscriptionProvider>();
 
     return BgWidget(
       child: Scaffold(
@@ -34,42 +32,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               // ── Hero image ─────────────────────────────────────────
-              SizedBox(
-                height: 200.h,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    // Triangle beam
-                    Positioned(
-                      top: 0,
-                      child: Image.asset(
-                        AppImagesPng.triangle,
-                        height: 250.h,
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                    // Stars scattered
-                    Align(
-                      alignment: Alignment.center,
-                      child: Image.asset(
-                        AppImagesPng.stars,
-                        height: 100.h,
-                        width: 0.5.sw,
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                    // Badge center
-                    Align(
-                      alignment: Alignment.bottomCenter,
-                      child: Image.asset(
-                        AppImagesPng.badge,
-                        height: 120.h,
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              const SubscriptionHero(),
               Spacing.y(1),
 
               // ── Title ──────────────────────────────────────────────
@@ -90,39 +53,35 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
               Spacing.y(1),
 
               // ── Annual plan card ───────────────────────────────────
-              _PlanCard(
-                isSelected: _isAnnual,
+              SubscriptionPlanCard(
+                isSelected: subscriptionProvider.isAnnual,
                 price: '\$124.99',
                 period: 'per year',
                 rightLabel: 'Full access by',
                 rightSub: "That's \$10.42/mo",
-                onTap: () => setState(() => _isAnnual = true),
-                badge: _BestValueBadge(),
+                onTap: () => subscriptionProvider.setIsAnnual(true),
+                badge: const BestValueBadge(),
               ),
 
               // ── Monthly plan card ──────────────────────────────────
-              _PlanCard(
-                isSelected: !_isAnnual,
+              SubscriptionPlanCard(
+                isSelected: !subscriptionProvider.isAnnual,
                 price: '\$19.99',
                 period: 'per month',
                 rightLabel: 'Full access by',
                 rightSub: "That's \$19.99/mo",
-                onTap: () => setState(() => _isAnnual = false),
+                onTap: () => subscriptionProvider.setIsAnnual(false),
               ),
               Spacing.y(1),
 
               // ── Trust badges ───────────────────────────────────────
-              _TrustRow(
+              SubscriptionTrustRow(
                 svgPath: AppIconsSvg.lock,
                 text: 'Secure payment processing',
-                colors: colors,
-                textTheme: textTheme,
               ),
-              _TrustRow(
+              SubscriptionTrustRow(
                 svgPath: AppIconsSvg.dollar,
                 text: '30-day money-back guarantee—no questions asked',
-                colors: colors,
-                textTheme: textTheme,
               ),
 
               Spacing.y(1),
@@ -143,231 +102,11 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
               Spacing.y(1),
 
               // ── Free plan ─────────────────────────────────────────
-              GestureDetector(
-                onTap: () => Navigator.of(context).pop(),
-                child: Column(
-                  children: [
-                    Text(
-                      'Continue with the free plan',
-                      style: textTheme.bodySmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    SizedBox(height: 4.h),
-                    Text(
-                      'Limited access to basic stories and tools.',
-                      style: textTheme.bodySmall?.copyWith(color: colors.grey),
-                    ),
-                  ],
-                ),
-              ),
+              const ContinueFreePlanButton(),
             ],
           ),
         ),
       ),
-    );
-  }
-}
-
-// ── Plan selection card ───────────────────────────────────────────────────────
-class _PlanCard extends StatelessWidget {
-  final bool isSelected;
-  final String price;
-  final String period;
-  final String rightLabel;
-  final String rightSub;
-  final VoidCallback onTap;
-  final Widget? badge;
-
-  const _PlanCard({
-    required this.isSelected,
-    required this.price,
-    required this.period,
-    required this.rightLabel,
-    required this.rightSub,
-    required this.onTap,
-    this.badge,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    final colors = context.appColors;
-
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
-            decoration: BoxDecoration(
-              color: scheme.surface,
-              borderRadius: BorderRadius.vertical(
-                top: Radius.circular(AppConstants.mediumRadius),
-                bottom: badge == null
-                    ? Radius.circular(AppConstants.mediumRadius)
-                    : Radius.zero,
-              ),
-              border: Border.all(
-                color: isSelected ? scheme.primary : colors.lightGrey,
-                width: 1,
-              ),
-            ),
-            child: Row(
-              children: [
-                // Radio
-                Container(
-                  width: 20.w,
-                  height: 20.w,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: isSelected ? scheme.primary : colors.lightGrey,
-                      width: 2,
-                    ),
-                  ),
-                  child: isSelected
-                      ? Center(
-                          child: Container(
-                            width: 10.w,
-                            height: 10.w,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: scheme.primary,
-                            ),
-                          ),
-                        )
-                      : null,
-                ),
-                SizedBox(width: 12.w),
-                // Price
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      price,
-                      style: textTheme.headlineSmall?.copyWith(
-                        color: context.appColors.blue,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    Text(
-                      period,
-                      style: textTheme.bodySmall?.copyWith(color: colors.grey),
-                    ),
-                  ],
-                ),
-                const Spacer(),
-                // Right label
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      rightLabel,
-                      style: textTheme.bodySmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    Spacing.y(.5),
-                    Text(
-                      rightSub,
-                      style: textTheme.bodySmall?.copyWith(color: colors.grey),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          if (badge != null) badge!,
-        ],
-      ),
-    );
-  }
-}
-
-// ── Best value badge ──────────────────────────────────────────────────────────
-class _BestValueBadge extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.symmetric(vertical: 8.h),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF7C4DFF), Color(0xFF9C6FFF)],
-        ),
-        borderRadius: BorderRadius.vertical(
-          bottom: Radius.circular(AppConstants.mediumRadius),
-        ),
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'Best Value ',
-                style: textTheme.bodySmall?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const Text('⭐', style: TextStyle(fontSize: 12)),
-            ],
-          ),
-          Text(
-            'Save 48% with the annual plan!',
-            style: textTheme.bodySmall?.copyWith(
-              color: Colors.white.withValues(alpha: 0.85),
-              fontSize: 11,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Trust row ─────────────────────────────────────────────────────────────────
-class _TrustRow extends StatelessWidget {
-  final String svgPath;
-  final String text;
-  final AppColorsExtension colors;
-  final TextTheme textTheme;
-  final Color? iconColor;
-  final Widget? trailing;
-
-  const _TrustRow({
-    required this.svgPath,
-    required this.text,
-    required this.colors,
-    required this.textTheme,
-    this.iconColor,
-    this.trailing,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        CustomSvg(
-          path: svgPath,
-          size: 18.sp,
-          color: iconColor ?? colors.primary,
-        ),
-        SizedBox(width: 10.w),
-        Expanded(
-          child: Text(
-            text,
-            style: textTheme.bodySmall?.copyWith(color: colors.grey),
-          ),
-        ),
-        if (trailing != null) ...[SizedBox(width: 6.w), trailing!],
-      ],
     );
   }
 }
