@@ -2,6 +2,7 @@ import 'package:avatar_flow/core/services/multiprovider_class.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
+import 'package:toastification/toastification.dart';
 
 import 'package:avatar_flow/core/config/appconfig.dart';
 import 'package:avatar_flow/core/router/router.dart' as router;
@@ -29,30 +30,32 @@ class MyApp extends StatelessWidget {
             builder: (context, themeController, _) {
               return SafeArea(
                 top: false,
-                child: MaterialApp.router(
-                  debugShowCheckedModeBanner: false,
-                  title: AppConfig.appName,
-                  routerConfig: router.router,
+                child: ToastificationWrapper(
+                  child: MaterialApp.router(
+                    debugShowCheckedModeBanner: false,
+                    title: AppConfig.appName,
+                    routerConfig: router.router,
 
-                  /// 🌗 Theme
-                  themeMode: themeController.currentTheme,
-                  theme: AppTheme.lightTheme,
-                  darkTheme: AppTheme.darkTheme,
+                    /// 🌗 Theme
+                    themeMode: themeController.currentTheme,
+                    theme: AppTheme.lightTheme,
+                    darkTheme: AppTheme.darkTheme,
 
-                  /// 🌍 Localization (uncomment if needed)
-                  // locale: context.watch<AppLocaleProvider>().locale,
-                  // supportedLocales: AppLocalizations.supportedLocales,
-                  // localizationsDelegates: AppLocalizations.localizationsDelegates,
+                    /// 🌍 Localization (uncomment if needed)
+                    // locale: context.watch<AppLocaleProvider>().locale,
+                    // supportedLocales: AppLocalizations.supportedLocales,
+                    // localizationsDelegates: AppLocalizations.localizationsDelegates,
 
-                  /// 👇 Dismiss keyboard on tap
-                  builder: (context, child) {
-                    return GestureDetector(
-                      onTap: () {
-                        FocusManager.instance.primaryFocus?.unfocus();
-                      },
-                      child: child,
-                    );
-                  },
+                    /// 👇 Dismiss keyboard on tap
+                    builder: (context, child) {
+                      return GestureDetector(
+                        onTap: () {
+                          FocusManager.instance.primaryFocus?.unfocus();
+                        },
+                        child: child,
+                      );
+                    },
+                  ),
                 ),
               );
             },

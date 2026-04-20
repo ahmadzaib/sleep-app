@@ -1,3 +1,7 @@
+import 'package:avatar_flow/core/constants/keys.dart';
+import 'package:avatar_flow/core/services/auth_service.dart';
+import 'package:avatar_flow/core/services/preferences.dart';
+import 'package:avatar_flow/core/utils/toast_utils.dart';
 import 'package:avatar_flow/features/subscription/views/subscription_screen.dart';
 import 'package:avatar_flow/features/profile/views/profile_screen.dart';
 import 'package:avatar_flow/features/create_avatar/views/create_avatar_screen.dart';
@@ -23,13 +27,68 @@ import 'routes.dart';
 
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 
+// Auth state notifier for redirect
+final ValueNotifier<bool> authStateNotifier = ValueNotifier<bool>(false);
+
+// Initialize ToastUtils with the navigator key
+void initializeToastUtils() {
+  ToastUtils.setNavigatorKey(rootNavigatorKey);
+}
+
+Future<String> _getInitialRoute(Preferences prefs) async {
+  // Check if first time
+  final isFirstTime = prefs.getBool(Keys.isFirstTime) ?? true;
+  if (isFirstTime) {
+    await prefs.setBool(Keys.isFirstTime, false);
+    return AppPaths.welcome;
+  }
+
+  // Check if authenticated
+  if (AuthService.isAuthenticated()) {
+    authStateNotifier.value = true;
+    return AppPaths.bottomNavbar;
+  }
+
+  return AppPaths.signIn;
+}
+
 final GoRouter router = GoRouter(
   navigatorKey: rootNavigatorKey,
+  refreshListenable: authStateNotifier,
+  redirect: (context, state) {
+    final isAuthenticated = AuthService.isAuthenticated();
+    final isAuthRoute =
+        state.matchedLocation == AppPaths.signIn ||
+        state.matchedLocation == AppPaths.signUp ||
+        state.matchedLocation == AppPaths.welcome ||
+        state.matchedLocation == AppPaths.forgotPassword ||
+        state.matchedLocation == AppPaths.splash ||
+        state.matchedLocation == AppPaths.splashWithLogo;
+
+    // If authenticated and trying to access auth routes, redirect to home
+    if (isAuthenticated && isAuthRoute) {
+      return AppPaths.bottomNavbar;
+    }
+
+    // If not authenticated and trying to access protected routes, redirect to sign in
+    if (!isAuthenticated && !isAuthRoute) {
+      return AppPaths.signIn;
+    }
+
+    return null;
+  },
   routes: [
     GoRoute(
       name: AppRoutes.splash,
       path: AppPaths.splash,
       builder: (context, state) => const SplashScreen(),
+      redirect: (context, state) async {
+        // Get preferences from extra or initialize
+        final prefs = state.extra as Preferences?;
+        if (prefs == null) return AppPaths.welcome;
+
+        return await _getInitialRoute(prefs);
+      },
     ),
     GoRoute(
       name: AppRoutes.splashWithLogo,

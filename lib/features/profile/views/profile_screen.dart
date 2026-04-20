@@ -4,13 +4,16 @@ import 'package:avatar_flow/core/router/navigation_service.dart';
 import 'package:avatar_flow/core/router/routes.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
+import 'package:avatar_flow/features/auth/providers/auth_provider.dart';
 import 'package:avatar_flow/features/profile/views/components/profile_header.dart';
 import 'package:avatar_flow/features/profile/views/components/profile_menu_section.dart';
 import 'package:avatar_flow/features/profile/views/components/profile_stats.dart';
 import 'package:avatar_flow/widgets/bg_widget.dart';
+import 'package:avatar_flow/widgets/confirmation_dialog.dart';
 import 'package:avatar_flow/widgets/custom_svg.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -29,7 +32,9 @@ class ProfileScreen extends StatelessWidget {
           elevation: 0,
           title: Text(
             'Profile',
-            style: textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
+            style: textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
           ),
           centerTitle: true,
           leading: IconButton(
@@ -52,105 +57,127 @@ class ProfileScreen extends StatelessWidget {
             SizedBox(width: 8.w),
           ],
         ),
-        body: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          child: Column(
-            children: [
-              const ProfileHeader(
-                name: 'Sarah Johnson',
-                email: 'sarah@example.com',
-                imageUrl: Keys.placeHolderImage,
-                plan: 'Free Plan',
-              ),
-              const ProfileStats(
-                avatarsCount: 12,
-                storiesCount: 48,
-                rating: 4.5,
-              ),
-              Spacing.y(2),
-              ProfileMenuSection(
-                title: 'Account Settings',
-                items: [
-                  ProfileMenuItemModel(
-                    icon: AppIconsSvg.edit,
-                    label: 'Edit Profile',
-                    onTap: () {},
+        body: Consumer<AuthProvider>(
+          builder: (context, authProvider, child) {
+            final userInfo = authProvider.userInfo;
+            final userName = userInfo.name ?? userInfo.email.split('@').first;
+            final userEmail = userInfo.email;
+            final avatarUrl = userInfo.avatarUrl ?? Keys.placeHolderImage;
+
+            return SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: Column(
+                children: [
+                  ProfileHeader(
+                    name: userName,
+                    email: userEmail,
+                    imageUrl: avatarUrl,
+                    plan: 'Free Plan',
                   ),
-                  ProfileMenuItemModel(
-                    icon: AppIconsSvg.shield,
-                    label: 'Privacy & Security',
-                    onTap: () {},
+                  const ProfileStats(
+                    avatarsCount: 12,
+                    storiesCount: 48,
+                    rating: 4.5,
                   ),
-                  ProfileMenuItemModel(
-                    icon: AppIconsSvg.info,
-                    label: 'Notifications',
-                    onTap: () {},
-                  ),
-                ],
-              ),
-              ProfileMenuSection(
-                title: 'Subscription',
-                items: [
-                  ProfileMenuItemModel(
-                    icon: AppIconsSvg.magic,
-                    label: 'Upgrade to Pro',
-                    onTap: () => NavigationService.pushNamed(AppRoutes.subscription),
-                    trailing: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [scheme.primary, scheme.tertiary],
-                        ),
-                        borderRadius: BorderRadius.circular(12.r),
+                  Spacing.y(2),
+                  ProfileMenuSection(
+                    title: 'Account Settings',
+                    items: [
+                      ProfileMenuItemModel(
+                        icon: AppIconsSvg.edit,
+                        label: 'Edit Profile',
+                        onTap: () {},
                       ),
-                      child: Text(
-                        'PRO',
-                        style: textTheme.labelSmall?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w800,
+                      ProfileMenuItemModel(
+                        icon: AppIconsSvg.shield,
+                        label: 'Privacy & Security',
+                        onTap: () {},
+                      ),
+                      ProfileMenuItemModel(
+                        icon: AppIconsSvg.info,
+                        label: 'Notifications',
+                        onTap: () {},
+                      ),
+                    ],
+                  ),
+                  ProfileMenuSection(
+                    title: 'Subscription',
+                    items: [
+                      ProfileMenuItemModel(
+                        icon: AppIconsSvg.magic,
+                        label: 'Upgrade to Pro',
+                        onTap: () =>
+                            NavigationService.pushNamed(AppRoutes.subscription),
+                        trailing: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 10.w,
+                            vertical: 4.h,
+                          ),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [scheme.primary, scheme.tertiary],
+                            ),
+                            borderRadius: BorderRadius.circular(12.r),
+                          ),
+                          child: Text(
+                            'PRO',
+                            style: textTheme.labelSmall?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
                         ),
                       ),
+                      ProfileMenuItemModel(
+                        icon: AppIconsSvg.info2,
+                        label: 'Manage Subscription',
+                        onTap: () {},
+                      ),
+                    ],
+                  ),
+                  ProfileMenuSection(
+                    title: 'More',
+                    items: [
+                      ProfileMenuItemModel(
+                        icon: AppIconsSvg.info,
+                        label: 'Help & FAQ',
+                        onTap: () {},
+                      ),
+                      ProfileMenuItemModel(
+                        icon: AppIconsSvg.send,
+                        label: 'Contact Us',
+                        onTap: () {},
+                      ),
+                      ProfileMenuItemModel(
+                        icon: AppIconsSvg.arrowBack,
+                        label: 'Sign Out',
+                        onTap: () {
+                          ConfirmationDialog.show(
+                            context: context,
+                            title: 'Sign Out',
+                            subtitle: 'Are you sure you want to sign out?',
+                            onConfirm: () {
+                              context.read<AuthProvider>().signOut();
+                            },
+                          );
+                        },
+                        color: colors.error,
+                      ),
+                    ],
+                  ),
+                  Spacing.y(4),
+                  Text(
+                    'v 1.0.24 (2026)',
+                    style: textTheme.labelSmall?.copyWith(
+                      color: colors.grey.withValues(alpha: 0.5),
+                      letterSpacing: 1.1,
                     ),
                   ),
-                  ProfileMenuItemModel(
-                    icon: AppIconsSvg.info2,
-                    label: 'Manage Subscription',
-                    onTap: () {},
-                  ),
+                  Spacing.y(4),
                 ],
               ),
-              ProfileMenuSection(
-                title: 'More',
-                items: [
-                  ProfileMenuItemModel(
-                    icon: AppIconsSvg.info,
-                    label: 'Help & FAQ',
-                    onTap: () {},
-                  ),
-                  ProfileMenuItemModel(
-                    icon: AppIconsSvg.send,
-                    label: 'Contact Us',
-                    onTap: () {},
-                  ),
-                  ProfileMenuItemModel(
-                    icon: AppIconsSvg.arrowBack,
-                    label: 'Sign Out',
-                    onTap: () {},
-                    color: colors.error,
-                  ),
-                ],
-              ),
-              Spacing.y(4),
-              Text(
-                'v 1.0.24 (2026)',
-                style: textTheme.labelSmall?.copyWith(
-                  color: colors.grey.withValues(alpha: 0.5),
-                  letterSpacing: 1.1,
-                ),
-              ),
-              Spacing.y(4),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );

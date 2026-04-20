@@ -13,37 +13,35 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-
   @override
   void initState() {
     super.initState();
-    if(mounted){Future.delayed(const Duration(seconds: 2), (){
-      NavigationService.goNamed(AppRoutes.splashWithLogo);
-    });
+    if (mounted) {
+      Future.delayed(const Duration(seconds: 2), () {
+        NavigationService.goNamed(AppRoutes.splashWithLogo);
+      });
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
         height: double.infinity,
         width: double.infinity,
-       decoration: BoxDecoration(gradient:AppConstants.defaultGradient(context),
-       
-      
-       
-       ),
-       child: Stack(
-        alignment: Alignment.topRight,
-        children: [
-          Image.asset(AppImagesPng.vector1),
-          Image.asset(AppImagesPng.vector2,width: 95*0.01.sw,),
-          Image.asset(AppImagesPng.vector3,width: 88*0.01.sw,),
-          Image.asset(AppImagesPng.vector4),
-          Image.asset(AppImagesPng.dragonWithFlame),
-
-        ],
-       ),
+        decoration: BoxDecoration(
+          gradient: AppConstants.defaultGradient(context),
+        ),
+        child: Stack(
+          alignment: Alignment.topRight,
+          children: [
+            Image.asset(AppImagesPng.vector1),
+            Image.asset(AppImagesPng.vector2, width: 95 * 0.01.sw),
+            Image.asset(AppImagesPng.vector3, width: 88 * 0.01.sw),
+            Image.asset(AppImagesPng.vector4),
+            Image.asset(AppImagesPng.dragonWithFlame),
+          ],
+        ),
       ),
     );
   }

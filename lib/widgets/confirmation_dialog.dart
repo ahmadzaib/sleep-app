@@ -14,6 +14,7 @@ class ConfirmationDialog extends StatelessWidget {
   final Widget? content;
   final VoidCallback? onConfirm;
   final VoidCallback? onCancel;
+  final bool? isLoading;
 
   const ConfirmationDialog({
     super.key,
@@ -24,6 +25,7 @@ class ConfirmationDialog extends StatelessWidget {
     this.content,
     this.onConfirm,
     this.onCancel,
+    this.isLoading,
   });
 
   static void show({
@@ -35,6 +37,7 @@ class ConfirmationDialog extends StatelessWidget {
     Widget? content,
     VoidCallback? onConfirm,
     VoidCallback? onCancel,
+    bool? isLoading,
   }) {
     showModalBottomSheet(
       context: context,
@@ -47,6 +50,7 @@ class ConfirmationDialog extends StatelessWidget {
         content: content,
         onConfirm: onConfirm,
         onCancel: onCancel,
+        isLoading: isLoading,
       ),
     );
   }
@@ -100,6 +104,7 @@ class ConfirmationDialog extends StatelessWidget {
             children: [
               // Confirm Button
               CustomButton(
+                isLoading: isLoading ?? false,
                 text: confirmText ?? 'Submit',
                 onPressed:
                     onConfirm ??

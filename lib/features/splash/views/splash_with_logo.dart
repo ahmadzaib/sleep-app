@@ -1,7 +1,10 @@
 import 'package:avatar_flow/core/constants/app_constants.dart';
 import 'package:avatar_flow/core/constants/app_images.dart';
+import 'package:avatar_flow/core/debug/debug_point.dart';
 import 'package:avatar_flow/core/router/navigation_service.dart';
 import 'package:avatar_flow/core/router/routes.dart';
+import 'package:avatar_flow/core/services/auth_service.dart';
+import 'package:avatar_flow/core/services/preferences.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -17,11 +20,38 @@ class _SplashWithLogoScreenState extends State<SplashWithLogoScreen> {
   @override
   void initState() {
     super.initState();
+    _navigateAfterSplash();
+  }
 
-    if (mounted) {
-      Future.delayed(const Duration(seconds: 2), () {
-        NavigationService.goNamed(AppRoutes.welcome);
-      });
+  Future<void> _navigateAfterSplash() async {
+    // Wait for splash duration
+    await Future.delayed(const Duration(seconds: 2));
+    if (!mounted) return;
+
+    DebugPoint.log('[SPLASH] Checking auth status after splash');
+
+    // Check if first time
+    final prefs = await Preferences().init();
+    final isFirstTime = prefs.getBool('is_first_time') ?? true;
+    DebugPoint.log('[SPLASH] isFirstTime: $isFirstTime');
+
+    if (isFirstTime) {
+      await prefs.setBool('is_first_time', false);
+      DebugPoint.log('[SPLASH] Navigating to welcome (first time)');
+      NavigationService.goNamed(AppRoutes.welcome);
+      return;
+    }
+
+    // Check auth status
+    final isAuthenticated = AuthService.isAuthenticated();
+    DebugPoint.log('[SPLASH] isAuthenticated: $isAuthenticated');
+
+    if (isAuthenticated) {
+      DebugPoint.log('[SPLASH] Navigating to home (authenticated)');
+      NavigationService.goNamed(AppRoutes.bottomNavbar);
+    } else {
+      DebugPoint.log('[SPLASH] Navigating to sign in (not authenticated)');
+      NavigationService.goNamed(AppRoutes.signIn);
     }
   }
 

@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:toastification/toastification.dart';
 
 class ToastUtils {
-  static final GlobalKey<NavigatorState> navigatorKey =
-      GlobalKey<NavigatorState>();
+  static GlobalKey<NavigatorState>? _navigatorKey;
 
-  static BuildContext? get _context => navigatorKey.currentContext;
+  static void setNavigatorKey(GlobalKey<NavigatorState> key) {
+    _navigatorKey = key;
+  }
+
+  static BuildContext? get _context => _navigatorKey?.currentContext;
 
   static void success(String message) {
     final context = _context;
@@ -16,7 +19,7 @@ class ToastUtils {
       type: ToastificationType.success,
       style: ToastificationStyle.fillColored,
       autoCloseDuration: const Duration(seconds: 3),
-      alignment: Alignment.bottomCenter,
+      alignment: Alignment.topCenter,
     );
   }
 
@@ -29,7 +32,7 @@ class ToastUtils {
       type: ToastificationType.error,
       style: ToastificationStyle.fillColored,
       autoCloseDuration: const Duration(seconds: 3),
-      alignment: Alignment.bottomCenter,
+      alignment: Alignment.topCenter,
     );
   }
 
@@ -42,7 +45,7 @@ class ToastUtils {
       type: ToastificationType.warning,
       style: ToastificationStyle.fillColored,
       autoCloseDuration: const Duration(seconds: 3),
-      alignment: Alignment.bottomCenter,
+      alignment: Alignment.topCenter,
     );
   }
 
@@ -55,7 +58,7 @@ class ToastUtils {
       type: ToastificationType.info,
       style: ToastificationStyle.fillColored,
       autoCloseDuration: const Duration(seconds: 3),
-      alignment: Alignment.bottomCenter,
+      alignment: Alignment.topCenter,
     );
   }
 
@@ -66,7 +69,7 @@ class ToastUtils {
       context: context,
       title: Text(message),
       autoCloseDuration: const Duration(seconds: 3),
-      alignment: Alignment.bottomCenter,
+      alignment: Alignment.topCenter,
     );
   }
 
@@ -76,7 +79,7 @@ class ToastUtils {
     ToastificationType type = ToastificationType.info,
     ToastificationStyle style = ToastificationStyle.flat,
     Duration autoCloseDuration = const Duration(seconds: 3),
-    Alignment alignment = Alignment.bottomCenter,
+    Alignment alignment = Alignment.topCenter,
     IconData? icon,
     Color? primaryColor,
     Color? backgroundColor,
