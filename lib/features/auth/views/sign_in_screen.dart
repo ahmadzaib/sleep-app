@@ -6,6 +6,7 @@ import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:avatar_flow/features/auth/providers/auth_provider.dart';
 import 'package:avatar_flow/features/auth/views/components/auth_flow_shell.dart';
 import 'package:avatar_flow/features/auth/views/components/auth_prompt_row.dart';
+import 'package:avatar_flow/widgets/app_loading.dart';
 import 'package:avatar_flow/widgets/custom_button.dart';
 import 'package:avatar_flow/widgets/custom_svg.dart';
 import 'package:avatar_flow/widgets/custom_text_button.dart';
@@ -150,10 +151,7 @@ class SignInScreen extends StatelessWidget {
                         ? SizedBox(
                             width: 20.w,
                             height: 20.h,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: context.appColors.grey,
-                            ),
+                            child: AppLoading(),
                           )
                         : Row(
                             mainAxisAlignment: MainAxisAlignment.center,

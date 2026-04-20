@@ -16,7 +16,10 @@ class _AuthGatewayState extends State<AuthGateway> {
   @override
   void initState() {
     super.initState();
-    _handleNavigation();
+    // Defer navigation until after build phase to avoid setState during build error
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _handleNavigation();
+    });
   }
 
   Future<void> _handleNavigation() async {
