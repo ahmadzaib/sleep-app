@@ -5,10 +5,12 @@ import 'package:avatar_flow/core/constants/app_icons.dart';
 import 'package:avatar_flow/core/constants/keys.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
+import 'package:avatar_flow/features/auth/providers/auth_provider.dart';
 import 'package:avatar_flow/widgets/custom_cache_netword_imge.dart';
 import 'package:avatar_flow/widgets/custom_svg.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
 
 class HomeAppbar extends StatelessWidget implements PreferredSizeWidget {
   const HomeAppbar({super.key});
@@ -57,7 +59,9 @@ class HomeAppbar extends StatelessWidget implements PreferredSizeWidget {
                 GestureDetector(
                   onTap: () => NavigationService.pushNamed(AppRoutes.profile),
                   child: CustomCachedNetworkImage(
-                    imageUrl: Keys.placeHolderImage,
+                    imageUrl:
+                        context.read<AuthProvider>().currentUser?.avatarUrl ??
+                        Keys.placeHolderImage,
                     height: 44.h,
                     width: 44.w,
                   ),

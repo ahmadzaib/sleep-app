@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'dart:io';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:avatar_flow/core/debug/debug_point.dart';
@@ -9,6 +10,13 @@ import 'package:avatar_flow/features/auth/models/user_model.dart';
 
 class AuthService {
   static final SupabaseClient _supabase = Supabase.instance.client;
+  static final GoogleSignIn _googleSignIn = GoogleSignIn(
+    serverClientId:
+        "1065360065066-8rujn9iemo7npb8kgtdrca619n2ht863.apps.googleusercontent.com",
+    clientId: Platform.isIOS || Platform.isMacOS
+        ? "1065360065066-plcgltg6g03hobtkn7hcd747nm127hte.apps.googleusercontent.com"
+        : null,
+  );
 
   // Check if user is authenticated
   static bool isAuthenticated() {
@@ -123,13 +131,7 @@ class AuthService {
   static Future<AuthResponse> signInWithGoogle() async {
     DebugPoint.log('[AUTH_SERVICE] Starting Google Sign-In...');
     try {
-      final GoogleSignIn googleSignIn = GoogleSignIn(
-        serverClientId:
-            "1065360065066-8rujn9iemo7npb8kgtdrca619n2ht863.apps.googleusercontent.com",
-        clientId:
-            "1065360065066-plcgltg6g03hobtkn7hcd747nm127hte.apps.googleusercontent.com",
-      );
-      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
 
       if (googleUser == null) {
         DebugPoint.log('[AUTH_SERVICE] Google Sign-In cancelled by user');
@@ -168,6 +170,9 @@ class AuthService {
           name:
               response.user!.userMetadata?['full_name'] as String? ??
               googleUser.displayName,
+          avatarUrl:
+              response.user!.userMetadata?['avatar_url'] as String? ??
+              googleUser.photoUrl,
         );
       }
 
@@ -181,6 +186,11 @@ class AuthService {
 
   // Sign out
   static Future<void> signOut() async {
+    try {
+      await _googleSignIn.signOut();
+    } catch (e) {
+      DebugPoint.error('[AUTH_SERVICE] Google Sign-Out error: $e');
+    }
     await _supabase.auth.signOut();
     await clearAuthData();
   }
@@ -204,19 +214,20 @@ class AuthService {
     required String id,
     required String email,
     String? name,
+    String? avatarUrl,
   }) async {
     try {
       DebugPoint.log(
-        '[AUTH_SERVICE] Inserting into users table - id: $id, email: $email',
+        '[AUTH_SERVICE] Upserting into users table - id: $id, email: $email, avatar: $avatarUrl',
       );
-      await _supabase.from('users').insert({
+      await _supabase.from('users').upsert({
         'id': id,
         'email': email,
         'name': name,
-        'created_at': DateTime.now().toIso8601String(),
+        'avatar_url': avatarUrl,
         'updated_at': DateTime.now().toIso8601String(),
-      });
-      DebugPoint.log('[AUTH_SERVICE] User inserted successfully');
+      }, onConflict: 'id');
+      DebugPoint.log('[AUTH_SERVICE] User upserted successfully');
     } catch (e, stackTrace) {
       DebugPoint.error('[AUTH_SERVICE] Error creating user in table: $e');
       DebugPoint.error('[AUTH_SERVICE] StackTrace: $stackTrace');
