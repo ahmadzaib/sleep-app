@@ -8,6 +8,7 @@ import 'package:avatar_flow/features/create_avatar/views/clone_voice_screen.dart
 import 'package:avatar_flow/features/auth/providers/auth_provider.dart';
 import 'package:avatar_flow/features/auth/views/forgot_password_screen.dart';
 import 'package:avatar_flow/features/auth/views/otp_verification_screen.dart';
+import 'package:avatar_flow/features/auth/views/reset_password_screen.dart';
 import 'package:avatar_flow/features/auth/views/sign_in_screen.dart';
 import 'package:avatar_flow/features/auth/views/sign_up_screen.dart';
 import 'package:avatar_flow/features/prompt_ai/views/prompt_avatar_screen.dart';
@@ -98,6 +99,11 @@ final GoRouter router = GoRouter(
       name: AppRoutes.forgotPassword,
       path: AppPaths.forgotPassword,
       builder: (context, state) => const ForgotPasswordScreen(),
+    ),
+    GoRoute(
+      name: AppRoutes.resetPassword,
+      path: AppPaths.resetPassword,
+      builder: (context, state) => const ResetPasswordScreen(),
     ),
     GoRoute(
       name: AppRoutes.otpVerification,

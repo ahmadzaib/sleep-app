@@ -17,6 +17,7 @@ class AuthProvider extends ChangeNotifier with Validators {
   final GlobalKey<FormState> signInFormKey = GlobalKey<FormState>();
   final GlobalKey<FormState> signUpFormKey = GlobalKey<FormState>();
   final GlobalKey<FormState> forgotPasswordFormKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> resetPasswordFormKey = GlobalKey<FormState>();
   final GlobalKey<FormState> otpFormKey = GlobalKey<FormState>();
 
   final TextEditingController signInEmailController = TextEditingController();
@@ -30,6 +31,9 @@ class AuthProvider extends ChangeNotifier with Validators {
       TextEditingController();
   final TextEditingController forgotPasswordEmailController =
       TextEditingController();
+  final TextEditingController resetPasswordController = TextEditingController();
+  final TextEditingController resetConfirmPasswordController =
+      TextEditingController();
   final TextEditingController otpController = TextEditingController();
 
   final List<TextInputFormatter> otpInputFormatters = [
@@ -40,6 +44,8 @@ class AuthProvider extends ChangeNotifier with Validators {
   bool _isSignInPasswordHidden = true;
   bool _isSignUpPasswordHidden = true;
   bool _isSignUpConfirmPasswordHidden = true;
+  bool _isResetPasswordHidden = true;
+  bool _isResetConfirmPasswordHidden = true;
   bool _isSubmitting = false;
   bool _isResendingCode = false;
   int _otpSecondsRemaining = 0;
@@ -84,6 +90,8 @@ class AuthProvider extends ChangeNotifier with Validators {
   bool get isSignInPasswordHidden => _isSignInPasswordHidden;
   bool get isSignUpPasswordHidden => _isSignUpPasswordHidden;
   bool get isSignUpConfirmPasswordHidden => _isSignUpConfirmPasswordHidden;
+  bool get isResetPasswordHidden => _isResetPasswordHidden;
+  bool get isResetConfirmPasswordHidden => _isResetConfirmPasswordHidden;
   bool get isSubmitting => _isSubmitting;
   bool get isResendingCode => _isResendingCode;
   int get otpSecondsRemaining => _otpSecondsRemaining;
@@ -102,6 +110,16 @@ class AuthProvider extends ChangeNotifier with Validators {
 
   void toggleSignUpConfirmPasswordVisibility() {
     _isSignUpConfirmPasswordHidden = !_isSignUpConfirmPasswordHidden;
+    notifyListeners();
+  }
+  
+  void toggleResetPasswordVisibility() {
+    _isResetPasswordHidden = !_isResetPasswordHidden;
+    notifyListeners();
+  }
+  
+  void toggleResetConfirmPasswordVisibility() {
+    _isResetConfirmPasswordHidden = !_isResetConfirmPasswordHidden;
     notifyListeners();
   }
 
@@ -272,9 +290,16 @@ class AuthProvider extends ChangeNotifier with Validators {
 
     await _runWithLoading(() async {
       try {
-        // Note: Supabase doesn't use traditional OTP for email verification
-        // In a real implementation, you might verify the token differently
-        // This is a simplified flow
+        final token = otpController.text.trim();
+        final email = _otpDestination;
+        final type = _otpFlow == AuthOtpFlow.signUp ? OtpType.signup : OtpType.recovery;
+        
+        await AuthService.verifyOTP(
+          email: email,
+          token: token,
+          type: type,
+        );
+
         _otpTimer?.cancel();
         _otpSecondsRemaining = 0;
 
@@ -288,10 +313,33 @@ class AuthProvider extends ChangeNotifier with Validators {
           _clearForgotPasswordFields();
           otpController.clear();
           ToastUtils.success('You can now reset your password');
-          NavigationService.goNamed(AppRoutes.signIn);
+          NavigationService.goNamed(AppRoutes.resetPassword);
         }
+      } on AuthException catch (e) {
+        ToastUtils.error(e.message);
       } catch (e) {
         ToastUtils.error('Verification failed. Please try again.');
+      }
+    });
+  }
+
+  Future<void> resetPassword() async {
+    if (!(resetPasswordFormKey.currentState?.validate() ?? false)) {
+      return;
+    }
+
+    final newPassword = resetPasswordController.text;
+    
+    await _runWithLoading(() async {
+      try {
+        await AuthService.updatePassword(newPassword);
+        _clearResetPasswordFields();
+        ToastUtils.success('Password updated successfully!');
+        NavigationService.goNamed(AppRoutes.signIn);
+      } on AuthException catch (e) {
+        ToastUtils.error(e.message);
+      } catch (e) {
+        ToastUtils.error('Failed to reset password. Please try again.');
       }
     });
   }
@@ -429,6 +477,11 @@ class AuthProvider extends ChangeNotifier with Validators {
     forgotPasswordEmailController.clear();
   }
 
+  void _clearResetPasswordFields() {
+    resetPasswordController.clear();
+    resetConfirmPasswordController.clear();
+  }
+
   @override
   void dispose() {
     _otpTimer?.cancel();
@@ -439,6 +492,8 @@ class AuthProvider extends ChangeNotifier with Validators {
     signUpPasswordController.dispose();
     signUpConfirmPasswordController.dispose();
     forgotPasswordEmailController.dispose();
+    resetPasswordController.dispose();
+    resetConfirmPasswordController.dispose();
     otpController.dispose();
     super.dispose();
   }

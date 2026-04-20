@@ -195,6 +195,20 @@ class AuthService {
     await clearAuthData();
   }
 
+  // Verify OTP
+  static Future<AuthResponse> verifyOTP({
+    required String email,
+    required String token,
+    required OtpType type,
+  }) async {
+    DebugPoint.log('[AUTH_SERVICE] verifyOTP called - email: $email, type: $type');
+    return await _supabase.auth.verifyOTP(
+      email: email,
+      token: token,
+      type: type,
+    );
+  }
+
   // Reset password
   static Future<void> resetPassword(String email) async {
     await _supabase.auth.resetPasswordForEmail(email);
