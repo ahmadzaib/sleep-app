@@ -4,10 +4,15 @@ import 'package:avatar_flow/core/theme/app_colors.dart';
 import 'package:avatar_flow/my_app.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final prefs = await Preferences().init();
+  await Supabase.initialize(
+    url: 'https://wyeybswtyqylzagfevtz.supabase.co',
+    anonKey: 'sb_publishable_6nGfW4O2rHCuGiS4a4lLsw_uVbrtHCK',
+  );
   ErrorWidget.builder = (details) {
     return Directionality(
       textDirection: TextDirection.ltr,
