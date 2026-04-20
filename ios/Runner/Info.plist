@@ -47,5 +47,16 @@
 	<true/>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>We need microphone access to record your voice for cloning.</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+		<key>CFBundleTypeRole</key>
+		<string>Editor</string>
+		<key>CFBundleURLSchemes</key>
+		<array>
+			<string>com.googleusercontent.apps.1065360065066-45ida8kbjrk6lg7nnla3gvhjpi1c8kc1</string>
+		</array>
+		</dict>
+	</array>
 </dict>
 </plist>
