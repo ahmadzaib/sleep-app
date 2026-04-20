@@ -3,6 +3,7 @@ class AppRoutes {
 
   static const String splash = 'splash';
   static const String splashWithLogo = 'splashWithLogo';
+  static const String authGateway = 'authGateway';
   static const String welcome = 'welcome';
   static const String signIn = 'signIn';
   static const String signUp = 'signUp';
@@ -27,6 +28,7 @@ class AppPaths {
 
   static const String splash = '/';
   static const String splashWithLogo = '/splashWithLogo';
+  static const String authGateway = '/authGateway';
   static const String welcome = '/welcome';
   static const String signIn = '/signIn';
   static const String signUp = '/signUp';
