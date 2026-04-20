@@ -123,7 +123,12 @@ class AuthService {
   static Future<AuthResponse> signInWithGoogle() async {
     DebugPoint.log('[AUTH_SERVICE] Starting Google Sign-In...');
     try {
-      final GoogleSignIn googleSignIn = GoogleSignIn();
+      final GoogleSignIn googleSignIn = GoogleSignIn(
+        serverClientId:
+            "1065360065066-8rujn9iemo7npb8kgtdrca619n2ht863.apps.googleusercontent.com",
+        clientId:
+            "1065360065066-plcgltg6g03hobtkn7hcd747nm127hte.apps.googleusercontent.com",
+      );
       final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
 
       if (googleUser == null) {

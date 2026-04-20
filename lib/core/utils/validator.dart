@@ -1,6 +1,5 @@
 import 'package:flutter/widgets.dart';
 
-
 mixin Validators {
   String? validatePassword(BuildContext context, String? value) {
     if (value == null || value.isEmpty) {
@@ -29,8 +28,8 @@ mixin Validators {
       return "Email is required";
     }
     return RegExp(
-      r'^.+@[a-zA-Z]+\.{1}[a-zA-Z]+(\.{0,1}[a-zA-Z]+)$',
-    ).hasMatch(value)
+          r'^.+@[a-zA-Z]+\.{1}[a-zA-Z]+(\.{0,1}[a-zA-Z]+)$',
+        ).hasMatch(value)
         ? null
         : "Invalid email address";
   }
