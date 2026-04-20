@@ -13,6 +13,7 @@ import 'package:avatar_flow/widgets/custom_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
+import 'package:zoom_tap_animation/zoom_tap_animation.dart';
 
 class SignInScreen extends StatelessWidget {
   const SignInScreen({super.key});
@@ -102,6 +103,82 @@ class SignInScreen extends StatelessWidget {
                   text: 'Sign In',
                   onPressed: authProvider.signIn,
                   isLoading: authProvider.isSubmitting,
+                ),
+                SizedBox(height: 16.h),
+                // Or divider
+                Row(
+                  children: [
+                    Expanded(
+                      child: Divider(
+                        color: context.appColors.grey.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 12.w),
+                      child: Text(
+                        'or',
+                        style: TextStyle(
+                          color: context.appColors.grey,
+                          fontSize: 14.sp,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Divider(
+                        color: context.appColors.grey.withValues(alpha: 0.3),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16.h),
+                // Google Sign In Button
+                ZoomTapAnimation(
+                  onTap: authProvider.isSubmitting
+                      ? null
+                      : authProvider.signInWithGoogle,
+                  child: Container(
+                    height: 46.h,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(30.r),
+                      border: Border.all(
+                        color: context.appColors.grey.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: authProvider.isSubmitting
+                        ? SizedBox(
+                            width: 20.w,
+                            height: 20.h,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: context.appColors.grey,
+                            ),
+                          )
+                        : Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              // Google "G" logo using text
+                              Text(
+                                'G',
+                                style: TextStyle(
+                                  fontSize: 20.sp,
+                                  fontWeight: FontWeight.w700,
+                                  color: const Color(0xFF4285F4),
+                                ),
+                              ),
+                              SizedBox(width: 8.w),
+                              Text(
+                                'Continue with Google',
+                                style: TextStyle(
+                                  color: Colors.black87,
+                                  fontSize: 15.sp,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                  ),
                 ),
               ],
             ),

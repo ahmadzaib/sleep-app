@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:avatar_flow/core/debug/debug_point.dart';
 import 'package:avatar_flow/core/services/secure_storage_service.dart';
 import 'package:avatar_flow/core/constants/keys.dart';
@@ -113,6 +114,61 @@ class AuthService {
       return response;
     } catch (e, stackTrace) {
       DebugPoint.error('[AUTH_SERVICE] SignIn error: $e');
+      DebugPoint.error('[AUTH_SERVICE] StackTrace: $stackTrace');
+      rethrow;
+    }
+  }
+
+  // Sign in with Google
+  static Future<AuthResponse> signInWithGoogle() async {
+    DebugPoint.log('[AUTH_SERVICE] Starting Google Sign-In...');
+    try {
+      final GoogleSignIn googleSignIn = GoogleSignIn();
+      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+
+      if (googleUser == null) {
+        DebugPoint.log('[AUTH_SERVICE] Google Sign-In cancelled by user');
+        throw Exception('Google Sign-In cancelled');
+      }
+
+      DebugPoint.log('[AUTH_SERVICE] Google user: ${googleUser.email}');
+
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+      final String? idToken = googleAuth.idToken;
+      final String? accessToken = googleAuth.accessToken;
+
+      if (idToken == null) {
+        throw Exception('No ID Token found');
+      }
+
+      DebugPoint.log('[AUTH_SERVICE] Got Google ID token');
+
+      // Sign in to Supabase with Google
+      final response = await _supabase.auth.signInWithIdToken(
+        provider: OAuthProvider.google,
+        idToken: idToken,
+        accessToken: accessToken,
+      );
+
+      DebugPoint.log(
+        '[AUTH_SERVICE] Supabase Google Sign-In success: ${response.user?.id}',
+      );
+
+      // Create user in table if new
+      if (response.user != null) {
+        await _createUserInTable(
+          id: response.user!.id,
+          email: response.user!.email ?? googleUser.email,
+          name:
+              response.user!.userMetadata?['full_name'] as String? ??
+              googleUser.displayName,
+        );
+      }
+
+      return response;
+    } catch (e, stackTrace) {
+      DebugPoint.error('[AUTH_SERVICE] Google Sign-In error: $e');
       DebugPoint.error('[AUTH_SERVICE] StackTrace: $stackTrace');
       rethrow;
     }

@@ -105,6 +105,33 @@ class AuthProvider extends ChangeNotifier with Validators {
     notifyListeners();
   }
 
+  Future<void> signInWithGoogle() async {
+    DebugPoint.log('[AUTH] Google Sign-In started');
+
+    await _runWithLoading(() async {
+      try {
+        final response = await AuthService.signInWithGoogle();
+
+        DebugPoint.log(
+          '[AUTH] Google Sign-In response - user: ${response.user?.id}',
+        );
+
+        if (response.user != null) {
+          _currentUser = await AuthService.getCurrentUserModel();
+          ToastUtils.success('Welcome ${userInfo.name}!');
+          NavigationService.goNamed(AppRoutes.bottomNavbar);
+        }
+      } on AuthException catch (e) {
+        DebugPoint.error('[AUTH] Google Sign-In AuthException: ${e.message}');
+        ToastUtils.error(e.message);
+      } catch (e, stackTrace) {
+        DebugPoint.error('[AUTH] Google Sign-In unexpected error: $e');
+        DebugPoint.error('[AUTH] StackTrace: $stackTrace');
+        ToastUtils.error('Google Sign-In failed. Please try again.');
+      }
+    });
+  }
+
   Future<void> signIn() async {
     DebugPoint.log('[AUTH] SignIn started');
     if (!(signInFormKey.currentState?.validate() ?? false)) {
