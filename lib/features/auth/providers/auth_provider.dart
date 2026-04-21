@@ -221,10 +221,13 @@ class AuthProvider extends ChangeNotifier with Validators {
         DebugPoint.log('[AUTH] User metadata: ${response.user?.userMetadata}');
 
         if (response.user != null) {
-          // Check if email confirmation is required
-          if (response.session == null) {
+          final bool isConfirmed = response.user!.emailConfirmedAt != null;
+          DebugPoint.log('[AUTH] User confirmed status: $isConfirmed');
+
+          // If no session is returned, or user is unconfirmed, email verification is required
+          if (response.session == null || !isConfirmed) {
             DebugPoint.log(
-              '[AUTH] Email confirmation required, navigating to OTP',
+              '[AUTH] OTP Verification required (session: ${response.session != null}, confirmed: $isConfirmed), navigating to OTP screen',
             );
             configureOtp(flow: AuthOtpFlow.signUp, destination: email);
             WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -234,10 +237,17 @@ class AuthProvider extends ChangeNotifier with Validators {
               );
             });
           } else {
-            // Auto-confirmed (development mode)
-            DebugPoint.log('[AUTH] Auto-confirmed, loading user model');
+            // If session is returned AND user is confirmed, email is already good
+            // This happens in development mode or if disabled in Supabase
+            DebugPoint.log(
+              '[AUTH] Auto-confirmed (session present & confirmed), completing signup',
+            );
+            await AuthService.createUserProfile(
+              id: response.user!.id,
+              email: email,
+              name: name,
+            );
             _currentUser = await AuthService.getCurrentUserModel();
-            DebugPoint.log('[AUTH] User loaded: ${_currentUser?.toString()}');
             _clearSignUpFields();
             ToastUtils.success('Account created successfully!');
             WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -316,11 +326,11 @@ class AuthProvider extends ChangeNotifier with Validators {
         _otpSecondsRemaining = 0;
 
         if (_otpFlow == AuthOtpFlow.signUp) {
+          // Email verified - account now active
           _currentUser = await AuthService.getCurrentUserModel();
           _clearSignUpFields();
           otpController.clear();
           ToastUtils.success('Email verified! Welcome!');
-          // Defer navigation to avoid GlobalKey conflict during build
           WidgetsBinding.instance.addPostFrameCallback((_) {
             NavigationService.goNamed(AppRoutes.bottomNavbar);
           });
@@ -376,10 +386,9 @@ class AuthProvider extends ChangeNotifier with Validators {
     try {
       if (_otpFlow == AuthOtpFlow.signUp) {
         // Resend email confirmation
-        await AuthService.signUp(
+        await AuthService.resendOTP(
           email: _otpDestination,
-          password: signUpPasswordController.text,
-          name: signUpNameController.text.trim(),
+          type: OtpType.signup,
         );
       } else {
         // Resend recovery OTP

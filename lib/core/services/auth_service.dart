@@ -87,16 +87,6 @@ class AuthService {
         '[AUTH_SERVICE] SignUp response - hasSession: ${response.session != null}',
       );
 
-      // Create user record in users table after successful signup
-      if (response.user != null) {
-        DebugPoint.log('[AUTH_SERVICE] Creating user in table...');
-        await _createUserInTable(
-          id: response.user!.id,
-          email: email,
-          name: name,
-        );
-      }
-
       return response;
     } catch (e, stackTrace) {
       DebugPoint.error('[AUTH_SERVICE] SignUp error: $e');
@@ -164,7 +154,7 @@ class AuthService {
 
       // Create user in table if new
       if (response.user != null) {
-        await _createUserInTable(
+        await createUserProfile(
           id: response.user!.id,
           email: response.user!.email ?? googleUser.email,
           name:
@@ -204,11 +194,34 @@ class AuthService {
     DebugPoint.log(
       '[AUTH_SERVICE] verifyOTP called - email: $email, type: $type',
     );
-    return await _supabase.auth.verifyOTP(
+    final response = await _supabase.auth.verifyOTP(
       email: email,
       token: token,
       type: type,
     );
+
+    // Create user record in users table after successful signup verification
+    if (response.user != null && type == OtpType.signup) {
+      DebugPoint.log(
+        '[AUTH_SERVICE] Creating user in table after OTP verification...',
+      );
+      await createUserProfile(
+        id: response.user!.id,
+        email: email,
+        name: response.user!.userMetadata?['name'] as String?,
+      );
+    }
+
+    return response;
+  }
+
+  // Resend OTP
+  static Future<void> resendOTP({
+    required String email,
+    required OtpType type,
+  }) async {
+    DebugPoint.log('[AUTH_SERVICE] Resending OTP to: $email, type: $type');
+    await _supabase.auth.resend(email: email, type: type);
   }
 
   // Send OTP for password recovery
@@ -229,8 +242,8 @@ class AuthService {
   static Stream<AuthState> get onAuthStateChange =>
       _supabase.auth.onAuthStateChange;
 
-  // Create user in users table
-  static Future<void> _createUserInTable({
+  // Create user profile in users table
+  static Future<void> createUserProfile({
     required String id,
     required String email,
     String? name,
