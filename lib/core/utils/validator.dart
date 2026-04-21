@@ -57,7 +57,7 @@ mixin Validators {
     return null;
   }
 
-  String? validateOtp(BuildContext context, String? value, {int length = 6}) {
+  String? validateOtp(BuildContext context, String? value, {int length = 8}) {
     if (value == null || value.isEmpty) {
       return "OTP is required";
     } else if (value.length != length) {

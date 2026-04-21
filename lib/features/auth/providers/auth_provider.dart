@@ -38,7 +38,7 @@ class AuthProvider extends ChangeNotifier with Validators {
 
   final List<TextInputFormatter> otpInputFormatters = [
     FilteringTextInputFormatter.digitsOnly,
-    LengthLimitingTextInputFormatter(6),
+    LengthLimitingTextInputFormatter(8),
   ];
 
   bool _isSignInPasswordHidden = true;
@@ -112,12 +112,12 @@ class AuthProvider extends ChangeNotifier with Validators {
     _isSignUpConfirmPasswordHidden = !_isSignUpConfirmPasswordHidden;
     notifyListeners();
   }
-  
+
   void toggleResetPasswordVisibility() {
     _isResetPasswordHidden = !_isResetPasswordHidden;
     notifyListeners();
   }
-  
+
   void toggleResetConfirmPasswordVisibility() {
     _isResetConfirmPasswordHidden = !_isResetConfirmPasswordHidden;
     notifyListeners();
@@ -137,7 +137,9 @@ class AuthProvider extends ChangeNotifier with Validators {
         if (response.user != null) {
           _currentUser = await AuthService.getCurrentUserModel();
           ToastUtils.success('Welcome ${userInfo.name}!');
-          NavigationService.goNamed(AppRoutes.bottomNavbar);
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            NavigationService.goNamed(AppRoutes.bottomNavbar);
+          });
         }
       } on AuthException catch (e) {
         DebugPoint.error('[AUTH] Google Sign-In AuthException: ${e.message}');
@@ -178,7 +180,9 @@ class AuthProvider extends ChangeNotifier with Validators {
           );
           _clearSignInFields();
           ToastUtils.success('Welcome back!');
-          NavigationService.goNamed(AppRoutes.bottomNavbar);
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            NavigationService.goNamed(AppRoutes.bottomNavbar);
+          });
         }
       } on AuthException catch (e) {
         DebugPoint.error('[AUTH] SignIn AuthException: ${e.message}');
@@ -223,10 +227,12 @@ class AuthProvider extends ChangeNotifier with Validators {
               '[AUTH] Email confirmation required, navigating to OTP',
             );
             configureOtp(flow: AuthOtpFlow.signUp, destination: email);
-            NavigationService.pushNamed(
-              AppRoutes.otpVerification,
-              extra: {'flow': AuthOtpFlow.signUp.name, 'destination': email},
-            );
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              NavigationService.pushNamed(
+                AppRoutes.otpVerification,
+                extra: {'flow': AuthOtpFlow.signUp.name, 'destination': email},
+              );
+            });
           } else {
             // Auto-confirmed (development mode)
             DebugPoint.log('[AUTH] Auto-confirmed, loading user model');
@@ -234,7 +240,9 @@ class AuthProvider extends ChangeNotifier with Validators {
             DebugPoint.log('[AUTH] User loaded: ${_currentUser?.toString()}');
             _clearSignUpFields();
             ToastUtils.success('Account created successfully!');
-            NavigationService.goNamed(AppRoutes.bottomNavbar);
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              NavigationService.goNamed(AppRoutes.bottomNavbar);
+            });
           }
         } else {
           DebugPoint.warning('[AUTH] SignUp returned null user');
@@ -263,22 +271,28 @@ class AuthProvider extends ChangeNotifier with Validators {
 
     await _runWithLoading(() async {
       try {
-        await AuthService.resetPassword(email);
-        DebugPoint.log('[AUTH] Password reset email sent successfully');
-        ToastUtils.success('Password reset email sent!');
+        await AuthService.sendRecoveryOTP(email);
+        DebugPoint.log('[AUTH] Recovery OTP sent successfully');
+        ToastUtils.success('OTP sent to your email!');
         configureOtp(flow: AuthOtpFlow.resetPassword, destination: email);
-        NavigationService.pushNamed(
-          AppRoutes.otpVerification,
-          extra: {'flow': AuthOtpFlow.resetPassword.name, 'destination': email},
-        );
+        // Defer navigation to avoid GlobalKey conflict during build
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          NavigationService.pushNamed(
+            AppRoutes.otpVerification,
+            extra: {
+              'flow': AuthOtpFlow.resetPassword.name,
+              'destination': email,
+            },
+          );
+        });
       } on AuthException catch (e) {
-        DebugPoint.error('[AUTH] Password reset AuthException: ${e.message}');
+        DebugPoint.error('[AUTH] Send OTP AuthException: ${e.message}');
         DebugPoint.error('[AUTH] StatusCode: ${e.statusCode}');
         ToastUtils.error(e.message);
       } catch (e, stackTrace) {
-        DebugPoint.error('[AUTH] Password reset unexpected error: $e');
+        DebugPoint.error('[AUTH] Send OTP unexpected error: $e');
         DebugPoint.error('[AUTH] StackTrace: $stackTrace');
-        ToastUtils.error('Failed to send reset email. Please try again.');
+        ToastUtils.error('Failed to send OTP. Please try again.');
       }
     });
   }
@@ -292,13 +306,11 @@ class AuthProvider extends ChangeNotifier with Validators {
       try {
         final token = otpController.text.trim();
         final email = _otpDestination;
-        final type = _otpFlow == AuthOtpFlow.signUp ? OtpType.signup : OtpType.recovery;
-        
-        await AuthService.verifyOTP(
-          email: email,
-          token: token,
-          type: type,
-        );
+        final type = _otpFlow == AuthOtpFlow.signUp
+            ? OtpType.signup
+            : OtpType.recovery;
+
+        await AuthService.verifyOTP(email: email, token: token, type: type);
 
         _otpTimer?.cancel();
         _otpSecondsRemaining = 0;
@@ -308,12 +320,18 @@ class AuthProvider extends ChangeNotifier with Validators {
           _clearSignUpFields();
           otpController.clear();
           ToastUtils.success('Email verified! Welcome!');
-          NavigationService.goNamed(AppRoutes.bottomNavbar);
+          // Defer navigation to avoid GlobalKey conflict during build
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            NavigationService.goNamed(AppRoutes.bottomNavbar);
+          });
         } else {
           _clearForgotPasswordFields();
           otpController.clear();
           ToastUtils.success('You can now reset your password');
-          NavigationService.goNamed(AppRoutes.resetPassword);
+          // Defer navigation to avoid GlobalKey conflict during build
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            NavigationService.goNamed(AppRoutes.resetPassword);
+          });
         }
       } on AuthException catch (e) {
         ToastUtils.error(e.message);
@@ -329,13 +347,16 @@ class AuthProvider extends ChangeNotifier with Validators {
     }
 
     final newPassword = resetPasswordController.text;
-    
+
     await _runWithLoading(() async {
       try {
         await AuthService.updatePassword(newPassword);
         _clearResetPasswordFields();
         ToastUtils.success('Password updated successfully!');
-        NavigationService.goNamed(AppRoutes.signIn);
+        // Defer navigation to avoid GlobalKey conflict during build
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          NavigationService.goNamed(AppRoutes.signIn);
+        });
       } on AuthException catch (e) {
         ToastUtils.error(e.message);
       } catch (e) {
@@ -361,8 +382,8 @@ class AuthProvider extends ChangeNotifier with Validators {
           name: signUpNameController.text.trim(),
         );
       } else {
-        // Resend password reset
-        await AuthService.resetPassword(_otpDestination);
+        // Resend recovery OTP
+        await AuthService.sendRecoveryOTP(_otpDestination);
       }
       ToastUtils.success('Code resent!');
     } on AuthException catch (e) {
@@ -381,7 +402,9 @@ class AuthProvider extends ChangeNotifier with Validators {
       await AuthService.signOut();
       _currentUser = null;
       ToastUtils.success('Signed out successfully');
-      NavigationService.goNamed(AppRoutes.signIn);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        NavigationService.goNamed(AppRoutes.signIn);
+      });
     });
   }
 

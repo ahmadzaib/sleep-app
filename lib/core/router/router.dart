@@ -45,11 +45,20 @@ final GoRouter router = GoRouter(
         state.matchedLocation == AppPaths.signUp ||
         state.matchedLocation == AppPaths.welcome ||
         state.matchedLocation == AppPaths.forgotPassword ||
+        state.matchedLocation == AppPaths.otpVerification ||
+        state.matchedLocation == AppPaths.resetPassword ||
         state.matchedLocation == AppPaths.splash ||
         state.matchedLocation == AppPaths.splashWithLogo;
 
+    // Allow OTP verification and reset password even when authenticated
+    // (recovery flow temporarily authenticates the user)
+    final isRecoveryRoute =
+        state.matchedLocation == AppPaths.otpVerification ||
+        state.matchedLocation == AppPaths.resetPassword;
+
     // If authenticated and trying to access auth routes, redirect to home
-    if (isAuthenticated && isAuthRoute) {
+    // But allow recovery flow to complete
+    if (isAuthenticated && isAuthRoute && !isRecoveryRoute) {
       return AppPaths.bottomNavbar;
     }
 

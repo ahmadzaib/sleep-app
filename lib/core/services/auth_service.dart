@@ -201,7 +201,9 @@ class AuthService {
     required String token,
     required OtpType type,
   }) async {
-    DebugPoint.log('[AUTH_SERVICE] verifyOTP called - email: $email, type: $type');
+    DebugPoint.log(
+      '[AUTH_SERVICE] verifyOTP called - email: $email, type: $type',
+    );
     return await _supabase.auth.verifyOTP(
       email: email,
       token: token,
@@ -209,8 +211,12 @@ class AuthService {
     );
   }
 
-  // Reset password
-  static Future<void> resetPassword(String email) async {
+  // Send OTP for password recovery
+  static Future<void> sendRecoveryOTP(String email) async {
+    DebugPoint.log('[AUTH_SERVICE] Sending recovery OTP to: $email');
+    // Note: Supabase sends magic link by default.
+    // To receive an OTP code instead, configure Email Template in Supabase Dashboard:
+    // Authentication → Email Templates → Magic Link → Use {{ .Token }} for the code
     await _supabase.auth.resetPasswordForEmail(email);
   }
 

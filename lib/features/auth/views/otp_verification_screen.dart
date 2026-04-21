@@ -179,7 +179,7 @@ class _OtpInputField extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Pinput(
-          length: 6,
+          length: 8,
           controller: authProvider.otpController,
           defaultPinTheme: baseTheme,
           focusedPinTheme: baseTheme.copyWith(
