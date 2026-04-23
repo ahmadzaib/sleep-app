@@ -5,16 +5,18 @@ import 'package:avatar_flow/core/theme/app_colors.dart';
 import 'package:avatar_flow/my_app.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
+  await dotenv.load(fileName: ".env");
   WidgetsFlutterBinding.ensureInitialized();
   final prefs = await Preferences().init();
 
   // Initialize Supabase with auth persistence
   await Supabase.initialize(
-    url: 'https://wyeybswtyqylzagfevtz.supabase.co',
-    anonKey: 'sb_publishable_6nGfW4O2rHCuGiS4a4lLsw_uVbrtHCK',
+    url: dotenv.env['SUPABASE_URL'] ?? '',
+    anonKey: dotenv.env['SUPABASE_ANNON_KEY'] ?? '',
   );
 
   // Sync auth state with router
