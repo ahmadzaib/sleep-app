@@ -13,6 +13,20 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 enum AuthOtpFlow { signUp, resetPassword }
 
 class AuthProvider extends ChangeNotifier with Validators {
+  AuthProvider() {
+    // Listen to auth state changes and update _currentUser
+    _authSubscription = AuthService.onAuthStateChange.listen((event) async {
+      if (event.session != null) {
+        _currentUser = await AuthService.getCurrentUser();
+      } else {
+        _currentUser = null;
+      }
+      notifyListeners();
+    });
+  }
+
+  StreamSubscription<AuthState>? _authSubscription;
+
   final GlobalKey<FormState> signInFormKey = GlobalKey<FormState>();
   final GlobalKey<FormState> signUpFormKey = GlobalKey<FormState>();
   final GlobalKey<FormState> forgotPasswordFormKey = GlobalKey<FormState>();
@@ -53,7 +67,21 @@ class AuthProvider extends ChangeNotifier with Validators {
   Timer? _otpTimer;
   UserModel? _currentUser;
 
-  UserModel? get userInfo => _currentUser;
+  UserModel? get userInfo {
+    if (_currentUser != null) return _currentUser;
+
+    final supabaseUser = AuthService.currentUser;
+    if (supabaseUser == null) return null;
+
+    return UserModel(
+      id: supabaseUser.id,
+      email: supabaseUser.email ?? '',
+      name:
+          supabaseUser.userMetadata?['name'] as String? ??
+          supabaseUser.userMetadata?['full_name'] as String?,
+      avatarUrl: supabaseUser.userMetadata?['avatar_url'] as String?,
+    );
+  }
 
   bool get isSignInPasswordHidden => _isSignInPasswordHidden;
   bool get isSignUpPasswordHidden => _isSignUpPasswordHidden;
@@ -446,6 +474,7 @@ class AuthProvider extends ChangeNotifier with Validators {
 
   @override
   void dispose() {
+    _authSubscription?.cancel();
     _otpTimer?.cancel();
     signInEmailController.dispose();
     signInPasswordController.dispose();
