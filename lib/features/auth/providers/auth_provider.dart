@@ -97,7 +97,15 @@ class AuthProvider extends ChangeNotifier with Validators {
         final response = await AuthService.signInWithGoogle();
 
         if (response.user != null) {
-          _currentUser = await AuthService.getCurrentUser();
+          _currentUser =
+              await AuthService.getCurrentUser() ??
+              UserModel(
+                id: response.user!.id,
+                email: response.user!.email ?? '',
+                name:
+                    response.user!.userMetadata?['full_name'] as String? ??
+                    response.user!.userMetadata?['name'] as String?,
+              );
           ToastUtils.success('Welcome ${_currentUser?.name ?? 'User'}!');
           WidgetsBinding.instance.addPostFrameCallback((_) {
             NavigationService.goNamed(AppRoutes.bottomNavbar);
@@ -122,7 +130,13 @@ class AuthProvider extends ChangeNotifier with Validators {
         );
 
         if (response.user != null) {
-          _currentUser = await AuthService.getCurrentUser();
+          _currentUser =
+              await AuthService.getCurrentUser() ??
+              UserModel(
+                id: response.user!.id,
+                email: response.user!.email ?? '',
+                name: response.user!.userMetadata?['name'] as String?,
+              );
           _clearSignInFields();
           ToastUtils.success('Welcome back!');
           WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -238,7 +252,13 @@ class AuthProvider extends ChangeNotifier with Validators {
 
         if (_otpFlow == AuthOtpFlow.signUp) {
           // Email verified - account now active
-          _currentUser = await AuthService.getCurrentUser();
+          _currentUser =
+              await AuthService.getCurrentUser() ??
+              UserModel(
+                id: AuthService.currentUser!.id,
+                email: _otpDestination,
+                name: AuthService.currentUser!.userMetadata?['name'] as String?,
+              );
           _clearSignUpFields();
           otpController.clear();
           ToastUtils.success('Email verified! Welcome!');
