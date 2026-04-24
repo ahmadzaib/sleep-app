@@ -44,4 +44,6 @@ class CreateAvatarProvider extends ChangeNotifier {
     prompt = newPrompt;
     notifyListeners();
   }
+
+  // create avatar
 }

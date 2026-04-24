@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:avatar_flow/core/constants/db_constants.dart';
 import 'package:avatar_flow/core/constants/mock_data.dart';
 import 'package:avatar_flow/core/router/navigation_service.dart';
 import 'package:avatar_flow/core/router/routes.dart';
@@ -416,8 +417,8 @@ class AuthProvider extends ChangeNotifier with Validators {
       // Upload to Supabase Storage
       final imageUrl = await SupabaseStorageService.uploadImage(
         file: file,
-        bucketName: 'users',
-        folder: 'avatars',
+        bucketName: DBConstansts.users,
+        folder: DBConstansts.avatars,
       );
 
       if (imageUrl == null) {

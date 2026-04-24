@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:avatar_flow/core/constants/db_constants.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -49,7 +50,7 @@ class AuthService {
 
     try {
       final response = await _supabase
-          .from('users')
+          .from(DBConstansts.users)
           .select()
           .eq('id', user.id)
           .single();
@@ -191,7 +192,7 @@ class AuthService {
       debugPrint('[AUTH_SERVICE] Inserting user data: $data');
 
       final result = await _supabase
-          .from('users')
+          .from(DBConstansts.users)
           .upsert(data, onConflict: 'id')
           .select();
       debugPrint('[AUTH_SERVICE] User upsert successful: $result');
@@ -217,7 +218,7 @@ class AuthService {
       debugPrint('[AUTH_SERVICE] Updating user profile: $data');
 
       final result = await _supabase
-          .from('users')
+          .from(DBConstansts.users)
           .update(data)
           .eq('id', id)
           .select();
