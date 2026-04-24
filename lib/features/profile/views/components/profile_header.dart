@@ -4,10 +4,13 @@ import 'package:avatar_flow/core/router/navigation_service.dart';
 import 'package:avatar_flow/core/router/routes.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
+import 'package:avatar_flow/features/auth/providers/auth_provider.dart';
+import 'package:avatar_flow/widgets/app_loading.dart';
 import 'package:avatar_flow/widgets/custom_cache_netword_imge.dart';
 import 'package:avatar_flow/widgets/custom_svg.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
 
 class ProfileHeader extends StatelessWidget {
   final String name;
@@ -54,49 +57,57 @@ class ProfileHeader extends StatelessWidget {
                 ),
               ],
             ),
-            child: Stack(
-              children: [
-                Container(
-                  padding: EdgeInsets.all(2.r),
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                  ),
-                  child: CustomCachedNetworkImage(
-                    imageUrl: imageUrl,
-                    height: 100.h,
-                    width: 100.w,
-                    borderRadius: 100.r,
-                  ),
-                ),
-                Positioned(
-                  bottom: 4,
-                  right: 4,
-                  child: GestureDetector(
-                    onTap: onEditPhoto,
-                    child: Container(
-                      padding: EdgeInsets.all(8.r),
-                      decoration: BoxDecoration(
-                        color: scheme.primary,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.2),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
+            child: Consumer<AuthProvider>(
+              builder: (context, authProvider, child) {
+                return Stack(
+                  children: [
+                    authProvider.isProfileUploading
+                        ? AppLoading(size: 100)
+                        : Container(
+                            padding: EdgeInsets.all(2.r),
+                            decoration: const BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                            ),
+                            child: CustomCachedNetworkImage(
+                              imageUrl: imageUrl,
+                              height: 100.h,
+                              width: 100.w,
+                              borderRadius: 100.r,
+                            ),
                           ),
-                        ],
+                    if (!authProvider.isProfileUploading) ...[
+                      Positioned(
+                        bottom: 4,
+                        right: 4,
+                        child: GestureDetector(
+                          onTap: onEditPhoto,
+                          child: Container(
+                            padding: EdgeInsets.all(8.r),
+                            decoration: BoxDecoration(
+                              color: scheme.primary,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 2),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.2),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: CustomSvg(
+                              path: AppIconsSvg.edit2,
+                              size: 14,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
                       ),
-                      child: CustomSvg(
-                        path: AppIconsSvg.edit2,
-                        size: 14,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+                    ],
+                  ],
+                );
+              },
             ),
           ),
           Spacing.y(2),

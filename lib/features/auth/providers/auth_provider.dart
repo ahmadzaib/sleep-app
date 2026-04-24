@@ -98,6 +98,8 @@ class AuthProvider extends ChangeNotifier with Validators {
   AuthOtpFlow get otpFlow => _otpFlow;
   String get otpDestination => _otpDestination;
 
+  bool isProfileUploading = false;
+
   void toggleSignInPasswordVisibility() {
     _isSignInPasswordHidden = !_isSignInPasswordHidden;
     notifyListeners();
@@ -394,6 +396,8 @@ class AuthProvider extends ChangeNotifier with Validators {
   }
 
   Future<void> updateAvatar() async {
+    isProfileUploading = true;
+    notifyListeners();
     try {
       final user = AuthService.currentUser;
       if (user == null) {
@@ -415,7 +419,6 @@ class AuthProvider extends ChangeNotifier with Validators {
         bucketName: 'users',
         folder: 'avatars',
       );
-      // String? imageUrl = dummyAvatarUrl;
 
       if (imageUrl == null) {
         ToastUtils.error('Failed to upload image');
@@ -437,6 +440,8 @@ class AuthProvider extends ChangeNotifier with Validators {
       _isSubmitting = false;
       notifyListeners();
     }
+    isProfileUploading = false;
+    notifyListeners();
   }
 
   void configureOtp({required AuthOtpFlow flow, required String destination}) {
