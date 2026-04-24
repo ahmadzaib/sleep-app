@@ -60,7 +60,7 @@ class HomeAppbar extends StatelessWidget implements PreferredSizeWidget {
                   onTap: () => NavigationService.pushNamed(AppRoutes.profile),
                   child: CustomCachedNetworkImage(
                     imageUrl:
-                        context.read<AuthProvider>().currentUser?.avatarUrl ??
+                        context.read<AuthProvider>().userInfo?.avatarUrl ??
                         Keys.placeHolderImage,
                     height: 44.h,
                     width: 44.w,

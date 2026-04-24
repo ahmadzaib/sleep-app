@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:avatar_flow/core/debug/debug_point.dart';
 import 'package:avatar_flow/core/router/navigation_service.dart';
 import 'package:avatar_flow/core/router/routes.dart';
 import 'package:avatar_flow/features/auth/services/auth_service.dart';
@@ -54,40 +53,7 @@ class AuthProvider extends ChangeNotifier with Validators {
   Timer? _otpTimer;
   UserModel? _currentUser;
 
-  UserModel? get currentUser => _currentUser;
-
-  // Safe getter that ensures user data is loaded from _currentUser or Supabase
-  UserModel get userInfo {
-    final user = _currentUser;
-    final supabaseUser = AuthService.currentUser;
-
-    DebugPoint.log(
-      '[AUTH_PROVIDER] userInfo called - currentUser: ${user?.id}',
-    );
-    DebugPoint.log(
-      '[AUTH_PROVIDER] userInfo called - supabaseUser: ${supabaseUser?.id}',
-    );
-
-    // If we have _currentUser, return it
-    if (user != null) {
-      return user;
-    }
-
-    // Fallback to Supabase user if _currentUser is null
-    if (supabaseUser != null) {
-      return UserModel(
-        id: supabaseUser.id,
-        email: supabaseUser.email ?? '',
-        name:
-            supabaseUser.userMetadata?['name'] as String? ??
-            supabaseUser.email?.split('@').first,
-        avatarUrl: supabaseUser.userMetadata?['avatar_url'] as String?,
-      );
-    }
-
-    // Return empty user if nothing available
-    return const UserModel(id: '', email: '');
-  }
+  UserModel? get userInfo => _currentUser;
 
   bool get isSignInPasswordHidden => _isSignInPasswordHidden;
   bool get isSignUpPasswordHidden => _isSignUpPasswordHidden;
@@ -126,58 +92,37 @@ class AuthProvider extends ChangeNotifier with Validators {
   }
 
   Future<void> signInWithGoogle() async {
-    DebugPoint.log('[AUTH] Google Sign-In started');
-
     await _runWithLoading(() async {
       try {
         final response = await AuthService.signInWithGoogle();
 
-        DebugPoint.log(
-          '[AUTH] Google Sign-In response - user: ${response.user?.id}',
-        );
-
         if (response.user != null) {
           _currentUser = await AuthService.getCurrentUser();
-          ToastUtils.success('Welcome ${userInfo.name}!');
+          ToastUtils.success('Welcome ${_currentUser?.name ?? 'User'}!');
           WidgetsBinding.instance.addPostFrameCallback((_) {
             NavigationService.goNamed(AppRoutes.bottomNavbar);
           });
         }
       } on AuthException catch (e) {
-        DebugPoint.error('[AUTH] Google Sign-In AuthException: ${e.message}');
         ToastUtils.error(e.message);
-      } catch (e, stackTrace) {
-        DebugPoint.error('[AUTH] Google Sign-In unexpected error: $e');
-        DebugPoint.error('[AUTH] StackTrace: $stackTrace');
+      } catch (e) {
         ToastUtils.error('Google Sign-In failed. Please try again.');
       }
     });
   }
 
   Future<void> signIn() async {
-    DebugPoint.log('[AUTH] SignIn started');
-    if (!(signInFormKey.currentState?.validate() ?? false)) {
-      DebugPoint.log('[AUTH] SignIn validation failed');
-      return;
-    }
+    if (!(signInFormKey.currentState?.validate() ?? false)) return;
 
     await _runWithLoading(() async {
       try {
-        final email = signInEmailController.text.trim();
-        DebugPoint.log('[AUTH] Attempting sign in for: $email');
-
         final response = await AuthService.signIn(
-          email: email,
+          email: signInEmailController.text.trim(),
           password: signInPasswordController.text,
-        );
-
-        DebugPoint.log(
-          '[AUTH] SignIn response - user: ${response.user?.id}, session: ${response.session != null}',
         );
 
         if (response.user != null) {
           _currentUser = await AuthService.getCurrentUser();
-          DebugPoint.log('[AUTH] Current user loaded: ${_currentUser?.id}');
           _clearSignInFields();
           ToastUtils.success('Welcome back!');
           WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -185,27 +130,18 @@ class AuthProvider extends ChangeNotifier with Validators {
           });
         }
       } on AuthException catch (e) {
-        DebugPoint.error('[AUTH] SignIn AuthException: ${e.message}');
-        DebugPoint.error('[AUTH] StatusCode: ${e.statusCode}');
         ToastUtils.error(e.message);
-      } catch (e, stackTrace) {
-        DebugPoint.error('[AUTH] SignIn unexpected error: $e');
-        DebugPoint.error('[AUTH] StackTrace: $stackTrace');
+      } catch (e) {
         ToastUtils.error('Sign in failed. Please try again.');
       }
     });
   }
 
   Future<void> signUp() async {
-    DebugPoint.log('[AUTH] SignUp started');
-    if (!(signUpFormKey.currentState?.validate() ?? false)) {
-      DebugPoint.log('[AUTH] SignUp validation failed');
-      return;
-    }
+    if (!(signUpFormKey.currentState?.validate() ?? false)) return;
 
-    final String email = signUpEmailController.text.trim();
-    final String name = signUpNameController.text.trim();
-    DebugPoint.log('[AUTH] Attempting sign up for: $email, name: $name');
+    final email = signUpEmailController.text.trim();
+    final name = signUpNameController.text.trim();
 
     await _runWithLoading(() async {
       try {
@@ -215,20 +151,18 @@ class AuthProvider extends ChangeNotifier with Validators {
           name: name,
         );
 
-        DebugPoint.log(
-          '[AUTH] SignUp response - user: ${response.user?.id}, session: ${response.session != null}',
-        );
-        DebugPoint.log('[AUTH] User metadata: ${response.user?.userMetadata}');
-
         if (response.user != null) {
-          final bool isConfirmed = response.user!.emailConfirmedAt != null;
-          DebugPoint.log('[AUTH] User confirmed status: $isConfirmed');
+          // Create user profile immediately on signup
+          await AuthService.createUserProfile(
+            id: response.user!.id,
+            email: email,
+            name: name,
+          );
 
-          // If no session is returned, or user is unconfirmed, email verification is required
+          final isConfirmed = response.user!.emailConfirmedAt != null;
+
+          // If no session or unconfirmed, require email verification
           if (response.session == null || !isConfirmed) {
-            DebugPoint.log(
-              '[AUTH] OTP Verification required (session: ${response.session != null}, confirmed: $isConfirmed), navigating to OTP screen',
-            );
             configureOtp(flow: AuthOtpFlow.signUp, destination: email);
             WidgetsBinding.instance.addPostFrameCallback((_) {
               NavigationService.pushNamed(
@@ -237,16 +171,7 @@ class AuthProvider extends ChangeNotifier with Validators {
               );
             });
           } else {
-            // If session is returned AND user is confirmed, email is already good
-            // This happens in development mode or if disabled in Supabase
-            DebugPoint.log(
-              '[AUTH] Auto-confirmed (session present & confirmed), completing signup',
-            );
-            await AuthService.createUserProfile(
-              id: response.user!.id,
-              email: email,
-              name: name,
-            );
+            // Auto-confirmed (dev mode or disabled in Supabase)
             _currentUser = await AuthService.getCurrentUser();
             _clearSignUpFields();
             ToastUtils.success('Account created successfully!');
@@ -254,54 +179,40 @@ class AuthProvider extends ChangeNotifier with Validators {
               NavigationService.goNamed(AppRoutes.bottomNavbar);
             });
           }
-        } else {
-          DebugPoint.warning('[AUTH] SignUp returned null user');
         }
       } on AuthException catch (e) {
-        DebugPoint.error('[AUTH] SignUp AuthException: ${e.message}');
-        DebugPoint.error('[AUTH] StatusCode: ${e.statusCode}');
         ToastUtils.error(e.message);
-      } catch (e, stackTrace) {
-        DebugPoint.error('[AUTH] SignUp unexpected error: $e');
-        DebugPoint.error('[AUTH] StackTrace: $stackTrace');
+      } catch (e) {
         ToastUtils.error('Sign up failed. Please try again.');
       }
     });
   }
 
   Future<void> requestPasswordReset() async {
-    DebugPoint.log('[AUTH] Password reset requested');
-    if (!(forgotPasswordFormKey.currentState?.validate() ?? false)) {
-      DebugPoint.log('[AUTH] Password reset validation failed');
-      return;
-    }
-
-    final String email = forgotPasswordEmailController.text.trim();
-    DebugPoint.log('[AUTH] Sending password reset for: $email');
+    if (!(forgotPasswordFormKey.currentState?.validate() ?? false)) return;
 
     await _runWithLoading(() async {
       try {
-        await AuthService.sendRecoveryOTP(email);
-        DebugPoint.log('[AUTH] Recovery OTP sent successfully');
+        await AuthService.sendRecoveryOTP(
+          forgotPasswordEmailController.text.trim(),
+        );
         ToastUtils.success('OTP sent to your email!');
-        configureOtp(flow: AuthOtpFlow.resetPassword, destination: email);
-        // Defer navigation to avoid GlobalKey conflict during build
+        configureOtp(
+          flow: AuthOtpFlow.resetPassword,
+          destination: forgotPasswordEmailController.text.trim(),
+        );
         WidgetsBinding.instance.addPostFrameCallback((_) {
           NavigationService.pushNamed(
             AppRoutes.otpVerification,
             extra: {
               'flow': AuthOtpFlow.resetPassword.name,
-              'destination': email,
+              'destination': forgotPasswordEmailController.text.trim(),
             },
           );
         });
       } on AuthException catch (e) {
-        DebugPoint.error('[AUTH] Send OTP AuthException: ${e.message}');
-        DebugPoint.error('[AUTH] StatusCode: ${e.statusCode}');
         ToastUtils.error(e.message);
-      } catch (e, stackTrace) {
-        DebugPoint.error('[AUTH] Send OTP unexpected error: $e');
-        DebugPoint.error('[AUTH] StackTrace: $stackTrace');
+      } catch (e) {
         ToastUtils.error('Failed to send OTP. Please try again.');
       }
     });
@@ -418,16 +329,15 @@ class AuthProvider extends ChangeNotifier with Validators {
   }
 
   Future<void> checkAuthStatus() async {
-    DebugPoint.log('[AUTH] Checking auth status');
-    final isAuth = AuthService.isAuthenticated();
-    DebugPoint.log('[AUTH] Is authenticated: $isAuth');
-
-    if (isAuth) {
-      _currentUser = await AuthService.getCurrentUser();
-      DebugPoint.log('[AUTH] Current user loaded: ${_currentUser?.id}');
+    try {
+      if (AuthService.isAuthenticated()) {
+        _currentUser = await AuthService.getCurrentUser();
+        notifyListeners();
+      }
+    } catch (e) {
+      // Invalid session/refresh token - clear local state
+      _currentUser = null;
       notifyListeners();
-    } else {
-      DebugPoint.log('[AUTH] No active session found');
     }
   }
 

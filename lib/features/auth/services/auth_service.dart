@@ -1,12 +1,8 @@
-import 'dart:convert';
-
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:avatar_flow/core/debug/debug_point.dart';
-import 'package:avatar_flow/core/services/secure_storage_service.dart';
-import 'package:avatar_flow/core/constants/keys.dart';
 import 'package:avatar_flow/features/auth/models/user_model.dart';
 
 class AuthService {
@@ -20,40 +16,46 @@ class AuthService {
 
   // Check if user is authenticated
   static bool isAuthenticated() {
-    final hasSession = _supabase.auth.currentSession != null;
-    DebugPoint.log('[AUTH_SERVICE] isAuthenticated: $hasSession');
-    DebugPoint.log(
-      '[AUTH_SERVICE] Current session: ${_supabase.auth.currentSession?.toString()}',
-    );
-    return hasSession;
+    try {
+      return _supabase.auth.currentSession != null;
+    } catch (e) {
+      // Session recovery failed (e.g., invalid refresh token)
+      return false;
+    }
   }
 
   // Get current user
-  static User? get currentUser => _supabase.auth.currentUser;
+  static User? get currentUser {
+    try {
+      return _supabase.auth.currentUser;
+    } catch (e) {
+      return null;
+    }
+  }
 
   // Get current session
-  static Session? get currentSession => _supabase.auth.currentSession;
+  static Session? get currentSession {
+    try {
+      return _supabase.auth.currentSession;
+    } catch (e) {
+      return null;
+    }
+  }
 
   // Get current user model
   static Future<UserModel?> getCurrentUser() async {
     final user = currentUser;
-    DebugPoint.log('[AUTH_SERVICE] getCurrentUserModel - user: ${user?.id}');
     if (user == null) return null;
 
     try {
-      DebugPoint.log('[AUTH_SERVICE] Querying users table for id: ${user.id}');
       final response = await _supabase
           .from('users')
           .select()
           .eq('id', user.id)
           .single();
 
-      DebugPoint.log('[AUTH_SERVICE] Users table response: $response');
-
       return UserModel.fromJson(response);
     } catch (e) {
-      DebugPoint.error('[AUTH_SERVICE] Error fetching from users table: $e');
-      DebugPoint.log('[AUTH_SERVICE] Falling back to user metadata');
       // Fallback to user metadata if table query fails
       return UserModel(
         id: user.id,
@@ -69,27 +71,11 @@ class AuthService {
     required String password,
     String? name,
   }) async {
-    DebugPoint.log('[AUTH_SERVICE] SignUp called - email: $email, name: $name');
-    try {
-      final response = await _supabase.auth.signUp(
-        email: email,
-        password: password,
-        data: {'name': name},
-      );
-
-      DebugPoint.log(
-        '[AUTH_SERVICE] SignUp response - userId: ${response.user?.id}',
-      );
-      DebugPoint.log(
-        '[AUTH_SERVICE] SignUp response - hasSession: ${response.session != null}',
-      );
-
-      return response;
-    } catch (e, stackTrace) {
-      DebugPoint.error('[AUTH_SERVICE] SignUp error: $e');
-      DebugPoint.error('[AUTH_SERVICE] StackTrace: $stackTrace');
-      rethrow;
-    }
+    return await _supabase.auth.signUp(
+      email: email,
+      password: password,
+      data: {'name': name},
+    );
   }
 
   // Sign in with email and password
@@ -97,89 +83,56 @@ class AuthService {
     required String email,
     required String password,
   }) async {
-    DebugPoint.log('[AUTH_SERVICE] SignIn called - email: $email');
-    try {
-      final response = await _supabase.auth.signInWithPassword(
-        email: email,
-        password: password,
-      );
-      DebugPoint.log(
-        '[AUTH_SERVICE] SignIn success - userId: ${response.user?.id}',
-      );
-      return response;
-    } catch (e, stackTrace) {
-      DebugPoint.error('[AUTH_SERVICE] SignIn error: $e');
-      DebugPoint.error('[AUTH_SERVICE] StackTrace: $stackTrace');
-      rethrow;
-    }
+    return await _supabase.auth.signInWithPassword(
+      email: email,
+      password: password,
+    );
   }
 
   // Sign in with Google
   static Future<AuthResponse> signInWithGoogle() async {
-    DebugPoint.log('[AUTH_SERVICE] Starting Google Sign-In...');
-    try {
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+    final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+    if (googleUser == null) throw Exception('Google Sign-In cancelled');
 
-      if (googleUser == null) {
-        DebugPoint.log('[AUTH_SERVICE] Google Sign-In cancelled by user');
-        throw Exception('Google Sign-In cancelled');
-      }
+    final GoogleSignInAuthentication googleAuth =
+        await googleUser.authentication;
+    final String? idToken = googleAuth.idToken;
+    if (idToken == null) throw Exception('No ID Token found');
 
-      DebugPoint.log('[AUTH_SERVICE] Google user: ${googleUser.email}');
+    final response = await _supabase.auth.signInWithIdToken(
+      provider: OAuthProvider.google,
+      idToken: idToken,
+      accessToken: googleAuth.accessToken,
+    );
 
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
-      final String? idToken = googleAuth.idToken;
-      final String? accessToken = googleAuth.accessToken;
-
-      if (idToken == null) {
-        throw Exception('No ID Token found');
-      }
-
-      DebugPoint.log('[AUTH_SERVICE] Got Google ID token');
-
-      // Sign in to Supabase with Google
-      final response = await _supabase.auth.signInWithIdToken(
-        provider: OAuthProvider.google,
-        idToken: idToken,
-        accessToken: accessToken,
+    // Create/update user in users table
+    if (response.user != null) {
+      await createUserProfile(
+        id: response.user!.id,
+        email: response.user!.email ?? googleUser.email,
+        name:
+            response.user!.userMetadata?['full_name'] as String? ??
+            googleUser.displayName,
+        avatarUrl:
+            response.user!.userMetadata?['avatar_url'] as String? ??
+            googleUser.photoUrl,
       );
-
-      DebugPoint.log(
-        '[AUTH_SERVICE] Supabase Google Sign-In success: ${response.user?.id}',
-      );
-
-      // Create user in table if new
-      if (response.user != null) {
-        await createUserProfile(
-          id: response.user!.id,
-          email: response.user!.email ?? googleUser.email,
-          name:
-              response.user!.userMetadata?['full_name'] as String? ??
-              googleUser.displayName,
-          avatarUrl:
-              response.user!.userMetadata?['avatar_url'] as String? ??
-              googleUser.photoUrl,
-        );
-      }
-
-      return response;
-    } catch (e, stackTrace) {
-      DebugPoint.error('[AUTH_SERVICE] Google Sign-In error: $e');
-      DebugPoint.error('[AUTH_SERVICE] StackTrace: $stackTrace');
-      rethrow;
     }
+
+    return response;
   }
 
   // Sign out
   static Future<void> signOut() async {
     try {
       await _googleSignIn.signOut();
-    } catch (e) {
-      DebugPoint.error('[AUTH_SERVICE] Google Sign-Out error: $e');
+    } catch (_) {}
+    try {
+      await _supabase.auth.signOut();
+    } catch (_) {
+      // Force local session clear if server sign out fails
+      await _supabase.auth.signOut(scope: SignOutScope.local);
     }
-    await _supabase.auth.signOut();
-    await clearAuthData();
   }
 
   // Verify OTP
@@ -188,26 +141,11 @@ class AuthService {
     required String token,
     required OtpType type,
   }) async {
-    DebugPoint.log(
-      '[AUTH_SERVICE] verifyOTP called - email: $email, type: $type',
-    );
     final response = await _supabase.auth.verifyOTP(
       email: email,
       token: token,
       type: type,
     );
-
-    // Create user record in users table after successful signup verification
-    if (response.user != null && type == OtpType.signup) {
-      DebugPoint.log(
-        '[AUTH_SERVICE] Creating user in table after OTP verification...',
-      );
-      await createUserProfile(
-        id: response.user!.id,
-        email: email,
-        name: response.user!.userMetadata?['name'] as String?,
-      );
-    }
 
     return response;
   }
@@ -217,16 +155,11 @@ class AuthService {
     required String email,
     required OtpType type,
   }) async {
-    DebugPoint.log('[AUTH_SERVICE] Resending OTP to: $email, type: $type');
     await _supabase.auth.resend(email: email, type: type);
   }
 
   // Send OTP for password recovery
   static Future<void> sendRecoveryOTP(String email) async {
-    DebugPoint.log('[AUTH_SERVICE] Sending recovery OTP to: $email');
-    // Note: Supabase sends magic link by default.
-    // To receive an OTP code instead, configure Email Template in Supabase Dashboard:
-    // Authentication → Email Templates → Magic Link → Use {{ .Token }} for the code
     await _supabase.auth.resetPasswordForEmail(email);
   }
 
@@ -247,55 +180,24 @@ class AuthService {
     String? avatarUrl,
   }) async {
     try {
-      DebugPoint.log(
-        '[AUTH_SERVICE] Upserting into users table - id: $id, email: $email, avatar: $avatarUrl',
-      );
-      await _supabase.from('users').upsert({
+      // Build data map for upsert - always update all fields
+      final data = <String, dynamic>{
         'id': id,
         'email': email,
         'name': name,
         'avatar_url': avatarUrl,
-        'updated_at': DateTime.now().toIso8601String(),
-      }, onConflict: 'id');
-      DebugPoint.log('[AUTH_SERVICE] User upserted successfully');
-    } catch (e, stackTrace) {
-      DebugPoint.error('[AUTH_SERVICE] Error creating user in table: $e');
-      DebugPoint.error('[AUTH_SERVICE] StackTrace: $stackTrace');
-      // Table might not exist or other error - ignore for now
+      };
+
+      debugPrint('[AUTH_SERVICE] Inserting user data: $data');
+
+      final result = await _supabase
+          .from('users')
+          .upsert(data, onConflict: 'id')
+          .select();
+      debugPrint('[AUTH_SERVICE] User upsert successful: $result');
+    } catch (e) {
+      debugPrint('[AUTH_SERVICE] ERROR creating user in table: $e');
+      // Don't rethrow - auth should work even if user table insert fails
     }
-  }
-
-  // Legacy methods for backward compatibility
-  static Future<String?> getAccessToken() async {
-    return currentSession?.accessToken;
-  }
-
-  static Future<String?> getRefreshToken() async {
-    return currentSession?.refreshToken;
-  }
-
-  static Future<void> saveAuthData({
-    required String accessToken,
-    String? refreshToken,
-    Map<String, dynamic>? userData,
-  }) async {
-    await SecureStorageService.writeData(Keys.tokenKey, accessToken);
-    if (refreshToken != null) {
-      await SecureStorageService.writeData(Keys.refreshTokenKey, refreshToken);
-    }
-    if (userData != null) {
-      await SecureStorageService.writeData(Keys.userData, jsonEncode(userData));
-    }
-  }
-
-  static Future<void> clearAuthData() async {
-    await SecureStorageService.deleteData(Keys.tokenKey);
-    await SecureStorageService.deleteData(Keys.refreshTokenKey);
-    await SecureStorageService.deleteData(Keys.userData);
-    await SecureStorageService.deleteData(Keys.userId);
-  }
-
-  static Future<UserModel?> getUserData() async {
-    return await getCurrentUser();
   }
 }

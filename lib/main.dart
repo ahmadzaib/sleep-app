@@ -20,9 +20,15 @@ void main() async {
   );
 
   // Sync auth state with router
-  Supabase.instance.client.auth.onAuthStateChange.listen((event) {
-    authStateNotifier.value = event.session != null;
-  });
+  Supabase.instance.client.auth.onAuthStateChange.listen(
+    (event) {
+      authStateNotifier.value = event.session != null;
+    },
+    onError: (error) {
+      // Handle invalid refresh token errors gracefully
+      authStateNotifier.value = false;
+    },
+  );
 
   // Initialize ToastUtils with navigator key
   initializeToastUtils();

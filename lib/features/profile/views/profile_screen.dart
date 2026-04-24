@@ -60,9 +60,10 @@ class ProfileScreen extends StatelessWidget {
         body: Consumer<AuthProvider>(
           builder: (context, authProvider, child) {
             final userInfo = authProvider.userInfo;
-            final userName = userInfo.name ?? userInfo.email.split('@').first;
-            final userEmail = userInfo.email;
-            final avatarUrl = userInfo.avatarUrl ?? Keys.placeHolderImage;
+            final userName =
+                userInfo?.name ?? userInfo?.email?.split('@').first ?? 'User';
+            final userEmail = userInfo?.email ?? '';
+            final avatarUrl = userInfo?.avatarUrl ?? Keys.placeHolderImage;
 
             return SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
