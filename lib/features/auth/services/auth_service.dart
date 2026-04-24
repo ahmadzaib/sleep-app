@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'dart:io';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:avatar_flow/core/debug/debug_point.dart';
@@ -11,10 +12,9 @@ import 'package:avatar_flow/features/auth/models/user_model.dart';
 class AuthService {
   static final SupabaseClient _supabase = Supabase.instance.client;
   static final GoogleSignIn _googleSignIn = GoogleSignIn(
-    serverClientId:
-        "1065360065066-8rujn9iemo7npb8kgtdrca619n2ht863.apps.googleusercontent.com",
+    serverClientId: dotenv.env['SERVE_CLIENT_ID'] ?? '',
     clientId: Platform.isIOS || Platform.isMacOS
-        ? "1065360065066-plcgltg6g03hobtkn7hcd747nm127hte.apps.googleusercontent.com"
+        ? dotenv.env['IOS_CLIENT_ID'] ?? ''
         : null,
   );
 

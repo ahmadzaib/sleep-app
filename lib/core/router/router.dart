@@ -1,4 +1,4 @@
-import 'package:avatar_flow/core/services/auth_service.dart';
+import 'package:avatar_flow/features/auth/services/auth_service.dart';
 import 'package:avatar_flow/core/utils/toast_utils.dart';
 import 'package:avatar_flow/features/subscription/views/subscription_screen.dart';
 import 'package:avatar_flow/features/profile/views/profile_screen.dart';

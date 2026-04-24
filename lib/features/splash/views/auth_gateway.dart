@@ -1,7 +1,7 @@
 import 'package:avatar_flow/core/debug/debug_point.dart';
 import 'package:avatar_flow/core/router/navigation_service.dart';
 import 'package:avatar_flow/core/router/routes.dart';
-import 'package:avatar_flow/core/services/auth_service.dart';
+import 'package:avatar_flow/features/auth/services/auth_service.dart';
 import 'package:avatar_flow/widgets/app_loading.dart';
 import 'package:flutter/material.dart';
 

@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:avatar_flow/core/debug/debug_point.dart';
 import 'package:avatar_flow/core/router/navigation_service.dart';
 import 'package:avatar_flow/core/router/routes.dart';
-import 'package:avatar_flow/core/services/auth_service.dart';
+import 'package:avatar_flow/features/auth/services/auth_service.dart';
 import 'package:avatar_flow/core/utils/toast_utils.dart';
 import 'package:avatar_flow/core/utils/validator.dart';
 import 'package:avatar_flow/features/auth/models/user_model.dart';
