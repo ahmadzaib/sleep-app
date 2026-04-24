@@ -56,15 +56,20 @@ class HomeAppbar extends StatelessWidget implements PreferredSizeWidget {
                 Spacing.x(4),
                 CustomSvg(path: AppIconsSvg.shield),
                 Spacing.x(2),
-                GestureDetector(
-                  onTap: () => NavigationService.pushNamed(AppRoutes.profile),
-                  child: CustomCachedNetworkImage(
-                    imageUrl:
-                        context.read<AuthProvider>().userInfo?.avatarUrl ??
-                        Keys.placeHolderImage,
-                    height: 44.h,
-                    width: 44.w,
-                  ),
+                Consumer<AuthProvider>(
+                  builder: (context, authProvider, child) {
+                    return GestureDetector(
+                      onTap: () =>
+                          NavigationService.pushNamed(AppRoutes.profile),
+                      child: CustomCachedNetworkImage(
+                        imageUrl:
+                            authProvider.userInfo?.avatarUrl ??
+                            Keys.placeHolderImage,
+                        height: 44.h,
+                        width: 44.w,
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
