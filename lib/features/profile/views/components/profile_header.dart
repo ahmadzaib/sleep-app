@@ -14,6 +14,7 @@ class ProfileHeader extends StatelessWidget {
   final String email;
   final String imageUrl;
   final String plan;
+  final VoidCallback? onEditPhoto;
 
   const ProfileHeader({
     super.key,
@@ -21,6 +22,7 @@ class ProfileHeader extends StatelessWidget {
     required this.email,
     required this.imageUrl,
     required this.plan,
+    this.onEditPhoto,
   });
 
   @override
@@ -71,7 +73,7 @@ class ProfileHeader extends StatelessWidget {
                   bottom: 4,
                   right: 4,
                   child: GestureDetector(
-                    onTap: () {}, // Edit photo
+                    onTap: onEditPhoto,
                     child: Container(
                       padding: EdgeInsets.all(8.r),
                       decoration: BoxDecoration(
@@ -108,9 +110,7 @@ class ProfileHeader extends StatelessWidget {
           Spacing.y(0.5),
           Text(
             email,
-            style: textTheme.bodyMedium?.copyWith(
-              color: colors.grey,
-            ),
+            style: textTheme.bodyMedium?.copyWith(color: colors.grey),
           ),
           Spacing.y(2.5),
           // Subscription badge (Premium look)

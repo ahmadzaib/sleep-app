@@ -74,6 +74,7 @@ class ProfileScreen extends StatelessWidget {
                     email: userEmail,
                     imageUrl: avatarUrl,
                     plan: 'Free Plan',
+                    onEditPhoto: () => authProvider.updateAvatar(),
                   ),
                   const ProfileStats(
                     avatarsCount: 12,

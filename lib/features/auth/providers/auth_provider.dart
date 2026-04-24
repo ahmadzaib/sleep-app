@@ -1,7 +1,11 @@
 import 'dart:async';
 
+import 'package:avatar_flow/core/constants/mock_data.dart';
 import 'package:avatar_flow/core/router/navigation_service.dart';
 import 'package:avatar_flow/core/router/routes.dart';
+import 'package:avatar_flow/core/services/storage_service.dart';
+import 'package:avatar_flow/core/utils/debug_point.dart';
+import 'package:avatar_flow/core/utils/image_picker_helper.dart';
 import 'package:avatar_flow/features/auth/services/auth_service.dart';
 import 'package:avatar_flow/core/utils/toast_utils.dart';
 import 'package:avatar_flow/core/utils/validator.dart';
@@ -385,6 +389,52 @@ class AuthProvider extends ChangeNotifier with Validators {
     } catch (e) {
       // Invalid session/refresh token - clear local state
       _currentUser = null;
+      notifyListeners();
+    }
+  }
+
+  Future<void> updateAvatar() async {
+    try {
+      final user = AuthService.currentUser;
+      if (user == null) {
+        ToastUtils.error('User not authenticated');
+        return;
+      }
+
+      // Pick image from gallery
+      final file = await ImagePickerHelper.pickFromGallery();
+
+      if (file == null) return;
+
+      _isSubmitting = true;
+      notifyListeners();
+
+      // Upload to Supabase Storage
+      final imageUrl = await SupabaseStorageService.uploadImage(
+        file: file,
+        bucketName: 'users',
+        folder: 'avatars',
+      );
+      // String? imageUrl = dummyAvatarUrl;
+
+      if (imageUrl == null) {
+        ToastUtils.error('Failed to upload image');
+        return;
+      }
+
+      // Update user profile with new avatar URL
+      await AuthService.updateUserProfile(id: user.id, avatarUrl: imageUrl);
+
+      // Update local user
+      _currentUser = _currentUser?.copyWith(avatarUrl: imageUrl);
+      notifyListeners();
+
+      ToastUtils.success('Avatar updated successfully!');
+    } catch (e) {
+      ToastUtils.error('Failed to update avatar: $e');
+      DebugPoint.error('Failed to update avatar: $e');
+    } finally {
+      _isSubmitting = false;
       notifyListeners();
     }
   }

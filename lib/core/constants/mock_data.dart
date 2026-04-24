@@ -3,6 +3,8 @@ import 'package:avatar_flow/features/avatar_detail/models/story_model.dart';
 String dummyImage =
     "https://thumbs.dreamstime.com/b/beautiful-garden-decorative-wooden-bridge-vector-illustration-spring-flowers-195164545.jpg";
 
+String dummyAvatarUrl =
+    "https://images.pexels.com/photos/3373037/pexels-photo-3373037.jpeg";
 final List<Story> mockStories = [
   Story(
     title: 'History name',

@@ -200,4 +200,31 @@ class AuthService {
       // Don't rethrow - auth should work even if user table insert fails
     }
   }
+
+  // Update user profile in users table
+  static Future<void> updateUserProfile({
+    required String id,
+    String? name,
+    String? avatarUrl,
+  }) async {
+    try {
+      final data = <String, dynamic>{};
+      if (name != null) data['name'] = name;
+      if (avatarUrl != null) data['avatar_url'] = avatarUrl;
+
+      if (data.isEmpty) return;
+
+      debugPrint('[AUTH_SERVICE] Updating user profile: $data');
+
+      final result = await _supabase
+          .from('users')
+          .update(data)
+          .eq('id', id)
+          .select();
+      debugPrint('[AUTH_SERVICE] User update successful: $result');
+    } catch (e) {
+      debugPrint('[AUTH_SERVICE] ERROR updating user profile: $e');
+      rethrow;
+    }
+  }
 }
