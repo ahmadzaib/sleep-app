@@ -3,7 +3,7 @@ import 'package:avatar_flow/core/router/navigation_service.dart';
 import 'package:avatar_flow/core/router/routes.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
-import 'package:avatar_flow/features/create_avatar/providers/clone_voice_provider.dart';
+import 'package:avatar_flow/features/avatar/providers/clone_voice_provider.dart';
 import 'package:avatar_flow/widgets/custom_button.dart';
 import 'package:avatar_flow/widgets/custom_svg.dart';
 import 'package:avatar_flow/widgets/custom_textfield.dart';

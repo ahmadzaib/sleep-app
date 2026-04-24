@@ -1,4 +1,4 @@
-import 'package:avatar_flow/features/avatar_detail/models/story_model.dart';
+import 'package:avatar_flow/features/avatar/models/story_model.dart';
 
 String dummyImage =
     "https://thumbs.dreamstime.com/b/beautiful-garden-decorative-wooden-bridge-vector-illustration-spring-flowers-195164545.jpg";

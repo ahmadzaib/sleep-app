@@ -1,9 +1,9 @@
 import 'package:avatar_flow/core/constants/app_constants.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
-import 'package:avatar_flow/features/avatar_detail/providers/all_stories_provider.dart';
-import 'package:avatar_flow/features/avatar_detail/views/components/detail_screen_appbar.dart';
-import 'package:avatar_flow/features/avatar_detail/views/components/story_grid_tile.dart';
-import 'package:avatar_flow/features/avatar_detail/views/components/story_shimmer_tile.dart';
+import 'package:avatar_flow/features/avatar/providers/all_stories_provider.dart';
+import 'package:avatar_flow/features/avatar/views/components/detail_screen_appbar.dart';
+import 'package:avatar_flow/features/avatar/views/components/story_grid_tile.dart';
+import 'package:avatar_flow/features/avatar/views/components/story_shimmer_tile.dart';
 import 'package:avatar_flow/widgets/bg_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';

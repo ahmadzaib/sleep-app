@@ -1,10 +1,10 @@
 import 'package:avatar_flow/core/router/navigation_service.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
-import 'package:avatar_flow/features/create_avatar/providers/clone_voice_provider.dart';
-import 'package:avatar_flow/features/create_avatar/views/agreement_page.dart';
-import 'package:avatar_flow/features/create_avatar/views/characteristics_page.dart';
-import 'package:avatar_flow/features/create_avatar/views/components/step_indicator.dart';
-import 'package:avatar_flow/features/create_avatar/views/record_page.dart';
+import 'package:avatar_flow/features/avatar/providers/clone_voice_provider.dart';
+import 'package:avatar_flow/features/avatar/views/sections/agreement_page.dart';
+import 'package:avatar_flow/features/avatar/views/sections/characteristics_page.dart';
+import 'package:avatar_flow/features/avatar/views/components/step_indicator.dart';
+import 'package:avatar_flow/features/avatar/views/components/record_page.dart';
 import 'package:avatar_flow/widgets/bg_widget.dart';
 import 'package:avatar_flow/widgets/custom_app_bar.dart';
 import 'package:flutter/material.dart';

@@ -1,7 +1,7 @@
 import 'package:avatar_flow/core/theme/app_colors.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
-import 'package:avatar_flow/features/avatar_detail/views/components/user_tile.dart';
+import 'package:avatar_flow/features/avatar/views/components/user_tile.dart';
 import 'package:avatar_flow/widgets/circled_icon_widget.dart';
 import 'package:avatar_flow/widgets/confirmation_dialog.dart';
 import 'package:flutter/material.dart';

@@ -1,9 +1,9 @@
 import 'package:avatar_flow/core/utils/spacing.dart';
 import 'package:avatar_flow/features/avatar/views/components/avatar_appbar.dart';
 import 'package:avatar_flow/features/avatar/views/components/avatar_tabs.dart';
-import 'package:avatar_flow/features/avatar/views/components/my_avatars_view.dart';
-import 'package:avatar_flow/features/avatar/views/components/shared_avatars_view.dart';
-import 'package:avatar_flow/features/create_avatar/providers/create_avatar_provider.dart';
+import 'package:avatar_flow/features/avatar/views/my_avatars_view.dart';
+import 'package:avatar_flow/features/avatar/views/shared_avatars_view.dart';
+import 'package:avatar_flow/features/avatar/providers/create_avatar_provider.dart';
 import 'package:avatar_flow/widgets/bg_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';

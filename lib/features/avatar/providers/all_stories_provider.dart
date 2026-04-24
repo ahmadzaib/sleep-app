@@ -1,4 +1,4 @@
-import 'package:avatar_flow/features/avatar_detail/models/story_model.dart';
+import 'package:avatar_flow/features/avatar/models/story_model.dart';
 import 'package:flutter/material.dart';
 
 class StoryProvider extends ChangeNotifier {
