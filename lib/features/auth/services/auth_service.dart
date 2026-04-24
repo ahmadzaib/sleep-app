@@ -35,7 +35,7 @@ class AuthService {
   static Session? get currentSession => _supabase.auth.currentSession;
 
   // Get current user model
-  static Future<UserModel?> getCurrentUserModel() async {
+  static Future<UserModel?> getCurrentUser() async {
     final user = currentUser;
     DebugPoint.log('[AUTH_SERVICE] getCurrentUserModel - user: ${user?.id}');
     if (user == null) return null;
@@ -46,14 +46,12 @@ class AuthService {
           .from('users')
           .select()
           .eq('id', user.id)
-          .maybeSingle();
+          .single();
 
       DebugPoint.log('[AUTH_SERVICE] Users table response: $response');
 
-      if (response != null) {
-        return UserModel.fromJson(response);
-      }
-    } catch (e, stackTrace) {
+      return UserModel.fromJson(response);
+    } catch (e) {
       DebugPoint.error('[AUTH_SERVICE] Error fetching from users table: $e');
       DebugPoint.log('[AUTH_SERVICE] Falling back to user metadata');
       // Fallback to user metadata if table query fails
@@ -63,7 +61,6 @@ class AuthService {
         name: user.userMetadata?['name'] as String?,
       );
     }
-    return null;
   }
 
   // Sign up with email and password
@@ -299,6 +296,6 @@ class AuthService {
   }
 
   static Future<UserModel?> getUserData() async {
-    return await getCurrentUserModel();
+    return await getCurrentUser();
   }
 }

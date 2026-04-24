@@ -75,16 +75,18 @@ class AuthProvider extends ChangeNotifier with Validators {
 
     // Fallback to Supabase user if _currentUser is null
     if (supabaseUser != null) {
-      return UserModel.fromSupabaseUser(
+      return UserModel(
         id: supabaseUser.id,
         email: supabaseUser.email ?? '',
-        name: supabaseUser.userMetadata?['name'] as String?,
+        name:
+            supabaseUser.userMetadata?['name'] as String? ??
+            supabaseUser.email?.split('@').first,
         avatarUrl: supabaseUser.userMetadata?['avatar_url'] as String?,
       );
     }
 
     // Return empty user if nothing available
-    return UserModel.empty();
+    return const UserModel(id: '', email: '');
   }
 
   bool get isSignInPasswordHidden => _isSignInPasswordHidden;
@@ -135,7 +137,7 @@ class AuthProvider extends ChangeNotifier with Validators {
         );
 
         if (response.user != null) {
-          _currentUser = await AuthService.getCurrentUserModel();
+          _currentUser = await AuthService.getCurrentUser();
           ToastUtils.success('Welcome ${userInfo.name}!');
           WidgetsBinding.instance.addPostFrameCallback((_) {
             NavigationService.goNamed(AppRoutes.bottomNavbar);
@@ -174,10 +176,8 @@ class AuthProvider extends ChangeNotifier with Validators {
         );
 
         if (response.user != null) {
-          _currentUser = await AuthService.getCurrentUserModel();
-          DebugPoint.log(
-            '[AUTH] Current user loaded: ${_currentUser?.toString()}',
-          );
+          _currentUser = await AuthService.getCurrentUser();
+          DebugPoint.log('[AUTH] Current user loaded: ${_currentUser?.id}');
           _clearSignInFields();
           ToastUtils.success('Welcome back!');
           WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -247,7 +247,7 @@ class AuthProvider extends ChangeNotifier with Validators {
               email: email,
               name: name,
             );
-            _currentUser = await AuthService.getCurrentUserModel();
+            _currentUser = await AuthService.getCurrentUser();
             _clearSignUpFields();
             ToastUtils.success('Account created successfully!');
             WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -327,7 +327,7 @@ class AuthProvider extends ChangeNotifier with Validators {
 
         if (_otpFlow == AuthOtpFlow.signUp) {
           // Email verified - account now active
-          _currentUser = await AuthService.getCurrentUserModel();
+          _currentUser = await AuthService.getCurrentUser();
           _clearSignUpFields();
           otpController.clear();
           ToastUtils.success('Email verified! Welcome!');
@@ -423,8 +423,8 @@ class AuthProvider extends ChangeNotifier with Validators {
     DebugPoint.log('[AUTH] Is authenticated: $isAuth');
 
     if (isAuth) {
-      _currentUser = await AuthService.getCurrentUserModel();
-      DebugPoint.log('[AUTH] Current user loaded: ${_currentUser?.toString()}');
+      _currentUser = await AuthService.getCurrentUser();
+      DebugPoint.log('[AUTH] Current user loaded: ${_currentUser?.id}');
       notifyListeners();
     } else {
       DebugPoint.log('[AUTH] No active session found');

@@ -15,8 +15,6 @@ class UserModel {
     this.updatedAt,
   });
 
-  factory UserModel.empty() => const UserModel(id: '', email: '', name: null);
-
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
       id: json['id'] as String,
@@ -26,36 +24,11 @@ class UserModel {
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
           : null,
-      updatedAt: json['updated_at'] != null
-          ? DateTime.parse(json['updated_at'] as String)
-          : null,
-    );
-  }
-
-  // Create UserModel from Supabase User with fallback to email prefix for name
-  factory UserModel.fromSupabaseUser({
-    required String id,
-    required String email,
-    String? name,
-    String? avatarUrl,
-  }) {
-    return UserModel(
-      id: id,
-      email: email,
-      name: name ?? email.split('@').first,
-      avatarUrl: avatarUrl,
     );
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'email': email,
-      'name': name,
-      'avatar_url': avatarUrl,
-      'created_at': createdAt?.toIso8601String(),
-      'updated_at': updatedAt?.toIso8601String(),
-    };
+    return {'id': id, 'email': email, 'name': name, 'avatar_url': avatarUrl};
   }
 
   UserModel copyWith({
@@ -74,10 +47,5 @@ class UserModel {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
-  }
-
-  @override
-  String toString() {
-    return 'UserModel(id: $id, email: $email, name: $name)';
   }
 }
