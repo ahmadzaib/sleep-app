@@ -29,20 +29,6 @@ class AvatarCards extends StatefulWidget {
 class _AvatarCardsState extends State<AvatarCards> {
   late PageController _pageController;
   // Colors computed once per avatar list — keyed by avatar id
-  final Map<int, Color> _cardColors = {};
-
-  Color _colorForAvatar(int? id) {
-    final key = id ?? 0;
-    return _cardColors.putIfAbsent(key, () {
-      final random = Random();
-      return Color.fromARGB(
-        255,
-        100 + random.nextInt(156),
-        100 + random.nextInt(156),
-        100 + random.nextInt(156),
-      );
-    });
-  }
 
   @override
   void initState() {
@@ -133,7 +119,7 @@ class _AvatarCardsState extends State<AvatarCards> {
                           },
                           widget.showRemoveButton ?? false,
                           widget.onRemoveTap ?? () {},
-                          _colorForAvatar(avatar.id),
+                          Colors.red,
                         ),
                       ),
                     );
