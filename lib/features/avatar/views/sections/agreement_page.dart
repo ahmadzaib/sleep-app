@@ -128,8 +128,9 @@ class AgreementPage extends StatelessWidget {
           ),
           Spacing.y(1.5),
           TextButton(
-            onPressed: () =>
-                context.read<CreateAvatarProvider>().nextVoiceStep(),
+            onPressed: () {
+              context.read<CreateAvatarProvider>().setVoiceStep(2);
+            },
             child: Text(
               "Skip and create",
               style: textTheme.bodyMedium!.copyWith(

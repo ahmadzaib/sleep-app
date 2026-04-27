@@ -265,7 +265,11 @@ class _RecordVoicePageState extends State<RecordVoicePage> {
               ),
               Spacing.y(1.2),
               TextButton(
-                onPressed: isRecording ? null : () => provider.nextVoiceStep(),
+                onPressed: isRecording
+                    ? null
+                    : () {
+                        provider.setVoiceStep(2);
+                      },
                 child: Text(
                   "Skip and create",
                   style: textTheme.bodyMedium?.copyWith(
