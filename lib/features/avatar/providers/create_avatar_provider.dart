@@ -465,6 +465,7 @@ class CreateAvatarProvider extends ChangeNotifier {
         'Avatar created successfully - ID: ${createdAvatar.id}, Name: ${createdAvatar.name}',
       );
       ToastUtils.success('Avatar "$avatarName" created successfully!');
+      reset();
       NavigationService.goNamed(AppRoutes.bottomNavbar);
     } catch (e) {
       DebugPoint.error('Failed to create avatar: $e');
@@ -473,6 +474,42 @@ class CreateAvatarProvider extends ChangeNotifier {
       _isCreating = false;
       notifyListeners();
     }
+  }
+
+  /// Reset all fields after avatar creation
+  void reset() {
+    // Avatar fields
+    currentIndex = 0;
+    avatarName = '';
+    selectedGender = 'Female';
+    traits = [];
+    selectedVoice = 'Voice 1';
+    prompt = '';
+    _avatarImagePath = null;
+    _avatarImageUrl = null;
+
+    // Voice clone step
+    currentVoiceStep = 0;
+    isAgreed = false;
+
+    // Voice source selection
+    _selectedSampleVoiceId = null;
+
+    // Voice recording state
+    isRecording = false;
+    audioPath = null;
+    transcript = null;
+    voiceDuration = null;
+    recordingElapsed = Duration.zero;
+    voiceName = '';
+
+    // Reset page controller
+    if (voicePageController.hasClients) {
+      voicePageController.jumpToPage(0);
+    }
+
+    DebugPoint.log('CreateAvatarProvider reset');
+    notifyListeners();
   }
 
   @override
