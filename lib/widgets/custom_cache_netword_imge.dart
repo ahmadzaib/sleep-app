@@ -37,22 +37,13 @@ class CustomCachedNetworkImage extends StatelessWidget {
     }
 
     final screenSize = MediaQuery.sizeOf(context);
-    final finiteMaxWidth = (width != null && width!.isFinite)
-        ? width!
-        : screenSize.width;
-    final finiteMaxHeight = (height != null && height!.isFinite)
-        ? height!
-        : screenSize.height;
 
     return CachedNetworkImage(
       imageUrl: imageUrl ?? Keys.placeHolderImage,
       height: height,
       width: width ?? screenSize.width,
       fit: cover,
-      maxWidthDiskCache: finiteMaxWidth.toInt(),
-      maxHeightDiskCache: finiteMaxHeight.toInt(),
-      memCacheWidth: finiteMaxWidth.toInt(),
-      memCacheHeight: finiteMaxHeight.toInt(),
+
       imageBuilder: (context, imageProvider) {
         return Container(
           decoration: BoxDecoration(

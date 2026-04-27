@@ -36,8 +36,10 @@ class CreateAvatarProvider extends ChangeNotifier {
   String? _avatarImageUrl; // Supabase Storage public URL
   String? get avatarImageUrl => _avatarImageUrl;
   bool _isCreating = false;
+  bool _isPreparingPreview = false;
 
   bool get isCreating => _isCreating;
+  bool get isPreparingPreview => _isPreparingPreview;
 
   void setAvatarImagePath(String? path, {String? url}) {
     _avatarImagePath = path;
@@ -409,33 +411,14 @@ class CreateAvatarProvider extends ChangeNotifier {
     // DebugPoint.log('Voice ID result: $voiceId');
 
     try {
-      // Step 1: Remove background from image
-      String? imageToUpload = _avatarImagePath;
-
-      if (imageToUpload != null) {
-        final file = File(imageToUpload);
-        if (await file.exists()) {
-          DebugPoint.log('Removing image background via remove.bg...');
-          ToastUtils.show('Removing background...');
-
-          final removedBgPath = await _removeBackground(file);
-          if (removedBgPath != null) {
-            DebugPoint.log('Background removed: $removedBgPath');
-            imageToUpload = removedBgPath;
-          } else {
-            DebugPoint.log('BG removal failed, using original image');
-          }
-        }
-      }
-
-      // Step 2: Upload image to Supabase Storage
+      // Step 1: Upload image to Supabase Storage (BG already removed in preview)
       String? storageUrl = avatarImageUrl;
 
-      if (storageUrl == null && imageToUpload != null) {
+      if (storageUrl == null && _avatarImagePath != null) {
         DebugPoint.log('Uploading avatar image to Supabase Storage...');
         ToastUtils.show('Uploading image...');
 
-        final file = File(imageToUpload);
+        final file = File(_avatarImagePath!);
         if (await file.exists()) {
           storageUrl = await SupabaseStorageService.uploadImage(
             file: file,
@@ -452,7 +435,7 @@ class CreateAvatarProvider extends ChangeNotifier {
             return;
           }
         } else {
-          DebugPoint.error('Local image file not found: $imageToUpload');
+          DebugPoint.error('Local image file not found: $_avatarImagePath');
           ToastUtils.error('Image file not found');
           return;
         }
@@ -464,7 +447,7 @@ class CreateAvatarProvider extends ChangeNotifier {
         return;
       }
 
-      // Step 3: Build avatar model with storage URL
+      // Step 2: Build avatar model with storage URL
       final avatar = AvatarModel(
         name: avatarName,
         gender: selectedGender,
@@ -477,7 +460,7 @@ class CreateAvatarProvider extends ChangeNotifier {
       DebugPoint.log('Creating avatar in database...');
       DebugPoint.log('Avatar data: ${avatar.toJson()}');
 
-      // Step 4: Save avatar to database
+      // Step 3: Save avatar to database
       final createdAvatar = await _avatarRepo.createAvatar(avatar);
 
       DebugPoint.log(
@@ -500,6 +483,47 @@ class CreateAvatarProvider extends ChangeNotifier {
       ToastUtils.error('Failed to create avatar: $e');
     } finally {
       _isCreating = false;
+      notifyListeners();
+    }
+  }
+
+  /// Prepare avatar for preview by removing background
+  /// Shows loading screen and returns true if successful
+  Future<bool> prepareAvatarForPreview() async {
+    if (_avatarImagePath == null) {
+      ToastUtils.error('No avatar image available');
+      return false;
+    }
+
+    _isPreparingPreview = true;
+    notifyListeners();
+
+    try {
+      final file = File(_avatarImagePath!);
+      if (!await file.exists()) {
+        ToastUtils.error('Image file not found');
+        return false;
+      }
+
+      DebugPoint.log('Removing image background via remove.bg...');
+
+      final removedBgPath = await _removeBackground(file);
+      if (removedBgPath != null) {
+        DebugPoint.log('Background removed for preview: $removedBgPath');
+        _avatarImagePath = removedBgPath;
+        notifyListeners();
+        return true;
+      } else {
+        DebugPoint.log('BG removal failed or skipped, using original');
+        // Still return true since we have the original image
+        return true;
+      }
+    } catch (e) {
+      DebugPoint.error('Failed to prepare avatar for preview: $e');
+      ToastUtils.error('Failed to process avatar image');
+      return false;
+    } finally {
+      _isPreparingPreview = false;
       notifyListeners();
     }
   }

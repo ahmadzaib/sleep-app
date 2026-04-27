@@ -155,14 +155,83 @@ class _CharacterCharacteristicsPageState
               const Spacer(),
               CustomButton(
                 text: 'Next',
-                onPressed: () {
-                  NavigationService.pushNamed(AppRoutes.avatarPreview);
+                onPressed: () async {
+                  final provider = context.read<CreateAvatarProvider>();
+
+                  // Show loading dialog while removing background
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (_) => const _CreatingAvatarDialog(),
+                  );
+
+                  // Prepare avatar (remove background)
+                  final success = await provider.prepareAvatarForPreview();
+
+                  // Close loading dialog
+                  if (context.mounted) {
+                    Navigator.of(context).pop();
+                  }
+
+                  // Navigate to preview if successful
+                  if (success) {
+                    NavigationService.pushNamed(AppRoutes.avatarPreview);
+                  }
                 },
               ),
               Spacing.y(1.5),
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+/// Loading dialog shown while removing background and preparing avatar
+class _CreatingAvatarDialog extends StatelessWidget {
+  const _CreatingAvatarDialog();
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      child: Container(
+        padding: EdgeInsets.all(24.w),
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          borderRadius: BorderRadius.circular(16.r),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 48.w,
+              height: 48.h,
+              child: CircularProgressIndicator(
+                strokeWidth: 3,
+                valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
+              ),
+            ),
+            Spacing.y(3),
+            Text(
+              'Creating your avatar...',
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+            ),
+            Spacing.y(1),
+            Text(
+              'Removing background',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurface.withValues(alpha: 0.6),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
