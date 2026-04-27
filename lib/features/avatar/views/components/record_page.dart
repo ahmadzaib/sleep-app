@@ -1,9 +1,12 @@
 import 'package:avatar_flow/core/constants/app_constants.dart';
 import 'package:avatar_flow/core/constants/app_icons.dart';
+import 'package:avatar_flow/core/router/navigation_service.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
 import 'package:avatar_flow/features/avatar/providers/create_avatar_provider.dart';
+import 'package:avatar_flow/features/avatar/views/components/sample_voices_bottom_sheet.dart';
 import 'package:avatar_flow/widgets/circled_icon_widget.dart';
+import 'package:avatar_flow/widgets/custom_app_bar.dart';
 import 'package:avatar_flow/widgets/custom_button.dart';
 import 'package:avatar_flow/widgets/custom_svg.dart';
 import 'package:avatar_flow/widgets/custom_textfield.dart';
@@ -108,9 +111,8 @@ class _RecordVoicePageState extends State<RecordVoicePage> {
           final transcript = provider.transcript;
           final voiceDuration = provider.voiceDuration;
           final recordingElapsed = provider.recordingElapsed;
-          final voiceName = provider.voiceName.isEmpty
-              ? "Name of voice"
-              : provider.voiceName;
+          final voiceName = provider.effectiveVoiceName;
+          final hasSampleVoice = provider.hasSampleVoice;
 
           if (!hasRecording && _loadedAudioPath != null) {
             _loadedAudioPath = null;
@@ -121,6 +123,8 @@ class _RecordVoicePageState extends State<RecordVoicePage> {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              // Voice Source Indicator
+              _buildVoiceSourceChip(context, provider),
               Spacer(),
               Container(
                 width: 1.sw,
@@ -256,12 +260,42 @@ class _RecordVoicePageState extends State<RecordVoicePage> {
                 ),
               ),
               Spacer(),
+              // Option buttons when no recording
+              if (!hasRecording && !isRecording) ...[
+                TextButton(
+                  onPressed: () => _showSampleVoices(context),
+                  child: Text(
+                    "Choose from samples",
+                    style: textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w500,
+                      color: context.appColors.primary,
+                    ),
+                  ),
+                ),
+                Spacing.y(0.8),
+                TextButton(
+                  onPressed: () {
+                    provider.useDefaultVoice();
+                    provider.nextVoiceStep();
+                  },
+                  child: Text(
+                    "Use default voice",
+                    style: textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w500,
+                      color: context.appColors.grey,
+                    ),
+                  ),
+                ),
+                Spacing.y(1.2),
+              ],
               CustomButton(
-                text: 'Create Character',
-                isDisabled: !hasRecording || isRecording,
-                onPressed: !hasRecording || isRecording
-                    ? null
-                    : () => provider.nextVoiceStep(),
+                text: 'Continue with ${provider.effectiveVoiceName}',
+                isDisabled:
+                    isRecording ||
+                    (!hasRecording &&
+                        !hasSampleVoice &&
+                        !provider.isUsingDefaultVoice),
+                onPressed: isRecording ? null : () => provider.nextVoiceStep(),
               ),
               Spacing.y(1.2),
               TextButton(
@@ -271,7 +305,7 @@ class _RecordVoicePageState extends State<RecordVoicePage> {
                         provider.setVoiceStep(2);
                       },
                 child: Text(
-                  "Skip and create",
+                  "Skip voice and continue",
                   style: textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w500,
                   ),
@@ -338,5 +372,72 @@ class _RecordVoicePageState extends State<RecordVoicePage> {
     } catch (e) {
       debugPrint('Audio playback error: $e');
     }
+  }
+
+  /// Show sample voices bottom sheet
+  void _showSampleVoices(BuildContext context) {
+    SampleVoicesBottomSheet.show(context);
+  }
+
+  /// Build voice source indicator chip
+  Widget _buildVoiceSourceChip(
+    BuildContext context,
+    CreateAvatarProvider provider,
+  ) {
+    final textTheme = Theme.of(context).textTheme;
+    final isUsingDefault = provider.isUsingDefaultVoice;
+    final hasSample = provider.hasSampleVoice;
+    final hasRecorded = provider.hasRecordedVoice;
+
+    String label;
+    IconData icon;
+    Color color;
+
+    if (hasRecorded) {
+      label = 'Your Recorded Voice';
+      icon = Icons.mic;
+      color = context.appColors.primary;
+    } else if (hasSample) {
+      label = 'Sample: ${provider.selectedSampleVoiceId}';
+      icon = Icons.headphones;
+      color = context.appColors.secondary;
+    } else {
+      label = 'Default Voice';
+      icon = Icons.volume_up;
+      color = context.appColors.grey;
+    }
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(20.r),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: color),
+          SizedBox(width: 8.w),
+          Text(
+            label,
+            style: textTheme.bodySmall?.copyWith(
+              color: color,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          if (!isUsingDefault) ...[
+            SizedBox(width: 8.w),
+            GestureDetector(
+              onTap: () {
+                // Clear current selection and use default
+                provider.useDefaultVoice();
+              },
+              child: Icon(Icons.close, size: 14, color: color),
+            ),
+          ],
+        ],
+      ),
+    );
   }
 }

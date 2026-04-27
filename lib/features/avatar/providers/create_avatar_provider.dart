@@ -41,6 +41,25 @@ class CreateAvatarProvider extends ChangeNotifier {
   bool isAgreed = false;
 
   // -------------------------
+  // Voice source selection
+  // -------------------------
+  static const String defaultVoiceId = 'default_voice';
+  static const String defaultVoiceName = 'Default Voice';
+
+  String? _selectedSampleVoiceId;
+  String? get selectedSampleVoiceId => _selectedSampleVoiceId;
+
+  bool get hasRecordedVoice => audioPath != null;
+  bool get hasSampleVoice => _selectedSampleVoiceId != null;
+  bool get isUsingDefaultVoice => !hasRecordedVoice && !hasSampleVoice;
+
+  String get effectiveVoiceName {
+    if (hasRecordedVoice) return voiceName.isNotEmpty ? voiceName : 'My Voice';
+    if (hasSampleVoice) return _selectedSampleVoiceId!;
+    return defaultVoiceName;
+  }
+
+  // -------------------------
   // Voice recording state
   // -------------------------
   bool isRecording = false;
@@ -49,6 +68,38 @@ class CreateAvatarProvider extends ChangeNotifier {
   Duration? voiceDuration;
   Duration recordingElapsed = Duration.zero;
   String voiceName = '';
+
+  /// Select a sample voice (clears recorded voice)
+  void selectSampleVoice(String voiceId) {
+    _selectedSampleVoiceId = voiceId;
+    // Clear recorded voice when sample is selected
+    audioPath = null;
+    voiceName = '';
+    notifyListeners();
+  }
+
+  /// Clear sample voice selection
+  void clearSampleVoice() {
+    _selectedSampleVoiceId = null;
+    notifyListeners();
+  }
+
+  /// Set recorded voice (clears sample selection)
+  void setRecordedVoice(String path, {String? name}) {
+    audioPath = path;
+    if (name != null) voiceName = name;
+    // Clear sample when recording is set
+    _selectedSampleVoiceId = null;
+    notifyListeners();
+  }
+
+  /// Use default voice (clears both)
+  void useDefaultVoice() {
+    audioPath = null;
+    voiceName = '';
+    _selectedSampleVoiceId = null;
+    notifyListeners();
+  }
 
   // -------------------------
   // Trait suggestions
@@ -116,7 +167,7 @@ class CreateAvatarProvider extends ChangeNotifier {
 
   void updateVoice(String voice) {
     selectedVoice = voice;
-    notifyListeners();
+    selectSampleVoice(voice); // Use new method that handles mutual exclusion
   }
 
   void updatePrompt(String newPrompt) {
@@ -197,14 +248,15 @@ class CreateAvatarProvider extends ChangeNotifier {
 
     isRecording = false;
     _recordingStartAt = null;
-    audioPath = path;
     voiceDuration = recordingElapsed;
     if (voiceDuration == null || voiceDuration == Duration.zero) {
       voiceDuration = const Duration(seconds: 1);
     }
     transcript =
         'Your voice recording is ready. Tap play to preview or retake if needed.';
-    notifyListeners();
+
+    // Use new method that handles mutual exclusion
+    setRecordedVoice(path ?? '');
   }
 
   Future<void> retakeRecording() async {
@@ -215,10 +267,12 @@ class CreateAvatarProvider extends ChangeNotifier {
 
     isRecording = false;
     audioPath = null;
+    voiceName = '';
     transcript = null;
     voiceDuration = null;
     recordingElapsed = Duration.zero;
     _recordingStartAt = null;
+    // Note: We don't clear sample voice here, user can switch between them
     notifyListeners();
   }
 
@@ -235,46 +289,59 @@ class CreateAvatarProvider extends ChangeNotifier {
       '${AppConfig.elevenLabsEndpoint}/voices/add';
 
   /// Upload voice to ElevenLabs and get voice ID
-  Future<String?> cloneVoiceToElevenLabs() async {
-    if (audioPath == null) {
-      ToastUtils.error('No voice recording found');
-      return null;
+  /// Returns voice ID based on source: recorded (cloned), sample (used as-is), or default
+  Future<String?> getOrCreateVoiceId() async {
+    // If using default voice, return default ID
+    if (isUsingDefaultVoice) {
+      DebugPoint.log('Using default voice: $defaultVoiceId');
+      return defaultVoiceId;
     }
 
-    try {
-      ToastUtils.show('Cloning voice with ElevenLabs...');
+    // If using sample voice, return the sample voice ID
+    if (hasSampleVoice) {
+      DebugPoint.log('Using sample voice: $_selectedSampleVoiceId');
+      return _selectedSampleVoiceId;
+    }
 
-      final dio = DioClient();
-      final file = File(audioPath!);
+    // If recorded voice, clone it to ElevenLabs
+    if (hasRecordedVoice && audioPath != null) {
+      try {
+        ToastUtils.show('Cloning your voice with ElevenLabs...');
 
-      // Create multipart form data
-      final formData = FormData.fromMap({
-        'name': voiceName.isNotEmpty ? voiceName : avatarName,
-        'description': 'Voice cloned for $avatarName',
-        'files': await MultipartFile.fromFile(
-          file.path,
-          filename: 'voice_sample.mp3',
-        ),
-      });
+        final dio = DioClient();
+        final file = File(audioPath!);
 
-      final response = await dio.dio.post(
-        _elevenLabsEndpoint,
-        data: formData,
-        options: Options(headers: {'xi-api-key': _elevenLabsApiKey}),
-      );
+        // Create multipart form data
+        final formData = FormData.fromMap({
+          'name': voiceName.isNotEmpty ? voiceName : avatarName,
+          'description': 'Voice cloned for $avatarName',
+          'files': await MultipartFile.fromFile(
+            file.path,
+            filename: 'voice_sample.mp3',
+          ),
+        });
 
-      if (response.statusCode == 200) {
-        final voiceId = response.data['voice_id'];
-        ToastUtils.success('Voice cloned successfully!');
-        return voiceId;
-      } else {
-        ToastUtils.error('Failed to clone voice: ${response.statusCode}');
+        final response = await dio.dio.post(
+          _elevenLabsEndpoint,
+          data: formData,
+          options: Options(headers: {'xi-api-key': _elevenLabsApiKey}),
+        );
+
+        if (response.statusCode == 200) {
+          final voiceId = response.data['voice_id'];
+          ToastUtils.success('Voice cloned successfully!');
+          return voiceId;
+        } else {
+          ToastUtils.error('Failed to clone voice: ${response.statusCode}');
+          return null;
+        }
+      } catch (e) {
+        ToastUtils.error('ElevenLabs API Error: $e');
         return null;
       }
-    } catch (e) {
-      ToastUtils.error('ElevenLabs API Error: $e');
-      return null;
     }
+
+    return null;
   }
 
   // -------------------------
@@ -289,11 +356,8 @@ class CreateAvatarProvider extends ChangeNotifier {
     _isCreating = true;
     notifyListeners();
 
-    // Clone voice to ElevenLabs if we have a recording
-    String? voiceId;
-    if (audioPath != null && isAgreed) {
-      voiceId = await cloneVoiceToElevenLabs();
-    }
+    // Get voice ID based on selected source (recorded/sample/default)
+    String? voiceId = await getOrCreateVoiceId();
 
     try {
       // For now, store locally. Later: save to backend with voiceId

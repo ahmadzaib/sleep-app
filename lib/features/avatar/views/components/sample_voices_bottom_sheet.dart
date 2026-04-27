@@ -51,11 +51,11 @@ class SampleVoicesBottomSheet extends StatelessWidget {
             const _CategoryChips(),
             Spacing.y(2),
             const Expanded(child: _VoicesList()),
-            Spacing.y(1.2),
+            Spacing.y(1),
             CustomButton(
               buttonColor: context.appColors.primary.withValues(alpha: .2),
               textColor: context.appColors.primary,
-              text: "Clone your voice",
+              text: "Clone your voice instead",
               onPressed: () {
                 Navigator.of(context).pop();
                 context.read<CreateAvatarProvider>().nextVoiceStep();
@@ -63,7 +63,7 @@ class SampleVoicesBottomSheet extends StatelessWidget {
             ),
             Spacing.y(1),
             CustomButton(
-              text: "Save",
+              text: "Save Selection",
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -134,15 +134,18 @@ class _CategoryChips extends StatelessWidget {
 
                 sampleProvider.selectCategory(label);
 
-                if (sampleProvider.containsVoice(
-                  createProvider.selectedVoice,
-                )) {
+                // Check if current sample voice is in this category
+                if (createProvider.selectedSampleVoiceId != null &&
+                    sampleProvider.containsVoice(
+                      createProvider.selectedSampleVoiceId!,
+                    )) {
                   return;
                 }
 
+                // Auto-select first voice in category
                 final fallbackVoice = sampleProvider.firstFilteredVoiceName;
                 if (fallbackVoice != null) {
-                  createProvider.updateVoice(fallbackVoice);
+                  createProvider.selectSampleVoice(fallbackVoice);
                 }
               },
               child: Container(
@@ -188,22 +191,20 @@ class _VoicesList extends StatelessWidget {
       builder: (context, provider, _) {
         final voices = provider.filteredVoices;
 
-        if (voices.isEmpty) {
-          return Center(
-            child: Text(
-              'No sample voices found for this category.',
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(color: context.appColors.grey),
-            ),
-          );
-        }
+        // Build list with default voice as first item
+        final itemCount = voices.isEmpty ? 1 : voices.length + 1;
 
         return ListView.separated(
-          itemCount: voices.length,
+          itemCount: itemCount,
           separatorBuilder: (_, __) => SizedBox(height: 12.h),
-          itemBuilder: (context, index) =>
-              _SampleVoiceTile(voice: voices[index]),
+          itemBuilder: (context, index) {
+            // First item is always the Default voice
+            if (index == 0) {
+              return const _DefaultVoiceTile();
+            }
+            // Rest are sample voices
+            return _SampleVoiceTile(voice: voices[index - 1]);
+          },
         );
       },
     );
@@ -219,7 +220,7 @@ class _SampleVoiceTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final isSelected = context.select<CreateAvatarProvider, bool>(
-      (provider) => provider.selectedVoice == voice.name,
+      (provider) => provider.selectedSampleVoiceId == voice.name,
     );
     final isFavorite = context.select<SampleVoicesProvider, bool>(
       (provider) => provider.isFavorite(voice.id),
@@ -230,7 +231,10 @@ class _SampleVoiceTile extends StatelessWidget {
 
     return InkWell(
       borderRadius: BorderRadius.circular(16.r),
-      onTap: () => context.read<CreateAvatarProvider>().updateVoice(voice.name),
+      onTap: () {
+        // Select this sample voice - this also clears any recorded voice
+        context.read<CreateAvatarProvider>().selectSampleVoice(voice.name);
+      },
       child: AnimatedContainer(
         duration: AppConstants.defaultDuration,
         padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
@@ -360,6 +364,67 @@ class _Waveform extends StatelessWidget {
             ),
             borderRadius: BorderRadius.circular(2.r),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Default Voice Tile - first item in the list
+class _DefaultVoiceTile extends StatelessWidget {
+  const _DefaultVoiceTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final isSelected = context.select<CreateAvatarProvider, bool>(
+      (provider) => provider.isUsingDefaultVoice,
+    );
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(16.r),
+      onTap: () => context.read<CreateAvatarProvider>().useDefaultVoice(),
+      child: AnimatedContainer(
+        duration: AppConstants.defaultDuration,
+        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? context.appColors.primary.withValues(alpha: 0.08)
+              : Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(16.r),
+          border: Border.all(
+            color: isSelected
+                ? context.appColors.primary.withValues(alpha: 0.4)
+                : Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.12),
+          ),
+        ),
+        child: Row(
+          children: [
+            _VoiceSelectionIndicator(isSelected: isSelected),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Default Voice',
+                    style: textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  SizedBox(height: 6.h),
+                  Text(
+                    'Standard AI voice',
+                    style: textTheme.bodySmall?.copyWith(
+                      color: context.appColors.grey,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
