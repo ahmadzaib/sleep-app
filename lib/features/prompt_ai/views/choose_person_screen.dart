@@ -33,12 +33,14 @@ class _ChoosePersonScreenState extends State<ChoosePersonScreen> {
   @override
   void initState() {
     super.initState();
-    final selectedUrl = context.read<PromptAiProvider>().selectedPersonImageUrl;
-    final existingIndex = PromptAiProvider.peopleOptions.indexOf(
-      selectedUrl ?? '',
-    );
-    if (existingIndex >= 0) {
-      _selectedIndex = existingIndex;
+    final selectedImage = context.read<PromptAiProvider>().selectedImage;
+    if (selectedImage is String) {
+      final existingIndex = PromptAiProvider.peopleOptions.indexOf(
+        selectedImage,
+      );
+      if (existingIndex >= 0) {
+        _selectedIndex = existingIndex;
+      }
     }
   }
 
@@ -46,7 +48,7 @@ class _ChoosePersonScreenState extends State<ChoosePersonScreen> {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final provider = context.watch<PromptAiProvider>();
-    final options = PromptAiProvider.peopleOptions;
+    final imageOptions = PromptAiProvider.peopleOptions;
 
     return BgWidget(
       child: Scaffold(
@@ -97,15 +99,17 @@ class _ChoosePersonScreenState extends State<ChoosePersonScreen> {
                               fontWeight: FontWeight.w600,
                             ),
                         onPressed: () {
-                          provider.setSelectedPerson(options[_selectedIndex]);
-                          NavigationService.pushNamed(AppRoutes.cloneVoice);
+                          provider.setSelectedPerson(
+                            imageOptions[_selectedIndex],
+                          );
+                          NavigationService.pop();
                         },
                         borderRadius: 100,
                       ),
                       Spacing.y(2.4),
                       Expanded(
                         child: GridView.builder(
-                          itemCount: options.length,
+                          itemCount: imageOptions.length,
                           padding: EdgeInsets.all(10),
                           gridDelegate:
                               SliverGridDelegateWithFixedCrossAxisCount(
@@ -136,12 +140,11 @@ class _ChoosePersonScreenState extends State<ChoosePersonScreen> {
                                   ),
                                 ),
                                 child: ClipOval(
-                                  child: CustomCachedNetworkImage(
-                                    imageUrl: options[index],
+                                  child: Image.asset(
+                                    imageOptions[index],
                                     width: double.infinity,
                                     height: double.infinity,
-                                    borderRadius: 999,
-                                    cover: BoxFit.cover,
+                                    fit: BoxFit.cover,
                                   ),
                                 ),
                               ),

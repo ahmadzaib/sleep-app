@@ -21,7 +21,7 @@ class ChatBubble extends StatelessWidget {
   final ChatMessage msg;
   final VoidCallback? onUseAsAvatar;
 
-  bool get hasImage => msg.imagePath != null || msg.imageUrl != null;
+  bool get hasImage => msg.hasImage;
 
   bool get isImageOnly => hasImage && msg.text == null;
 
@@ -73,8 +73,15 @@ class ChatBubble extends StatelessWidget {
                       ),
                     ),
 
+                  // Show style chip
+                  if (msg.style != null) ...[
+                    if (msg.text != null) Spacing.y(1),
+                    _buildChip(context, icon: Icons.style, label: msg.style!),
+                  ],
+
+                  // Show actual image
                   if (hasImage) ...[
-                    if (msg.text != null) Spacing.y(2),
+                    if (msg.text != null || msg.style != null) Spacing.y(2),
                     ClipRRect(
                       borderRadius: BorderRadius.circular(
                         AppConstants.smallRadius,
@@ -102,28 +109,108 @@ class ChatBubble extends StatelessWidget {
     );
   }
 
+  Widget _buildImageChip(
+    BuildContext context, {
+    required ImageProvider image,
+    required String label,
+  }) {
+    final textTheme = Theme.of(context).textTheme;
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+      decoration: BoxDecoration(
+        color: isUser
+            ? Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.2)
+            : context.appColors.grey.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(20.r),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          CircleAvatar(radius: 12.r, backgroundImage: image),
+          Spacing.x(1),
+          Text(
+            label,
+            style: textTheme.bodySmall?.copyWith(
+              color: isUser
+                  ? Theme.of(context).colorScheme.onPrimary
+                  : context.appColors.grey,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildImage() {
     final double imageHeight = isUser ? 140.h : 220.h;
+    final double imageWidth = isUser ? 0.6.sw : double.infinity;
 
     if (msg.imageUrl != null) {
       return CustomCachedNetworkImage(
         imageUrl: msg.imageUrl!,
         height: imageHeight,
-        width: double.infinity,
+        width: imageWidth,
         borderRadius: 0,
         cover: BoxFit.cover,
       );
     }
 
     if (msg.imagePath != null) {
-      return Image.file(
-        File(msg.imagePath!),
-        height: imageHeight,
-        width: double.infinity,
-        fit: BoxFit.cover,
-      );
+      // Asset image (from person grid) or File image (from picker)
+      final image = msg.isAssetImage
+          ? Image.asset(
+              msg.imagePath!,
+              height: imageHeight,
+              width: imageWidth,
+              fit: BoxFit.cover,
+            )
+          : Image.file(
+              File(msg.imagePath!),
+              height: imageHeight,
+              width: imageWidth,
+              fit: BoxFit.cover,
+            );
+      return image;
     }
 
     return const SizedBox();
+  }
+
+  Widget _buildChip(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+  }) {
+    final textTheme = Theme.of(context).textTheme;
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+      decoration: BoxDecoration(
+        color: isUser
+            ? Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.2)
+            : context.appColors.grey.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(20.r),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: 14,
+            color: isUser
+                ? Theme.of(context).colorScheme.onPrimary
+                : context.appColors.grey,
+          ),
+          Spacing.x(1),
+          Text(
+            label,
+            style: textTheme.bodySmall?.copyWith(
+              color: isUser
+                  ? Theme.of(context).colorScheme.onPrimary
+                  : context.appColors.grey,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

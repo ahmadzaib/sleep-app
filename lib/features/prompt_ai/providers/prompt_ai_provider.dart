@@ -1,19 +1,23 @@
 import 'dart:io';
+import 'package:avatar_flow/core/constants/app_images.dart';
 import 'package:avatar_flow/core/utils/image_picker_helper.dart';
 import 'package:avatar_flow/features/prompt_ai/models/chat_model.dart';
 import 'package:flutter/material.dart';
 
 class PromptAiProvider extends ChangeNotifier {
   static const List<String> peopleOptions = [
-    'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=500&q=80',
-    'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=500&q=80',
-    'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=500&q=80',
-    'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=500&q=80',
-    'https://images.unsplash.com/photo-1507591064344-4c6ce005b128?auto=format&fit=crop&w=500&q=80',
-    'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=500&q=80',
-    'https://images.unsplash.com/photo-1506795660187-7795f6cad9d4?auto=format&fit=crop&w=500&q=80',
-    'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?auto=format&fit=crop&w=500&q=80',
-    'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=500&q=80',
+    AppImagesPng.dummyImage,
+    AppImagesPng.dummyImage,
+    AppImagesPng.dummyImage,
+    AppImagesPng.dummyImage,
+    AppImagesPng.dummyImage,
+    AppImagesPng.dummyImage,
+  ];
+
+  static const List<Map<String, String>> styleOptions = [
+    {'name': 'Vector 3D', 'image': AppImagesPng.vector3d},
+    {'name': 'Cartoon', 'image': AppImagesPng.cartoon},
+    {'name': 'Special', 'image': AppImagesPng.special},
   ];
 
   final TextEditingController promptController = TextEditingController();
@@ -21,16 +25,25 @@ class PromptAiProvider extends ChangeNotifier {
   final List<ChatMessage> _messages = [];
   List<ChatMessage> get messages => _messages;
 
-  File? _selectedImage;
-  File? get selectedImage => _selectedImage;
+  // Single selected image - can be File (picked) or String (asset path from person grid)
+  dynamic _selectedImage;
+  dynamic get selectedImage => _selectedImage;
+  bool get hasSelectedImage => _selectedImage != null;
+  bool get isAssetImage => _selectedImage != null && _selectedImage is String;
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
-  String? _selectedPersonImageUrl;
-  String? get selectedPersonImageUrl => _selectedPersonImageUrl;
 
-  void setSelectedPerson(String imageUrl) {
-    _selectedPersonImageUrl = imageUrl;
+  String? _selectedStyle;
+  String? get selectedStyle => _selectedStyle;
+
+  void setSelectedPerson(String imagePath) {
+    _selectedImage = imagePath;
+    notifyListeners();
+  }
+
+  void setSelectedStyle(String? styleName) {
+    _selectedStyle = styleName;
     notifyListeners();
   }
 
@@ -38,25 +51,25 @@ class PromptAiProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setImage(File? file) {
-    _selectedImage = file;
+  void clearSelectedImage() {
+    _selectedImage = null;
     notifyListeners();
   }
 
-  Future<void> pickImageFromGalleryAndSend() async {
+  Future<void> pickImageFromGallery() async {
     final file = await ImagePickerHelper.pickFromGallery();
     if (file == null) return;
 
     _selectedImage = file;
-    await sendMessage();
+    notifyListeners();
   }
 
-  Future<void> pickImageFromCameraAndSend() async {
+  Future<void> pickImageFromCamera() async {
     final file = await ImagePickerHelper.pickFromCamera();
     if (file == null) return;
 
     _selectedImage = file;
-    await sendMessage();
+    notifyListeners();
   }
 
   /// SEND USER MESSAGE
@@ -65,19 +78,26 @@ class PromptAiProvider extends ChangeNotifier {
 
     if (text.isEmpty && _selectedImage == null) return;
 
-    // 1. Add user message
+    // Capture values before clearing
+    final image = _selectedImage;
+    final style = _selectedStyle;
+    final isAsset = _selectedImage is String;
+
+    // 1. Add user message with image and style
     _messages.add(
       ChatMessage(
         text: text.isEmpty ? null : text,
-        imagePath: _selectedImage?.path,
+        imagePath: isAsset ? _selectedImage : (_selectedImage as File?)?.path,
+        isAssetImage: isAsset,
+        style: style,
         isUser: true,
         time: DateTime.now(),
       ),
     );
 
     promptController.clear();
-    final image = _selectedImage;
     _selectedImage = null;
+    _selectedStyle = null;
 
     _isLoading = true;
     notifyListeners();
@@ -88,7 +108,9 @@ class PromptAiProvider extends ChangeNotifier {
     // 3. Fake AI response (replace with API later)
     _messages.add(
       ChatMessage(
-        imagePath: image?.path,
+        imagePath: isAsset ? image : (image as File?)?.path,
+        isAssetImage: isAsset,
+        style: style,
         text: image != null
             ? "I received your image. Here is my analysis ✨"
             : "You said: $text",

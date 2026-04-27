@@ -138,16 +138,38 @@ class _PromptAvatarScreenState extends State<PromptAvatarScreen> {
     );
   }
 
-  Widget _columnInfo(String imagePath, String text, TextTheme textTheme) {
-    return Column(
-      children: [
-        CircleAvatar(
-          backgroundColor: context.appColors.primary.withValues(alpha: .3),
-          backgroundImage: AssetImage(imagePath),
-        ),
-        Spacing.y(.5),
-        Text(text, style: textTheme.bodySmall!.copyWith(fontSize: 12.sp)),
-      ],
+  Widget _columnInfo(
+    String imagePath,
+    String text,
+    TextTheme textTheme,
+    bool isSelected,
+    VoidCallback onTap,
+  ) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          CircleAvatar(
+            radius: isSelected ? 28.r : 26.r,
+            backgroundColor: isSelected
+                ? context.appColors.primary
+                : context.appColors.primary.withValues(alpha: .3),
+            backgroundImage: AssetImage(imagePath),
+            child: isSelected
+                ? Icon(Icons.check, color: Colors.white, size: 20)
+                : null,
+          ),
+          Spacing.y(.5),
+          Text(
+            text,
+            style: textTheme.bodySmall!.copyWith(
+              fontSize: 12.sp,
+              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
+              color: isSelected ? context.appColors.primary : null,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -220,17 +242,26 @@ class _PromptAvatarScreenState extends State<PromptAvatarScreen> {
                   children: [
                     Text("Choose style", style: textTheme.bodyMedium),
                     Spacing.y(2),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        _columnInfo(
-                          AppImagesPng.vector3d,
-                          "Vector 3D",
-                          textTheme,
-                        ),
-                        _columnInfo(AppImagesPng.cartoon, "Cartoon", textTheme),
-                        _columnInfo(AppImagesPng.special, "Special", textTheme),
-                      ],
+                    Consumer<PromptAiProvider>(
+                      builder: (context, provider, _) {
+                        final styles = PromptAiProvider.styleOptions;
+                        return Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: styles.map((style) {
+                            final isSelected =
+                                provider.selectedStyle == style['name'];
+                            return _columnInfo(
+                              style['image']!,
+                              style['name']!,
+                              textTheme,
+                              isSelected,
+                              () => provider.setSelectedStyle(
+                                isSelected ? null : style['name'],
+                              ),
+                            );
+                          }).toList(),
+                        );
+                      },
                     ),
                     Spacing.y(1.5),
                     Text(
@@ -242,7 +273,7 @@ class _PromptAvatarScreenState extends State<PromptAvatarScreen> {
                       () async {
                         final provider = context.read<PromptAiProvider>();
                         await _tooltipController.hideTooltip();
-                        await provider.pickImageFromGalleryAndSend();
+                        await provider.pickImageFromGallery();
                       },
                       "Choose Photo",
                       AppIconsSvg.gallery,
@@ -252,7 +283,7 @@ class _PromptAvatarScreenState extends State<PromptAvatarScreen> {
                       () async {
                         final provider = context.read<PromptAiProvider>();
                         await _tooltipController.hideTooltip();
-                        await provider.pickImageFromCameraAndSend();
+                        await provider.pickImageFromCamera();
                       },
                       "Take Photo",
                       AppIconsSvg.camera,
