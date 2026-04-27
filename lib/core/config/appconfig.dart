@@ -1,9 +1,11 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 class AppConfig {
   static const appName = "avatar_flow";
 
   // API Keys - Replace with your actual keys
-  static const String geminiApiKey = 'YOUR_GEMINI_API_KEY';
-  static const String elevenLabsApiKey = 'YOUR_ELEVENLABS_API_KEY';
+  static String geminiApiKey = dotenv.env["GEMINI_API_KEY"] ?? '';
+  static String elevenLabsApiKey = dotenv.env["ELEVENLABS_API_KEY"] ?? '';
 
   // API Endpoints
   static const String geminiEndpoint =

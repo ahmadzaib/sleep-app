@@ -77,7 +77,7 @@ class PromptAiProvider extends ChangeNotifier {
   }
 
   /// Use API keys from AppConfig
-  static const String _geminiApiKey = AppConfig.geminiApiKey;
+  static final String _geminiApiKey = AppConfig.geminiApiKey;
   static const String _geminiEndpoint = AppConfig.geminiEndpoint;
 
   /// SEND USER MESSAGE - calls Gemini API

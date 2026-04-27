@@ -284,7 +284,7 @@ class CreateAvatarProvider extends ChangeNotifier {
   // -------------------------
   // ElevenLabs API - Voice Cloning
   // -------------------------
-  static const String _elevenLabsApiKey = AppConfig.elevenLabsApiKey;
+  static final String _elevenLabsApiKey = AppConfig.elevenLabsApiKey;
   static const String _elevenLabsEndpoint =
       '${AppConfig.elevenLabsEndpoint}/voices/add';
 

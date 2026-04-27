@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:avatar_flow/core/constants/app_constants.dart';
 import 'package:avatar_flow/core/constants/app_icons.dart';
 import 'package:avatar_flow/core/constants/app_images.dart';
@@ -126,9 +128,47 @@ class _AvatarPreviewCard extends StatelessWidget {
           ),
           Align(
             alignment: Alignment.center,
-            child: Image.asset(AppImagesPng.dummyImage, height: 0.25.sh),
+            child: _buildAvatarImage(provider, context),
           ),
         ],
+      ),
+    );
+  }
+
+  /// Build avatar image from file path or show placeholder
+  Widget _buildAvatarImage(
+    CreateAvatarProvider provider,
+    BuildContext context,
+  ) {
+    final imagePath = provider.avatarImagePath;
+
+    if (imagePath == null) {
+      // No image generated yet - show placeholder with message
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Image.asset(AppImagesPng.dummyImage, height: 0.25.sh),
+          SizedBox(height: 8.h),
+          Text(
+            'Generate an image from Prompt AI',
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: context.appColors.grey),
+          ),
+        ],
+      );
+    }
+
+    // Show generated image
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16.r),
+      child: Image.file(
+        File(imagePath),
+        height: 0.25.sh,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return Image.asset(AppImagesPng.dummyImage, height: 0.25.sh);
+        },
       ),
     );
   }
@@ -266,11 +306,7 @@ class _DetailsCard extends StatelessWidget {
             ),
           ],
         ),
-        VoiceNoteBSTile(
-          title: provider.selectedVoice,
-          audioPath: 'assets/audio/music.mp3',
-          isNetwork: false,
-        ),
+        _buildVoiceInfo(context, provider),
         Spacing.y(3),
         CustomButton(
           text: "Save",
@@ -291,6 +327,75 @@ class _DetailsCard extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  /// Build voice info tile based on selected source
+  Widget _buildVoiceInfo(BuildContext context, CreateAvatarProvider provider) {
+    final textTheme = Theme.of(context).textTheme;
+    final hasRecorded = provider.hasRecordedVoice;
+    final hasSample = provider.hasSampleVoice;
+    final voiceName = provider.effectiveVoiceName;
+
+    // Determine icon and subtitle based on source
+    IconData icon;
+    String subtitle;
+    Color color;
+
+    if (hasRecorded) {
+      icon = Icons.mic;
+      subtitle = 'Your recorded voice';
+      color = context.appColors.primary;
+    } else if (hasSample) {
+      icon = Icons.headphones;
+      subtitle = 'Sample voice';
+      color = context.appColors.secondary;
+    } else {
+      icon = Icons.volume_up;
+      subtitle = 'Default AI voice';
+      color = context.appColors.grey;
+    }
+
+    return Container(
+      padding: EdgeInsets.all(12.w),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: EdgeInsets.all(8.w),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.15),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, size: 20, color: color),
+          ),
+          SizedBox(width: 12.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  voiceName,
+                  style: textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                SizedBox(height: 2.h),
+                Text(
+                  subtitle,
+                  style: textTheme.bodySmall?.copyWith(
+                    color: context.appColors.grey,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
