@@ -1,127 +1,63 @@
-// import 'package:dio/dio.dart';
-// import 'package:avatar_flow/core/constants/keys.dart';
-// import 'package:avatar_flow/core/exceptions/app_exceptions.dart';
-// import 'package:avatar_flow/core/config/appconfig.dart';
+import 'dart:io';
 
-// import 'package:avatar_flow/core/utils/debug_point.dart';
+import 'package:dio/dio.dart';
+import 'package:path_provider/path_provider.dart';
 
-// class DioClient {
-//   late Dio _dio;
+/// Simple Dio client for direct API calls (Gemini, ElevenLabs)
+/// No auth - just direct API integration
+class DioClient {
+  late Dio _dio;
 
-//   DioClient() {
-//     _dio = Dio(
-//       BaseOptions(
-//         baseUrl: AppConfig.baseUrl,
-//         connectTimeout: const Duration(minutes: 1),
-//         receiveTimeout: const Duration(minutes: 1),
-//         sendTimeout: const Duration(minutes: 1),
-//       ),
-//     );
-//     _setupInterceptors();
-//   }
-//   Dio get dio => _dio;
+  DioClient() {
+    _dio = Dio(
+      BaseOptions(
+        connectTimeout: const Duration(minutes: 2),
+        receiveTimeout: const Duration(minutes: 2),
+        sendTimeout: const Duration(minutes: 2),
+      ),
+    );
+  }
 
-//   void _setupInterceptors() {
-//     _dio.interceptors.add(
-//       InterceptorsWrapper(
-//         onRequest: _handleRequest,
-//         onResponse: _handleResponse,
-//         onError: _handleError,
-//       ),
-//     );
-//   }
+  Dio get dio => _dio;
 
-//   Future<void> _handleRequest(
-//     RequestOptions options,
-//     RequestInterceptorHandler handler,
-//   ) async {
-//     try {
-//       DebugPoint.log("-------- 📤 REQUEST --------");
-//       DebugPoint.log("URI: ${options.uri}");
-//       DebugPoint.log("METHOD: ${options.method}");
-//       DebugPoint.log("HEADERS: ${options.headers}");
-//       DebugPoint.log("BODY: ${options.data}");
-//       String token = getStringAsync(Keys.tokenKey);
-//       if (token.isNotEmpty) {
-//         options.headers['x-customer-access-token'] = token;
-//         DebugPoint.log('Api Request Authorization: $token');
-//         DebugPoint.log("----------------------------");
-//       }
-//       handler.next(options);
-//     } catch (e) {
-//       DebugPoint.error('Request error $e');
-//       handler.reject(
-//         DioException(
-//           requestOptions: options,
-//           error: NetworkException('Failed to make request: ${e.toString()}'),
-//         ),
-//       );
-//     }
-//   }
+  /// Download image from URL and save to local file
+  Future<String?> downloadImage(String imageUrl, {String? fileName}) async {
+    try {
+      final tempDir = await getTemporaryDirectory();
+      final name =
+          fileName ?? 'img_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final savePath = '${tempDir.path}/$name';
 
-//   void _handleResponse(
-//     Response response,
-//     ResponseInterceptorHandler handler,
-//   ) async {
-//     DebugPoint.log("-------- 📥 RESPONSE --------");
-//     DebugPoint.log("URI: ${response.requestOptions.uri}");
-//     DebugPoint.log("STATUS: ${response.statusCode}");
-//     DebugPoint.log("DATA: ${response.data}");
-//     DebugPoint.log("-----------------------------");
+      await _dio.download(imageUrl, savePath);
+      return savePath;
+    } catch (e) {
+      return null;
+    }
+  }
 
-//     // If we can’t parse, just continue
-//     handler.next(response);
-//   }
+  /// POST request helper
+  Future<Response?> post(
+    String url, {
+    Map<String, dynamic>? data,
+    Map<String, String>? headers,
+  }) async {
+    try {
+      return await _dio.post(
+        url,
+        data: data,
+        options: Options(headers: headers),
+      );
+    } catch (e) {
+      return null;
+    }
+  }
 
-//   Future<void> _handleError(
-//     DioException err,
-//     ErrorInterceptorHandler handler,
-//   ) async {
-//     final requestOptions = err.requestOptions;
-
-//     // Log error details for debugging
-//     DebugPoint.error("-------- ❌ ERROR --------");
-//     DebugPoint.error("URI: ${requestOptions.uri}");
-//     DebugPoint.error("STATUS: ${err.response?.statusCode}");
-//     DebugPoint.error("ERROR DATA: ${err.response?.data}");
-//     DebugPoint.error("---------------------------");
-
-//     // If not 401 → forward the error
-//     if (err.response?.statusCode != 401) {
-//       handler.next(err);
-//       return;
-//     }
-
-//     // Prevent refresh loop
-//     if (requestOptions.extra["retry"] == true) {
-//       // Already retried once → force logout
-//       await _clearStorage();
-//       handler.reject(err);
-//       return;
-//     }
-
-//     // Ignore login or refresh endpoints
-//     if (requestOptions.path.contains('/auth/login') ||
-//         requestOptions.path.contains('/auth/register') ||
-//         requestOptions.path.contains('/auth/social-login')) {
-//       handler.next(err);
-//       return;
-//     }
-
-//     DebugPoint.warning("⚠️ Token expired or unauthorized.");
-
-//     // The new API uses Shopify access tokens which have longer lifespans
-//     // and different refresh mechanisms. For now, we clear storage and logout.
-//     await _clearStorage();
-//     handler.reject(err);
-//   }
-
-//   Future<void> _clearStorage() async {
-//     // await removeKey(Keys.tokenKey);
-//     // await removeKey(Keys.userData);
-//     // Navigator.of(
-//     //   // ignore: use_build_context_synchronously
-//     //   navigatorKey.currentState!.context,
-//     // ).pushNamedAndRemoveUntil(AppRouteNames.signIn, (route) => false);
-//   }
-// }
+  /// GET request helper
+  Future<Response?> get(String url, {Map<String, String>? headers}) async {
+    try {
+      return await _dio.get(url, options: Options(headers: headers));
+    } catch (e) {
+      return null;
+    }
+  }
+}

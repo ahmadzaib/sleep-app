@@ -1,6 +1,10 @@
+import 'dart:convert';
 import 'dart:io';
+import 'package:avatar_flow/core/config/appconfig.dart';
 import 'package:avatar_flow/core/constants/app_images.dart';
+import 'package:avatar_flow/core/dio/dio_client.dart';
 import 'package:avatar_flow/core/utils/image_picker_helper.dart';
+import 'package:avatar_flow/core/utils/toast_utils.dart';
 import 'package:avatar_flow/features/prompt_ai/models/chat_model.dart';
 import 'package:flutter/material.dart';
 
@@ -72,7 +76,11 @@ class PromptAiProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// SEND USER MESSAGE
+  /// Use API keys from AppConfig
+  static const String _geminiApiKey = AppConfig.geminiApiKey;
+  static const String _geminiEndpoint = AppConfig.geminiEndpoint;
+
+  /// SEND USER MESSAGE - calls Gemini API
   Future<void> sendMessage() async {
     final text = promptController.text.trim();
 
@@ -102,18 +110,23 @@ class PromptAiProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    // 2. Simulate AI delay
-    await Future.delayed(const Duration(seconds: 2));
+    // 2. Call Gemini API
+    final generatedImageUrl = await _callGeminiApi(
+      prompt: text,
+      style: style,
+      imagePath: isAsset ? image : (image as File?)?.path,
+      isAsset: isAsset,
+    );
 
-    // 3. Fake AI response (replace with API later)
+    // 3. AI response with generated image
     _messages.add(
       ChatMessage(
-        imagePath: isAsset ? image : (image as File?)?.path,
-        isAssetImage: isAsset,
+        imageUrl: generatedImageUrl,
+        isAssetImage: false,
         style: style,
-        text: image != null
-            ? "I received your image. Here is my analysis ✨"
-            : "You said: $text",
+        text: generatedImageUrl != null
+            ? "Here's your generated image based on your prompt ✨"
+            : "I'm working on that... (API key not configured)",
         isUser: false,
         time: DateTime.now(),
       ),
@@ -121,6 +134,74 @@ class PromptAiProvider extends ChangeNotifier {
 
     _isLoading = false;
     notifyListeners();
+  }
+
+  /// Call Gemini API for image generation
+  Future<String?> _callGeminiApi({
+    required String prompt,
+    String? style,
+    String? imagePath,
+    bool isAsset = false,
+  }) async {
+    try {
+      // Build prompt with style
+      final fullPrompt = style != null
+          ? 'Generate an image of $prompt in $style style'
+          : 'Generate an image of $prompt';
+
+      final dio = DioClient();
+      final response = await dio.post(
+        '$_geminiEndpoint?key=$_geminiApiKey',
+        headers: {'Content-Type': 'application/json'},
+        data: {
+          'contents': [
+            {
+              'parts': [
+                {'text': fullPrompt},
+              ],
+            },
+          ],
+          'generationConfig': {
+            'responseModalities': ['Text', 'Image'],
+          },
+        },
+      );
+
+      if (response == null) return null;
+
+      // Parse response - extract image URL from Gemini response
+      final data = response.data;
+      if (data['candidates'] != null && data['candidates'].isNotEmpty) {
+        final parts = data['candidates'][0]['content']['parts'];
+        for (final part in parts) {
+          if (part['inlineData'] != null) {
+            // Base64 encoded image
+            final base64Image = part['inlineData']['data'];
+            // Save base64 to file and return path
+            return await _saveBase64Image(base64Image);
+          }
+        }
+      }
+      return null;
+    } catch (e) {
+      ToastUtils.error('API Error: $e');
+      return null;
+    }
+  }
+
+  /// Save base64 image to temp file
+  Future<String?> _saveBase64Image(String base64String) async {
+    try {
+      final bytes = base64Decode(base64String);
+      final tempDir = await Directory.systemTemp.createTemp();
+      final file = File(
+        '${tempDir.path}/generated_${DateTime.now().millisecondsSinceEpoch}.png',
+      );
+      await file.writeAsBytes(bytes);
+      return file.path;
+    } catch (e) {
+      return null;
+    }
   }
 
   void clearChat() {

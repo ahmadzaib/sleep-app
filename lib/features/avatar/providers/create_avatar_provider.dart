@@ -1,19 +1,17 @@
 import 'dart:async';
+import 'dart:io';
 
-import 'package:avatar_flow/core/constants/mock_data.dart';
+import 'package:avatar_flow/core/config/appconfig.dart';
 import 'package:avatar_flow/core/debug/debug_point.dart';
+import 'package:avatar_flow/core/dio/dio_client.dart';
 import 'package:avatar_flow/core/utils/toast_utils.dart';
-import 'package:avatar_flow/features/avatar/models/avatar_model.dart';
-import 'package:avatar_flow/features/avatar/repo/avatar_repo.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:record/record.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 class CreateAvatarProvider extends ChangeNotifier {
-  final AvatarRepo _repo = AvatarRepo();
-
   // -------------------------
   // Avatar fields
   // -------------------------
@@ -23,9 +21,16 @@ class CreateAvatarProvider extends ChangeNotifier {
   List<String> traits = ["Adventurous", "Charismatic"];
   String selectedVoice = "Voice 1";
   String prompt = "";
+  String? _avatarImagePath;
+  String? get avatarImagePath => _avatarImagePath;
   bool _isCreating = false;
 
   bool get isCreating => _isCreating;
+
+  void setAvatarImagePath(String? path) {
+    _avatarImagePath = path;
+    notifyListeners();
+  }
 
   // -------------------------
   // Voice clone - step/page control
@@ -223,7 +228,57 @@ class CreateAvatarProvider extends ChangeNotifier {
   }
 
   // -------------------------
-  // Create avatar
+  // ElevenLabs API - Voice Cloning
+  // -------------------------
+  static const String _elevenLabsApiKey = AppConfig.elevenLabsApiKey;
+  static const String _elevenLabsEndpoint =
+      '${AppConfig.elevenLabsEndpoint}/voices/add';
+
+  /// Upload voice to ElevenLabs and get voice ID
+  Future<String?> cloneVoiceToElevenLabs() async {
+    if (audioPath == null) {
+      ToastUtils.error('No voice recording found');
+      return null;
+    }
+
+    try {
+      ToastUtils.show('Cloning voice with ElevenLabs...');
+
+      final dio = DioClient();
+      final file = File(audioPath!);
+
+      // Create multipart form data
+      final formData = FormData.fromMap({
+        'name': voiceName.isNotEmpty ? voiceName : avatarName,
+        'description': 'Voice cloned for $avatarName',
+        'files': await MultipartFile.fromFile(
+          file.path,
+          filename: 'voice_sample.mp3',
+        ),
+      });
+
+      final response = await dio.dio.post(
+        _elevenLabsEndpoint,
+        data: formData,
+        options: Options(headers: {'xi-api-key': _elevenLabsApiKey}),
+      );
+
+      if (response.statusCode == 200) {
+        final voiceId = response.data['voice_id'];
+        ToastUtils.success('Voice cloned successfully!');
+        return voiceId;
+      } else {
+        ToastUtils.error('Failed to clone voice: ${response.statusCode}');
+        return null;
+      }
+    } catch (e) {
+      ToastUtils.error('ElevenLabs API Error: $e');
+      return null;
+    }
+  }
+
+  // -------------------------
+  // Create avatar with voice
   // -------------------------
   Future<void> createAvatar() async {
     if (avatarName.trim().isEmpty) {
@@ -234,21 +289,18 @@ class CreateAvatarProvider extends ChangeNotifier {
     _isCreating = true;
     notifyListeners();
 
-    try {
-      final avatar = AvatarModel(
-        voiceTerm: isAgreed,
-        name: avatarName.trim(),
-        gender: selectedGender,
-        traits: traits,
-        avatarUrl: dummyAvatarUrl,
-        voiceUrl: null,
-      );
+    // Clone voice to ElevenLabs if we have a recording
+    String? voiceId;
+    if (audioPath != null && isAgreed) {
+      voiceId = await cloneVoiceToElevenLabs();
+    }
 
-      await _repo.createAvatar(avatar);
-      ToastUtils.success('Avatar created successfully!');
+    try {
+      // For now, store locally. Later: save to backend with voiceId
+      ToastUtils.success('Avatar created! Voice ID: $voiceId');
+      DebugPoint.log('Avatar created with voice ID: $voiceId');
     } catch (e) {
       ToastUtils.error('Failed to create avatar: $e');
-      DebugPoint.error('Failed to create avatar: $e');
     } finally {
       _isCreating = false;
       notifyListeners();
