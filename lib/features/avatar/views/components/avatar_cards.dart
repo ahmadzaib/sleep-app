@@ -4,9 +4,14 @@ import 'package:avatar_flow/core/constants/app_icons.dart';
 import 'package:avatar_flow/core/constants/app_images.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
+import 'package:avatar_flow/features/avatar/models/avatar_model.dart';
+import 'package:avatar_flow/features/avatar/providers/avatars_provider.dart';
+import 'package:avatar_flow/widgets/custom_cache_netword_imge.dart';
 import 'package:avatar_flow/widgets/custom_svg.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:zoom_tap_animation/zoom_tap_animation.dart';
 
 class AvatarCards extends StatefulWidget {
@@ -30,56 +35,118 @@ class _AvatarCardsState extends State<AvatarCards> {
   @override
   void initState() {
     super.initState();
-
     _pageController = PageController(viewportFraction: 0.72);
+    // Fetch avatars on init
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<AvatarsProvider>().fetchAvatars();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return SizedBox(
-      height: 340.h,
-      child: ClipRRect(
-        child: PageView.builder(
-          controller: _pageController,
-          itemCount: 10,
-          padEnds: false,
-          physics: const BouncingScrollPhysics(),
-          itemBuilder: (context, index) {
-            return AnimatedBuilder(
-              animation: _pageController,
-              builder: (context, child) {
-                double page = 0;
-                if (_pageController.hasClients &&
-                    _pageController.page != null) {
-                  page = _pageController.page!;
-                }
 
-                double distance = (page - index).abs().clamp(0.0, 1.0);
+    return Consumer<AvatarsProvider>(
+      builder: (context, provider, _) {
+        if (provider.isLoading) {
+          return _buildShimmerCards(theme);
+        }
 
-                double scale = lerpDouble(1.0, 0.85, distance)!;
+        if (provider.error != null && provider.avatars.isEmpty) {
+          return SizedBox(
+            height: 340.h,
+            child: Center(
+              child: Text(
+                'Failed to load avatars',
+                style: theme.textTheme.bodyMedium,
+              ),
+            ),
+          );
+        }
 
-                double hPadding = lerpDouble(
-                  AppConstants.paddingOnly,
-                  0.w,
-                  distance,
-                )!;
+        if (provider.avatars.isEmpty) {
+          return SizedBox(
+            height: 340.h,
+            child: Center(
+              child: Text(
+                'No avatars yet. Create one!',
+                style: theme.textTheme.bodyMedium,
+              ),
+            ),
+          );
+        }
 
-                return Padding(
-                  padding: EdgeInsets.symmetric(horizontal: hPadding),
-                  child: Transform.scale(
-                    scale: scale,
-                    alignment: Alignment.centerLeft,
-                    child: _buildCard(
-                      index,
-                      theme,
-                      widget.onTap,
-                      widget.showRemoveButton ?? false,
-                      widget.onRemoveTap ?? () {},
-                    ),
-                  ),
+        return SizedBox(
+          height: 340.h,
+          child: ClipRRect(
+            child: PageView.builder(
+              controller: _pageController,
+              itemCount: provider.avatars.length,
+              padEnds: false,
+              physics: const BouncingScrollPhysics(),
+              itemBuilder: (context, index) {
+                final avatar = provider.avatars[index];
+                return AnimatedBuilder(
+                  animation: _pageController,
+                  builder: (context, child) {
+                    double page = 0;
+                    if (_pageController.hasClients &&
+                        _pageController.page != null) {
+                      page = _pageController.page!;
+                    }
+
+                    double distance = (page - index).abs().clamp(0.0, 1.0);
+
+                    double scale = lerpDouble(1.0, 0.85, distance)!;
+
+                    double hPadding = lerpDouble(
+                      AppConstants.paddingOnly,
+                      0.w,
+                      distance,
+                    )!;
+
+                    return Padding(
+                      padding: EdgeInsets.symmetric(horizontal: hPadding),
+                      child: Transform.scale(
+                        scale: scale,
+                        alignment: Alignment.centerLeft,
+                        child: _buildCard(
+                          avatar,
+                          theme,
+                          widget.onTap,
+                          widget.showRemoveButton ?? false,
+                          widget.onRemoveTap ?? () {},
+                        ),
+                      ),
+                    );
+                  },
                 );
               },
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildShimmerCards(ThemeData theme) {
+    return SizedBox(
+      height: 340.h,
+      child: Shimmer.fromColors(
+        baseColor: context.appColors.lightGrey,
+        highlightColor: context.appColors.bubbleGray,
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          padding: EdgeInsets.symmetric(horizontal: 16.w),
+          itemCount: 3,
+          itemBuilder: (context, index) {
+            return Container(
+              width: 0.6.sw,
+              margin: EdgeInsets.symmetric(horizontal: 8.w, vertical: 10.h),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+                borderRadius: BorderRadius.circular(AppConstants.largeRadius),
+              ),
             );
           },
         ),
@@ -88,12 +155,16 @@ class _AvatarCardsState extends State<AvatarCards> {
   }
 
   Widget _buildCard(
-    int index,
+    AvatarModel avatar,
     ThemeData theme,
     VoidCallback onTap,
     bool showRemoveButton,
     VoidCallback onRemoveTap,
   ) {
+    final traitsText = avatar.traits.isNotEmpty
+        ? avatar.traits.take(2).join(', ')
+        : avatar.gender;
+
     return Column(
       children: [
         Expanded(
@@ -120,7 +191,15 @@ class _AvatarCardsState extends State<AvatarCards> {
                       Spacing.y(2),
                       Expanded(
                         child: Center(
-                          child: Image.asset(AppImagesPng.dummyImage),
+                          child: avatar.avatarUrl.isNotEmpty
+                              ? CustomCachedNetworkImage(
+                                  imageUrl: avatar.avatarUrl,
+                                  height: 180.h,
+                                  width: 0.5.sw,
+                                  borderRadius: AppConstants.smallRadius,
+                                  cover: BoxFit.cover,
+                                )
+                              : Image.asset(AppImagesPng.dummyImage),
                         ),
                       ),
                       Spacing.y(1),
@@ -129,14 +208,14 @@ class _AvatarCardsState extends State<AvatarCards> {
                         child: Column(
                           children: [
                             Text(
-                              "Lilian",
+                              avatar.name,
                               style: theme.textTheme.headlineSmall?.copyWith(
                                 fontSize: 18.sp,
                               ),
                             ),
                             Spacing.y(.5),
                             Text(
-                              "Linspector",
+                              traitsText,
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: Theme.of(
                                   context,

@@ -10,9 +10,11 @@ import 'package:avatar_flow/core/router/routes.dart';
 import 'package:avatar_flow/core/services/storage_service.dart';
 import 'package:avatar_flow/core/utils/toast_utils.dart';
 import 'package:avatar_flow/features/avatar/models/avatar_model.dart';
+import 'package:avatar_flow/features/avatar/providers/avatars_provider.dart';
 import 'package:avatar_flow/features/avatar/repo/avatar_repo.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:record/record.dart';
@@ -466,6 +468,15 @@ class CreateAvatarProvider extends ChangeNotifier {
       );
       ToastUtils.success('Avatar "$avatarName" created successfully!');
       reset();
+
+      // Refresh avatars list
+      try {
+        final ctx = NavigationService.context;
+        if (ctx != null) {
+          ctx.read<AvatarsProvider>().fetchAvatars();
+        }
+      } catch (_) {}
+
       NavigationService.goNamed(AppRoutes.bottomNavbar);
     } catch (e) {
       DebugPoint.error('Failed to create avatar: $e');
