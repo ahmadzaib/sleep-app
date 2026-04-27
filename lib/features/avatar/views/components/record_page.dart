@@ -2,7 +2,7 @@ import 'package:avatar_flow/core/constants/app_constants.dart';
 import 'package:avatar_flow/core/constants/app_icons.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
-import 'package:avatar_flow/features/avatar/providers/clone_voice_provider.dart';
+import 'package:avatar_flow/features/avatar/providers/create_avatar_provider.dart';
 import 'package:avatar_flow/widgets/circled_icon_widget.dart';
 import 'package:avatar_flow/widgets/custom_button.dart';
 import 'package:avatar_flow/widgets/custom_svg.dart';
@@ -33,7 +33,7 @@ class _RecordVoicePageState extends State<RecordVoicePage> {
     super.initState();
     _voiceNameFocusNode.addListener(() {
       if (!_voiceNameFocusNode.hasFocus && _isEditingVoiceName && mounted) {
-        final provider = context.read<CloneVoiceProvider>();
+        final provider = context.read<CreateAvatarProvider>();
         _finishVoiceNameEditing(provider);
       }
     });
@@ -101,7 +101,7 @@ class _RecordVoicePageState extends State<RecordVoicePage> {
         bottom: 10.h,
         top: 10.h,
       ),
-      child: Consumer<CloneVoiceProvider>(
+      child: Consumer<CreateAvatarProvider>(
         builder: (context, provider, _) {
           final isRecording = provider.isRecording;
           final hasRecording = provider.audioPath != null;
@@ -261,11 +261,11 @@ class _RecordVoicePageState extends State<RecordVoicePage> {
                 isDisabled: !hasRecording || isRecording,
                 onPressed: !hasRecording || isRecording
                     ? null
-                    : () => provider.nextStep(),
+                    : () => provider.nextVoiceStep(),
               ),
               Spacing.y(1.2),
               TextButton(
-                onPressed: isRecording ? null : () => provider.nextStep(),
+                onPressed: isRecording ? null : () => provider.nextVoiceStep(),
                 child: Text(
                   "Skip and create",
                   style: textTheme.bodyMedium?.copyWith(
@@ -280,7 +280,7 @@ class _RecordVoicePageState extends State<RecordVoicePage> {
     );
   }
 
-  void _startVoiceNameEditing(CloneVoiceProvider provider) {
+  void _startVoiceNameEditing(CreateAvatarProvider provider) {
     _voiceNameController
       ..text = provider.voiceName
       ..selection = TextSelection.collapsed(offset: provider.voiceName.length);
@@ -296,7 +296,7 @@ class _RecordVoicePageState extends State<RecordVoicePage> {
     });
   }
 
-  void _finishVoiceNameEditing(CloneVoiceProvider provider) {
+  void _finishVoiceNameEditing(CreateAvatarProvider provider) {
     provider.updateVoiceName(_voiceNameController.text);
 
     if (mounted) {

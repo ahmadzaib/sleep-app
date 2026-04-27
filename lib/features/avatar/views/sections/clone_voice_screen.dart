@@ -1,6 +1,6 @@
 import 'package:avatar_flow/core/router/navigation_service.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
-import 'package:avatar_flow/features/avatar/providers/clone_voice_provider.dart';
+import 'package:avatar_flow/features/avatar/providers/create_avatar_provider.dart';
 import 'package:avatar_flow/features/avatar/views/sections/agreement_page.dart';
 import 'package:avatar_flow/features/avatar/views/sections/characteristics_page.dart';
 import 'package:avatar_flow/features/avatar/views/components/step_indicator.dart';
@@ -24,7 +24,7 @@ class _CloneVoiceView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<CloneVoiceProvider>();
+    final provider = context.watch<CreateAvatarProvider>();
 
     return BgWidget(
       child: Scaffold(
@@ -32,8 +32,8 @@ class _CloneVoiceView extends StatelessWidget {
         appBar: CustomAppBar(
           title: "Clone Voice",
           onBackBtnPress: () {
-            if (provider.currentStep > 0) {
-              provider.previousStep();
+            if (provider.currentVoiceStep > 0) {
+              provider.previousVoiceStep();
               return;
             }
             NavigationService.pop();
@@ -43,11 +43,11 @@ class _CloneVoiceView extends StatelessWidget {
         body: SafeArea(
           child: Column(
             children: [
-              StepIndicator(currentStep: provider.currentStep),
+              StepIndicator(currentStep: provider.currentVoiceStep),
               Spacing.y(1.5),
               Expanded(
                 child: PageView(
-                  controller: provider.pageController,
+                  controller: provider.voicePageController,
                   physics: const NeverScrollableScrollPhysics(),
                   children: const [
                     AgreementPage(),

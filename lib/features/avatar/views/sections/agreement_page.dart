@@ -2,7 +2,7 @@ import 'package:avatar_flow/core/constants/app_constants.dart';
 import 'package:avatar_flow/core/constants/app_icons.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
-import 'package:avatar_flow/features/avatar/providers/clone_voice_provider.dart';
+import 'package:avatar_flow/features/avatar/providers/create_avatar_provider.dart';
 import 'package:avatar_flow/features/avatar/views/components/sample_voices_bottom_sheet.dart';
 import 'package:avatar_flow/widgets/circled_icon_widget.dart';
 import 'package:avatar_flow/widgets/custom_button.dart';
@@ -78,7 +78,7 @@ class AgreementPage extends StatelessWidget {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Consumer<CloneVoiceProvider>(
+                    Consumer<CreateAvatarProvider>(
                       builder: (context, provider, child) {
                         return Checkbox(
                           materialTapTargetSize:
@@ -105,12 +105,12 @@ class AgreementPage extends StatelessWidget {
                 ),
                 Spacing.y(4),
                 //
-                Consumer<CloneVoiceProvider>(
+                Consumer<CreateAvatarProvider>(
                   builder: (context, value, child) => CustomButton(
                     isDisabled: !value.isAgreed,
                     text: "Next",
                     onPressed: () {
-                      value.nextStep();
+                      value.nextVoiceStep();
                     },
                   ),
                 ),
@@ -123,13 +123,13 @@ class AgreementPage extends StatelessWidget {
             buttonColor: context.appColors.lightGrey,
             text: "view sample voices",
             onPressed: () {
-              // context.read<CloneVoiceProvider>().nextStep();
               SampleVoicesBottomSheet.show(context);
             },
           ),
           Spacing.y(1.5),
           TextButton(
-            onPressed: () => context.read<CloneVoiceProvider>().nextStep(),
+            onPressed: () =>
+                context.read<CreateAvatarProvider>().nextVoiceStep(),
             child: Text(
               "Skip and create",
               style: textTheme.bodyMedium!.copyWith(

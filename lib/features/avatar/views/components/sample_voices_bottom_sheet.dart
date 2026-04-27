@@ -3,7 +3,6 @@ import 'package:avatar_flow/core/constants/app_icons.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
 import 'package:avatar_flow/features/avatar/providers/create_avatar_provider.dart';
-import 'package:avatar_flow/features/avatar/providers/clone_voice_provider.dart';
 import 'package:avatar_flow/features/avatar/providers/sample_voices_provider.dart';
 import 'package:avatar_flow/widgets/custom_button.dart';
 import 'package:avatar_flow/widgets/custom_svg.dart';
@@ -59,7 +58,7 @@ class SampleVoicesBottomSheet extends StatelessWidget {
               text: "Clone your voice",
               onPressed: () {
                 Navigator.of(context).pop();
-                context.read<CloneVoiceProvider>().nextStep();
+                context.read<CreateAvatarProvider>().nextVoiceStep();
               },
             ),
             Spacing.y(1),

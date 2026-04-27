@@ -397,8 +397,6 @@ class AuthProvider extends ChangeNotifier with Validators {
   }
 
   Future<void> updateAvatar() async {
-    isProfileUploading = true;
-    notifyListeners();
     try {
       final user = AuthService.currentUser;
       if (user == null) {
@@ -411,7 +409,7 @@ class AuthProvider extends ChangeNotifier with Validators {
 
       if (file == null) return;
 
-      _isSubmitting = true;
+      isProfileUploading = true;
       notifyListeners();
 
       // Upload to Supabase Storage
@@ -437,10 +435,7 @@ class AuthProvider extends ChangeNotifier with Validators {
     } catch (e) {
       ToastUtils.error('Failed to update avatar: $e');
       DebugPoint.error('Failed to update avatar: $e');
-    } finally {
-      _isSubmitting = false;
-      notifyListeners();
-    }
+    } finally {}
     isProfileUploading = false;
     notifyListeners();
   }

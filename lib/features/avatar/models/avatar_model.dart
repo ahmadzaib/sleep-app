@@ -6,7 +6,8 @@ class AvatarModel {
   final List<String> traits;
   final String avatarUrl;
   final String? voiceUrl;
-  final String userId;
+  final String? userId;
+  final bool voiceTerm;
 
   AvatarModel({
     this.id,
@@ -15,8 +16,9 @@ class AvatarModel {
     required this.gender,
     required this.traits,
     required this.avatarUrl,
+    required this.voiceTerm,
     this.voiceUrl,
-    required this.userId,
+    this.userId,
   });
 
   /// FROM JSON
@@ -28,6 +30,7 @@ class AvatarModel {
           : null,
       name: json['name'] ?? '',
       gender: json['gender'] ?? '',
+      voiceTerm: json['voice_term'] ?? false,
       traits: List<String>.from(json['traits'] ?? []),
       avatarUrl: json['avatar_url'] ?? '',
       voiceUrl: json['voice_url'],
@@ -37,16 +40,17 @@ class AvatarModel {
 
   /// TO JSON (for Supabase insert/update)
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'created_at': createdAt?.toIso8601String(),
+    final data = <String, dynamic>{
       'name': name,
       'gender': gender,
       'traits': traits,
       'avatar_url': avatarUrl,
       'voice_url': voiceUrl,
       'user_id': userId,
+      'voice_term': voiceTerm,
     };
+    if (id != null) data['id'] = id;
+    return data;
   }
 
   /// COPY WITH
@@ -59,6 +63,7 @@ class AvatarModel {
     String? avatarUrl,
     String? voiceUrl,
     String? userId,
+    bool? voiceTerm,
   }) {
     return AvatarModel(
       id: id ?? this.id,
@@ -69,6 +74,7 @@ class AvatarModel {
       avatarUrl: avatarUrl ?? this.avatarUrl,
       voiceUrl: voiceUrl ?? this.voiceUrl,
       userId: userId ?? this.userId,
+      voiceTerm: voiceTerm ?? this.voiceTerm,
     );
   }
 }

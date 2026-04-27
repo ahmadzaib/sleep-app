@@ -1,7 +1,6 @@
 import 'package:avatar_flow/core/constants/app_constants.dart';
 import 'package:avatar_flow/core/constants/app_icons.dart';
 import 'package:avatar_flow/core/constants/app_images.dart';
-import 'package:avatar_flow/core/router/navigation_service.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
 import 'package:avatar_flow/features/avatar/providers/create_avatar_provider.dart';
@@ -276,7 +275,7 @@ class _DetailsCard extends StatelessWidget {
         CustomButton(
           text: "Save",
           buttonColor: context.appColors.secondaryBlack,
-          onPressed: () => NavigationService.pop(),
+          onPressed: provider.isCreating ? null : () => provider.createAvatar(),
         ),
         Spacing.y(1),
         Center(

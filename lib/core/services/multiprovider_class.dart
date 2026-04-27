@@ -1,7 +1,6 @@
 import 'package:avatar_flow/core/controllers/splash_controller.dart';
 import 'package:avatar_flow/core/services/preferences.dart';
 import 'package:avatar_flow/core/theme/theme_controller.dart';
-import 'package:avatar_flow/features/avatar/providers/clone_voice_provider.dart';
 import 'package:avatar_flow/features/avatar/providers/create_avatar_provider.dart';
 import 'package:avatar_flow/features/auth/providers/auth_provider.dart';
 import 'package:avatar_flow/features/avatar/providers/all_stories_provider.dart';
@@ -21,7 +20,6 @@ class MultiProviderClass {
     ChangeNotifierProvider(create: (_) => SplashController()),
     ChangeNotifierProvider(create: (_) => BottomNavProvider()),
     ChangeNotifierProvider(create: (_) => CreateAvatarProvider()),
-    ChangeNotifierProvider(create: (_) => CloneVoiceProvider()),
     ChangeNotifierProvider(create: (_) => AuthProvider()),
     ChangeNotifierProvider(create: (_) => StoryProvider()),
     ChangeNotifierProvider(create: (_) => PromptAiProvider()),

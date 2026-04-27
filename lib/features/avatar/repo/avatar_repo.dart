@@ -1,4 +1,5 @@
 import 'package:avatar_flow/core/constants/db_constants.dart';
+import 'package:avatar_flow/core/debug/debug_point.dart';
 import 'package:avatar_flow/features/avatar/models/avatar_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -10,6 +11,14 @@ class AvatarRepo {
   /// CREATE
   Future<AvatarModel> createAvatar(AvatarModel avatar) async {
     final userId = _client.auth.currentUser?.id;
+    final session = _client.auth.currentSession;
+
+    if (session == null) {
+      DebugPoint.log("No session → ANON user");
+    } else {
+      DebugPoint.log("Authenticated user");
+      DebugPoint.log("User ID: ${session.user.id}");
+    }
 
     if (userId == null) {
       throw Exception('User not authenticated');
