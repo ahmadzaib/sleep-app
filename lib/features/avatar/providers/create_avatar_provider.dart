@@ -118,8 +118,27 @@ class CreateAvatarProvider extends ChangeNotifier {
   }
 
   // -------------------------
-  // Trait suggestions
+  // Edit mode
   // -------------------------
+  int? _editingAvatarId;
+  int? get editingAvatarId => _editingAvatarId;
+  bool get isEditMode => _editingAvatarId != null;
+
+  /// Load an existing avatar's data into all fields for editing
+  void loadAvatarForEdit(AvatarModel avatar) {
+    _editingAvatarId = avatar.id;
+    avatarName = avatar.name;
+    selectedGender = avatar.gender;
+    traits = List<String>.from(avatar.traits);
+    _avatarImageUrl = avatar.avatarUrl;
+    _avatarImagePath = null; // no local path for existing avatars
+    if (avatar.voiceId != null) {
+      _selectedSampleVoiceId = avatar.voiceId;
+    }
+    DebugPoint.log('Loaded avatar for edit: ${avatar.name} (id: ${avatar.id})');
+    notifyListeners();
+  }
+
   static const List<String> traitSuggestions = [
     'Adventurous',
     'Brave',
@@ -383,6 +402,77 @@ class CreateAvatarProvider extends ChangeNotifier {
   }
 
   // -------------------------
+  // Update avatar
+  // -------------------------
+  Future<void> updateAvatar() async {
+    if (_editingAvatarId == null) {
+      ToastUtils.error('No avatar selected for update');
+      return;
+    }
+
+    if (avatarName.trim().isEmpty) {
+      ToastUtils.error('Please enter a name for your avatar');
+      return;
+    }
+
+    _isCreating = true;
+    notifyListeners();
+
+    try {
+      // If a new local image was picked, upload it first
+      String? storageUrl = _avatarImageUrl;
+      if (_avatarImagePath != null) {
+        final file = File(_avatarImagePath!);
+        if (await file.exists()) {
+          ToastUtils.show('Uploading image...');
+          storageUrl = await SupabaseStorageService.uploadImage(
+            file: file,
+            bucketName: DBConstansts.avatars,
+          );
+          if (storageUrl != null) {
+            _avatarImageUrl = storageUrl;
+          } else {
+            ToastUtils.error('Failed to upload image');
+            return;
+          }
+        }
+      }
+
+      final updated = AvatarModel(
+        id: _editingAvatarId,
+        name: avatarName,
+        gender: selectedGender,
+        traits: traits,
+        avatarUrl: storageUrl ?? '',
+        voiceId: _selectedSampleVoiceId,
+        voiceTerm: isAgreed,
+      );
+
+      await _avatarRepo.updateAvatar(updated);
+
+      DebugPoint.log('Avatar updated: $avatarName (id: $_editingAvatarId)');
+      ToastUtils.success('Avatar "$avatarName" updated!');
+
+      // Refresh list
+      try {
+        final ctx = NavigationService.context;
+        if (ctx != null) {
+          ctx.read<AvatarsProvider>().fetchAvatars();
+        }
+      } catch (_) {}
+
+      _editingAvatarId = null;
+      NavigationService.pop();
+    } catch (e) {
+      DebugPoint.error('Failed to update avatar: $e');
+      ToastUtils.error('Failed to update avatar: $e');
+    } finally {
+      _isCreating = false;
+      notifyListeners();
+    }
+  }
+
+  // -------------------------
   // Create avatar with voice
   // -------------------------
   Future<void> createAvatar() async {
@@ -566,9 +656,7 @@ class CreateAvatarProvider extends ChangeNotifier {
         await outputFile.writeAsBytes(response.data);
 
         final fileSize = await outputFile.length();
-        DebugPoint.log(
-          'BG removed image saved: $outputPath ($fileSize bytes)',
-        );
+        DebugPoint.log('BG removed image saved: $outputPath ($fileSize bytes)');
         return outputPath;
       } else {
         DebugPoint.error('remove.bg failed: ${response.statusCode}');
@@ -591,6 +679,7 @@ class CreateAvatarProvider extends ChangeNotifier {
     prompt = '';
     _avatarImagePath = null;
     _avatarImageUrl = null;
+    _editingAvatarId = null;
 
     // Voice clone step
     currentVoiceStep = 0;

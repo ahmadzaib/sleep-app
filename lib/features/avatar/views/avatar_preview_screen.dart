@@ -310,7 +310,11 @@ class _DetailsCard extends StatelessWidget {
         CustomButton(
           text: "Save",
           buttonColor: context.appColors.secondaryBlack,
-          onPressed: provider.isCreating ? null : () => provider.createAvatar(),
+          onPressed: provider.isCreating
+              ? null
+              : () => provider.isEditMode
+                    ? provider.updateAvatar()
+                    : provider.createAvatar(),
         ),
         Spacing.y(1),
         Center(

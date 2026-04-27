@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:avatar_flow/core/constants/app_constants.dart';
 import 'package:avatar_flow/core/constants/app_icons.dart';
 import 'package:avatar_flow/core/constants/app_images.dart';
@@ -14,6 +16,7 @@ import 'package:avatar_flow/widgets/circled_icon_widget.dart';
 import 'package:avatar_flow/widgets/confirmation_dialog.dart';
 import 'package:avatar_flow/widgets/custom_app_bar.dart';
 import 'package:avatar_flow/widgets/custom_button.dart';
+import 'package:avatar_flow/widgets/custom_cache_netword_imge.dart';
 import 'package:avatar_flow/widgets/custom_svg.dart';
 import 'package:avatar_flow/widgets/custom_textfield.dart';
 import 'package:flutter/material.dart';
@@ -157,9 +160,10 @@ class CreateAvatarScreen extends StatelessWidget {
                       Spacing.y(4),
                       CustomButton(
                         text: "Save",
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
+                        isLoading: provider.isCreating,
+                        onPressed: provider.isCreating
+                            ? null
+                            : () => provider.updateAvatar(),
                       ),
                       Spacing.y(1),
                       Center(
@@ -188,10 +192,10 @@ class CreateAvatarScreen extends StatelessWidget {
   }
 
   Widget _buildPreviewCard(BuildContext context, TextTheme textTheme) {
+    final provider = context.read<CreateAvatarProvider>();
+
     return GestureDetector(
-      onTap: () {
-        NavigationService.pushNamed(AppRoutes.promptAvatar);
-      },
+      onTap: () => NavigationService.pushNamed(AppRoutes.promptAvatar),
       child: Container(
         height: isEdit ? 0.3.sh : .35.sh,
         width: double.infinity,
@@ -203,6 +207,7 @@ class CreateAvatarScreen extends StatelessWidget {
         child: isEdit
             ? Stack(
                 children: [
+                  // Background shape
                   Align(
                     alignment: Alignment.bottomCenter,
                     child: Padding(
@@ -217,10 +222,23 @@ class CreateAvatarScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                  Center(
-                    child: Image.asset(
-                      AppImagesPng.dummyImage,
-                      height: 0.22.sh,
+                  // Avatar image — local file > network URL > placeholder
+                  Center(child: _buildAvatarImage(provider, context)),
+                  // Edit icon overlay
+                  Positioned(
+                    bottom: 12.h,
+                    right: 12.w,
+                    child: Container(
+                      padding: EdgeInsets.all(6.r),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primary,
+                        shape: BoxShape.circle,
+                      ),
+                      child: CustomSvg(
+                        path: AppIconsSvg.edit2,
+                        size: 14,
+                        color: Theme.of(context).colorScheme.onPrimary,
+                      ),
                     ),
                   ),
                 ],
@@ -244,6 +262,40 @@ class CreateAvatarScreen extends StatelessWidget {
               ),
       ),
     );
+  }
+
+  Widget _buildAvatarImage(
+    CreateAvatarProvider provider,
+    BuildContext context,
+  ) {
+    // 1. New image picked locally
+    if (provider.avatarImagePath != null) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(12.r),
+        child: Image.file(
+          File(provider.avatarImagePath!),
+          height: 0.22.sh,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) =>
+              Image.asset(AppImagesPng.dummyImage, height: 0.22.sh),
+        ),
+      );
+    }
+
+    // 2. Existing avatar URL from Supabase
+    if (provider.avatarImageUrl != null &&
+        provider.avatarImageUrl!.isNotEmpty) {
+      return CustomCachedNetworkImage(
+        imageUrl: provider.avatarImageUrl!,
+        height: 0.22.sh,
+        width: 0.22.sh,
+        borderRadius: 12.r,
+        cover: BoxFit.cover,
+      );
+    }
+
+    // 3. Fallback placeholder
+    return Image.asset(AppImagesPng.dummyImage, height: 0.22.sh);
   }
 
   Widget _buildNameField(BuildContext context, CreateAvatarProvider provider) {

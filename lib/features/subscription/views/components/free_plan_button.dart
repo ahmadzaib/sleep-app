@@ -1,3 +1,4 @@
+import 'package:avatar_flow/core/router/navigation_service.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -11,14 +12,12 @@ class ContinueFreePlanButton extends StatelessWidget {
     final colors = context.appColors;
 
     return GestureDetector(
-      onTap: () => Navigator.of(context).pop(),
+      onTap: () => NavigationService.pop(),
       child: Column(
         children: [
           Text(
             'Continue with the free plan',
-            style: textTheme.bodySmall?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
+            style: textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
           ),
           SizedBox(height: 4.h),
           Text(

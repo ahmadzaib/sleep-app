@@ -38,7 +38,7 @@ class ProfileScreen extends StatelessWidget {
           ),
           centerTitle: true,
           leading: IconButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => NavigationService.pop(),
             icon: CustomSvg(
               path: AppIconsSvg.arrowBack,
               size: 20,

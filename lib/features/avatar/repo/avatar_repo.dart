@@ -67,10 +67,26 @@ class AvatarRepo {
       throw Exception('Avatar ID is required for update');
     }
 
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) {
+      throw Exception('User not authenticated');
+    }
+
+    // Only update mutable fields — never overwrite user_id with null
+    final data = {
+      'name': avatar.name,
+      'gender': avatar.gender,
+      'traits': avatar.traits,
+      'avatar_url': avatar.avatarUrl,
+      'voice_id': avatar.voiceId,
+      'voice_term': avatar.voiceTerm,
+    };
+
     final response = await _client
         .from(_table)
-        .update(avatar.toJson())
+        .update(data)
         .eq('id', avatar.id!)
+        .eq('user_id', userId) // safety: only update own avatars
         .select()
         .single();
 

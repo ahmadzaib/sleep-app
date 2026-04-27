@@ -5,6 +5,7 @@ import 'package:avatar_flow/core/router/navigation_service.dart';
 import 'package:avatar_flow/core/router/routes.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
+import 'package:avatar_flow/features/avatar/providers/create_avatar_provider.dart';
 import 'package:avatar_flow/features/avatar/providers/avatars_provider.dart';
 import 'package:avatar_flow/features/avatar/views/components/achievement_tile.dart';
 import 'package:avatar_flow/features/avatar/views/avatar_section.dart';
@@ -175,6 +176,15 @@ class _AvatarDetailScreenState extends State<AvatarDetailScreen> {
           onSelected: (value) {
             switch (value) {
               case 'edit':
+                final avatar = context
+                    .read<AvatarsProvider>()
+                    .avatars
+                    .firstWhere(
+                      (a) => a.id == widget.avatarId,
+                      orElse: () =>
+                          context.read<AvatarsProvider>().avatars.first,
+                    );
+                context.read<CreateAvatarProvider>().loadAvatarForEdit(avatar);
                 NavigationService.pushNamed(
                   AppRoutes.createAvatar,
                   extra: true,

@@ -98,7 +98,13 @@ class SubscriptionScreen extends StatelessWidget {
               Spacing.y(1),
 
               // ── Get full access button ─────────────────────────────
-              CustomButton(text: "Get Full Access Now", onPressed: () {}),
+              CustomButton(
+                text: "Get Full Access Now",
+                isLoading: subscriptionProvider.isLoading,
+                onPressed: subscriptionProvider.isLoading
+                    ? null
+                    : () => subscriptionProvider.subscribe(),
+              ),
               Spacing.y(1),
 
               // ── Free plan ─────────────────────────────────────────

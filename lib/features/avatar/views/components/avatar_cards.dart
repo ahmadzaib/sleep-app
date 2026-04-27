@@ -28,6 +28,21 @@ class AvatarCards extends StatefulWidget {
 
 class _AvatarCardsState extends State<AvatarCards> {
   late PageController _pageController;
+  // Colors computed once per avatar list — keyed by avatar id
+  final Map<int, Color> _cardColors = {};
+
+  Color _colorForAvatar(int? id) {
+    final key = id ?? 0;
+    return _cardColors.putIfAbsent(key, () {
+      final random = Random();
+      return Color.fromARGB(
+        255,
+        100 + random.nextInt(156),
+        100 + random.nextInt(156),
+        100 + random.nextInt(156),
+      );
+    });
+  }
 
   @override
   void initState() {
@@ -118,6 +133,7 @@ class _AvatarCardsState extends State<AvatarCards> {
                           },
                           widget.showRemoveButton ?? false,
                           widget.onRemoveTap ?? () {},
+                          _colorForAvatar(avatar.id),
                         ),
                       ),
                     );
@@ -162,6 +178,7 @@ class _AvatarCardsState extends State<AvatarCards> {
     VoidCallback onTap,
     bool showRemoveButton,
     VoidCallback onRemoveTap,
+    Color cardColor,
   ) {
     final traitsText = avatar.traits.isNotEmpty
         ? avatar.traits.take(2).join(', ')
@@ -187,7 +204,7 @@ class _AvatarCardsState extends State<AvatarCards> {
                       padding: AppConstants.defaultAllPadding,
                       child: Image.asset(
                         AppImagesPng.cardVector,
-                        color: getNiceRandomColor(),
+                        color: cardColor,
                       ),
                     ),
                   ),
@@ -262,15 +279,5 @@ class _AvatarCardsState extends State<AvatarCards> {
   void dispose() {
     _pageController.dispose();
     super.dispose();
-  }
-
-  Color getNiceRandomColor() {
-    final random = Random();
-    return Color.fromARGB(
-      255,
-      100 + random.nextInt(156), // avoid very dark
-      100 + random.nextInt(156),
-      100 + random.nextInt(156),
-    );
   }
 }
