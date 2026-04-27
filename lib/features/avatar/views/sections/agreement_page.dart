@@ -12,7 +12,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
 class AgreementPage extends StatelessWidget {
-  const AgreementPage();
+  const AgreementPage({super.key});
 
   @override
   Widget build(BuildContext context) {

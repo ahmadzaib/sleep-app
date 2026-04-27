@@ -72,7 +72,7 @@ class AvatarModel {
       gender: gender ?? this.gender,
       traits: traits ?? this.traits,
       avatarUrl: avatarUrl ?? this.avatarUrl,
-      voiceId: voiceUrl ?? this.voiceId,
+      voiceId: voiceUrl ?? voiceId,
       userId: userId ?? this.userId,
       voiceTerm: voiceTerm ?? this.voiceTerm,
     );

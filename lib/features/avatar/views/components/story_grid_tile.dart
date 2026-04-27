@@ -1,11 +1,9 @@
 import 'package:avatar_flow/core/constants/app_constants.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
 import 'package:avatar_flow/features/avatar/models/story_model.dart';
-import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:avatar_flow/widgets/custom_cache_netword_imge.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 
 class StoryGridTile extends StatelessWidget {
   final Story story;

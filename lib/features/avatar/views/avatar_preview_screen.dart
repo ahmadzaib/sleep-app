@@ -8,7 +8,6 @@ import 'package:avatar_flow/core/utils/spacing.dart';
 import 'package:avatar_flow/features/avatar/providers/create_avatar_provider.dart';
 import 'package:avatar_flow/features/avatar/views/components/sample_voices_bottom_sheet.dart';
 import 'package:avatar_flow/features/avatar/views/components/trait_selection_bottom_sheet.dart';
-import 'package:avatar_flow/features/avatar/views/components/voice_note_bs_tile.dart';
 import 'package:avatar_flow/widgets/bg_widget.dart';
 import 'package:avatar_flow/widgets/circled_icon_widget.dart';
 import 'package:avatar_flow/widgets/confirmation_dialog.dart';

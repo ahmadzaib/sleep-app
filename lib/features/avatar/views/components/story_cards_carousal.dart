@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class StoryCards extends StatelessWidget {
-  StoryCards({super.key});
+  const StoryCards({super.key});
 
   @override
   Widget build(BuildContext context) {

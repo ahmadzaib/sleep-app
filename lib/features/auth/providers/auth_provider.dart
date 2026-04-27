@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:avatar_flow/core/constants/db_constants.dart';
-import 'package:avatar_flow/core/constants/mock_data.dart';
 import 'package:avatar_flow/core/router/navigation_service.dart';
 import 'package:avatar_flow/core/router/routes.dart';
 import 'package:avatar_flow/core/services/storage_service.dart';

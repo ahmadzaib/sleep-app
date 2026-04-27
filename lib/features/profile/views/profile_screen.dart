@@ -61,7 +61,7 @@ class ProfileScreen extends StatelessWidget {
           builder: (context, authProvider, child) {
             final userInfo = authProvider.userInfo;
             final userName =
-                userInfo?.name ?? userInfo?.email?.split('@').first ?? 'User';
+                userInfo?.name ?? userInfo?.email.split('@').first ?? 'User';
             final userEmail = userInfo?.email ?? '';
             final avatarUrl = userInfo?.avatarUrl ?? Keys.placeHolderImage;
 

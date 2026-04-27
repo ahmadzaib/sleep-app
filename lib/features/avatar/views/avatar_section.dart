@@ -19,7 +19,7 @@ class AvatarSection extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     return Column(
       children: [
-        Container(
+        SizedBox(
           height: 300.h,
 
           child: Stack(

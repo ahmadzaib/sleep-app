@@ -1,11 +1,8 @@
 import 'package:avatar_flow/core/constants/app_constants.dart';
 import 'package:avatar_flow/core/constants/app_images.dart';
-import 'package:avatar_flow/core/router/navigation_service.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
 import 'package:avatar_flow/widgets/bg_widget.dart';
-import 'package:avatar_flow/widgets/custom_divider.dart';
-import 'package:avatar_flow/widgets/custom_icon_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 

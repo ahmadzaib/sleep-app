@@ -1,5 +1,3 @@
-import 'package:avatar_flow/core/dio/dio_client.dart';
-import 'package:avatar_flow/core/services/api_service.dart';
 
 import 'package:get_it/get_it.dart';
 

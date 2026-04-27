@@ -7,7 +7,6 @@ import 'package:avatar_flow/features/avatar/views/components/avatar_cards.dart';
 import 'package:avatar_flow/features/avatar/views/components/avtar_milestones_tile.dart';
 import 'package:avatar_flow/widgets/custom_button.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 class MyAvatarsView extends StatelessWidget {
   const MyAvatarsView({super.key});

@@ -567,7 +567,7 @@ class CreateAvatarProvider extends ChangeNotifier {
 
         final fileSize = await outputFile.length();
         DebugPoint.log(
-          'BG removed image saved: $outputPath (${fileSize} bytes)',
+          'BG removed image saved: $outputPath ($fileSize bytes)',
         );
         return outputPath;
       } else {

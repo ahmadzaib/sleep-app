@@ -6,7 +6,7 @@ class CustomAnimatedCounter extends StatelessWidget {
   final Duration duration;
   final Curve curve;
 
-  CustomAnimatedCounter({
+  const CustomAnimatedCounter({
     super.key,
     required this.value,
     this.style,
