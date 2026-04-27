@@ -17,12 +17,7 @@ class MyAvatarsView extends StatelessWidget {
     return Column(
       children: [
         Spacing.y(2),
-        AvatarCards(
-          onTap: () {
-            HapticFeedback.lightImpact();
-            NavigationService.pushNamed(AppRoutes.avatarDetail);
-          },
-        ),
+        AvatarCards(),
         Spacing.y(2),
         const AvtarMilestonesTile(
           title: 'Create 10 avatars',

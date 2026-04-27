@@ -2,6 +2,8 @@ import 'dart:ui';
 import 'package:avatar_flow/core/constants/app_constants.dart';
 import 'package:avatar_flow/core/constants/app_icons.dart';
 import 'package:avatar_flow/core/constants/app_images.dart';
+import 'package:avatar_flow/core/router/navigation_service.dart';
+import 'package:avatar_flow/core/router/routes.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
 import 'package:avatar_flow/features/avatar/models/avatar_model.dart';
@@ -15,15 +17,9 @@ import 'package:shimmer/shimmer.dart';
 import 'package:zoom_tap_animation/zoom_tap_animation.dart';
 
 class AvatarCards extends StatefulWidget {
-  final VoidCallback onTap;
   final bool? showRemoveButton;
   final VoidCallback? onRemoveTap;
-  const AvatarCards({
-    super.key,
-    required this.onTap,
-    this.showRemoveButton,
-    this.onRemoveTap,
-  });
+  const AvatarCards({super.key, this.showRemoveButton, this.onRemoveTap});
 
   @override
   State<AvatarCards> createState() => _AvatarCardsState();
@@ -113,7 +109,12 @@ class _AvatarCardsState extends State<AvatarCards> {
                         child: _buildCard(
                           avatar,
                           theme,
-                          widget.onTap,
+                          () {
+                            NavigationService.pushNamed(
+                              AppRoutes.avatarDetail,
+                              extra: {'id': avatar.id},
+                            );
+                          },
                           widget.showRemoveButton ?? false,
                           widget.onRemoveTap ?? () {},
                         ),

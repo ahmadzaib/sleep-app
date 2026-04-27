@@ -6,15 +6,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:avatar_flow/core/router/navigation_service.dart';
 
-class ConfirmationDialog extends StatelessWidget {
+class ConfirmationDialog extends StatefulWidget {
   final String? title;
   final String? subtitle;
   final String? confirmText;
   final String? cancelText;
   final Widget? content;
-  final VoidCallback? onConfirm;
+  final Future<void> Function()? onConfirm;
   final VoidCallback? onCancel;
-  final bool? isLoading;
 
   const ConfirmationDialog({
     super.key,
@@ -25,7 +24,6 @@ class ConfirmationDialog extends StatelessWidget {
     this.content,
     this.onConfirm,
     this.onCancel,
-    this.isLoading,
   });
 
   static void show({
@@ -35,14 +33,13 @@ class ConfirmationDialog extends StatelessWidget {
     String? confirmText,
     String? cancelText,
     Widget? content,
-    VoidCallback? onConfirm,
+    Future<void> Function()? onConfirm,
     VoidCallback? onCancel,
-    bool? isLoading,
   }) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder: (context) => ConfirmationDialog(
+      builder: (_) => ConfirmationDialog(
         title: title,
         subtitle: subtitle,
         confirmText: confirmText,
@@ -50,9 +47,37 @@ class ConfirmationDialog extends StatelessWidget {
         content: content,
         onConfirm: onConfirm,
         onCancel: onCancel,
-        isLoading: isLoading,
       ),
     );
+  }
+
+  @override
+  State<ConfirmationDialog> createState() => _ConfirmationDialogState();
+}
+
+class _ConfirmationDialogState extends State<ConfirmationDialog> {
+  bool isLoading = false;
+
+  Future<void> _handleConfirm() async {
+    if (widget.onConfirm == null) {
+      NavigationService.pop();
+      return;
+    }
+
+    setState(() => isLoading = true);
+
+    try {
+      await widget.onConfirm!();
+
+      if (mounted) {
+        NavigationService.pop(); // close dialog after success
+      }
+    } catch (e) {
+      // Optional: handle error (show snackbar etc.)
+      if (mounted) {
+        setState(() => isLoading = false);
+      }
+    }
   }
 
   @override
@@ -63,7 +88,7 @@ class ConfirmationDialog extends StatelessWidget {
           BoxShadow(
             color: context.appColors.error,
             blurRadius: 0,
-            offset: Offset(0, -3),
+            offset: const Offset(0, -3),
           ),
         ],
         color: Theme.of(context).bottomSheetTheme.backgroundColor,
@@ -76,10 +101,12 @@ class ConfirmationDialog extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Spacing.y(4),
-          if (content != null) ...[content!, Spacing.y(2)],
+
+          if (widget.content != null) ...[widget.content!, Spacing.y(2)],
+
           // Title
           Text(
-            title ?? "Are you sure?",
+            widget.title ?? "Are you sure?",
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               fontSize: 20.sp,
               fontWeight: FontWeight.w600,
@@ -90,7 +117,7 @@ class ConfirmationDialog extends StatelessWidget {
 
           // Subtitle
           Text(
-            subtitle ?? 'Once submitted, this action cannot be undone.',
+            widget.subtitle ?? 'Once submitted, this action cannot be undone.',
             textAlign: TextAlign.center,
             style: Theme.of(
               context,
@@ -99,18 +126,13 @@ class ConfirmationDialog extends StatelessWidget {
 
           Spacing.y(3),
 
-          // Action Buttons
           Column(
             children: [
               // Confirm Button
               CustomButton(
-                isLoading: isLoading ?? false,
-                text: confirmText ?? 'Submit',
-                onPressed:
-                    onConfirm ??
-                    () {
-                      NavigationService.pop();
-                    },
+                isLoading: isLoading,
+                text: widget.confirmText ?? 'Submit',
+                onPressed: _handleConfirm,
               ),
 
               Spacing.y(2),
@@ -119,13 +141,14 @@ class ConfirmationDialog extends StatelessWidget {
               CustomButton(
                 isOutlineButton: true,
                 textColor: context.appColors.error,
-                text: cancelText ?? 'Go Back',
+                text: widget.cancelText ?? 'Go Back',
                 onPressed:
-                    onCancel ??
+                    widget.onCancel ??
                     () {
                       NavigationService.pop();
                     },
               ),
+
               SizedBox(height: 20.h),
             ],
           ),

@@ -78,7 +78,12 @@ class AvatarRepo {
   }
 
   /// DELETE
-  Future<void> deleteAvatar(int id) async {
-    await _client.from(_table).delete().eq('id', id);
+  Future<bool> deleteAvatar(int id) async {
+    try {
+      await _client.from(_table).delete().eq('id', id);
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 }

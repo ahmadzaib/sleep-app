@@ -411,8 +411,8 @@ class _DetailsCard extends StatelessWidget {
         color: context.appColors.error,
         icon: Icons.warning_amber_rounded,
       ),
-      onConfirm: () => Navigator.pop(context),
-      onCancel: () => Navigator.pop(context),
+      onConfirm: () async => Navigator.pop(context),
+      onCancel: () async => Navigator.pop(context),
     );
   }
 }

@@ -158,7 +158,7 @@ class ProfileScreen extends StatelessWidget {
                             context: context,
                             title: 'Sign Out',
                             subtitle: 'Are you sure you want to sign out?',
-                            onConfirm: () {
+                            onConfirm: () async {
                               context.read<AuthProvider>().signOut();
                             },
                           );

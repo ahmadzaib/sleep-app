@@ -5,6 +5,9 @@ import 'package:avatar_flow/core/router/navigation_service.dart';
 import 'package:avatar_flow/core/router/routes.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
+import 'package:avatar_flow/core/utils/toast_utils.dart';
+import 'package:avatar_flow/features/avatar/providers/avatars_provider.dart';
+import 'package:avatar_flow/features/avatar/repo/avatar_repo.dart';
 import 'package:avatar_flow/features/avatar/views/components/achievement_tile.dart';
 import 'package:avatar_flow/features/avatar/views/avatar_section.dart';
 import 'package:avatar_flow/features/avatar/views/components/detail_screen_appbar.dart';
@@ -20,10 +23,12 @@ import 'package:avatar_flow/widgets/custom_svg.dart';
 import 'package:avatar_flow/widgets/pop_menu_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
 import 'package:super_tooltip/super_tooltip.dart';
 
 class AvatarDetailScreen extends StatefulWidget {
-  const AvatarDetailScreen({super.key});
+  final int avatarId;
+  const AvatarDetailScreen({super.key, required this.avatarId});
 
   @override
   State<AvatarDetailScreen> createState() => _AvatarDetailScreenState();
@@ -198,6 +203,9 @@ class _AvatarDetailScreenState extends State<AvatarDetailScreen> {
       subtitle: "Are you sure, You want to delete this avatar?",
       confirmText: "Delete",
       cancelText: "Cancel",
+      onConfirm: () async {
+        await context.read<AvatarsProvider>().deleteAvatar(widget.avatarId);
+      },
     );
   }
 

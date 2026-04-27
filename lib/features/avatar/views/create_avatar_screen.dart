@@ -356,8 +356,8 @@ class CreateAvatarScreen extends StatelessWidget {
         color: context.appColors.error,
         icon: Icons.warning_amber_rounded,
       ),
-      onConfirm: () => Navigator.pop(context),
-      onCancel: () {
+      onConfirm: () async => Navigator.pop(context),
+      onCancel: () async {
         Navigator.pop(context);
       },
     );
