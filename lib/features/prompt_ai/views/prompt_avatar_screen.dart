@@ -1,5 +1,6 @@
 import 'package:avatar_flow/core/constants/app_constants.dart';
 import 'package:avatar_flow/core/constants/app_icons.dart';
+import 'package:avatar_flow/core/debug/debug_point.dart';
 import 'package:avatar_flow/core/dio/dio_client.dart';
 import 'package:avatar_flow/core/router/navigation_service.dart';
 import 'package:avatar_flow/core/router/routes.dart';
@@ -101,6 +102,11 @@ class _PromptAvatarScreenState extends State<PromptAvatarScreen> {
                       (!isUser &&
                           (msg.imagePath != null || msg.imageUrl != null))
                       ? () async {
+                          DebugPoint.log('Use as Avatar tapped');
+                          DebugPoint.log('Message imagePath: ${msg.imagePath}');
+                          DebugPoint.log('Message imageUrl: ${msg.imageUrl}');
+                          DebugPoint.log('Is asset image: ${msg.isAssetImage}');
+
                           // Show loading indicator
                           ToastUtils.show('Downloading image...');
 
@@ -108,10 +114,14 @@ class _PromptAvatarScreenState extends State<PromptAvatarScreen> {
 
                           // If it's a local file (from asset or picker), use it directly
                           if (msg.isAssetImage && msg.imagePath != null) {
+                            DebugPoint.log('Using local asset path');
                             localPath = msg.imagePath;
                           }
                           // If it's a URL (from AI response), download it
                           else if (msg.imageUrl != null) {
+                            DebugPoint.log(
+                              'Downloading from URL: ${msg.imageUrl}',
+                            );
                             final dioClient = DioClient();
                             localPath = await dioClient.downloadImage(
                               msg.imageUrl!,
@@ -119,19 +129,26 @@ class _PromptAvatarScreenState extends State<PromptAvatarScreen> {
                           }
                           // Fallback to imagePath if imageUrl is null
                           else if (msg.imagePath != null) {
-                            // Could be a file path from AI response
+                            DebugPoint.log('Using imagePath as fallback');
                             localPath = msg.imagePath;
                           }
 
                           if (localPath == null) {
+                            DebugPoint.error('Failed to get local image path');
                             ToastUtils.error('Failed to download image');
                             return;
                           }
+
+                          DebugPoint.log(
+                            'Local image path obtained: $localPath',
+                          );
 
                           // Set the avatar image path in provider
                           context
                               .read<CreateAvatarProvider>()
                               .setAvatarImagePath(localPath);
+
+                          DebugPoint.log('Navigating to CloneVoice screen');
 
                           // Navigate to Clone Voice screen
                           NavigationService.pushNamed(AppRoutes.cloneVoice);

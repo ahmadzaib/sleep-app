@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:avatar_flow/core/config/appconfig.dart';
 import 'package:avatar_flow/core/constants/app_images.dart';
+import 'package:avatar_flow/core/debug/debug_point.dart';
 import 'package:avatar_flow/core/dio/dio_client.dart';
 import 'package:avatar_flow/core/utils/image_picker_helper.dart';
 import 'package:avatar_flow/core/utils/toast_utils.dart';
@@ -76,9 +77,9 @@ class PromptAiProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Use API keys from AppConfig
-  static final String _geminiApiKey = AppConfig.geminiApiKey;
-  static const String _geminiEndpoint = AppConfig.geminiEndpoint;
+  /// Get API keys from AppConfig (accessed at runtime, not class load time)
+  static String get _geminiApiKey => AppConfig.geminiApiKey;
+  static String get _geminiEndpoint => AppConfig.geminiEndpoint;
 
   /// SEND USER MESSAGE - calls Gemini API
   Future<void> sendMessage() async {
@@ -110,7 +111,17 @@ class PromptAiProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    // 2. Call Gemini API
+    // 2. Check API key before calling
+    DebugPoint.log('Gemini API Key configured: ${_geminiApiKey.isNotEmpty}');
+    DebugPoint.log('Gemini API Key length: ${_geminiApiKey.length}');
+    if (_geminiApiKey.isEmpty) {
+      ToastUtils.error('API key not configured. Check .env file');
+      _isLoading = false;
+      notifyListeners();
+      return;
+    }
+
+    // 3. Call Gemini API
     final generatedImageUrl = await _callGeminiApi(
       prompt: text,
       style: style,
@@ -118,7 +129,7 @@ class PromptAiProvider extends ChangeNotifier {
       isAsset: isAsset,
     );
 
-    // 3. AI response with generated image
+    // 4. AI response with generated image
     _messages.add(
       ChatMessage(
         imageUrl: generatedImageUrl,
@@ -126,7 +137,7 @@ class PromptAiProvider extends ChangeNotifier {
         style: style,
         text: generatedImageUrl != null
             ? "Here's your generated image based on your prompt ✨"
-            : "I'm working on that... (API key not configured)",
+            : "Failed to generate image. Check API key and try again.",
         isUser: false,
         time: DateTime.now(),
       ),
@@ -144,14 +155,24 @@ class PromptAiProvider extends ChangeNotifier {
     bool isAsset = false,
   }) async {
     try {
+      DebugPoint.log('Calling Gemini API at: $_geminiEndpoint');
+      DebugPoint.log(
+        'Using API key (first 10 chars): ${_geminiApiKey.substring(0, _geminiApiKey.length > 10 ? 10 : _geminiApiKey.length)}...',
+      );
+
       // Build prompt with style
       final fullPrompt = style != null
           ? 'Generate an image of $prompt in $style style'
           : 'Generate an image of $prompt';
 
+      DebugPoint.log('Prompt: $fullPrompt');
+
       final dio = DioClient();
+      final url = '$_geminiEndpoint?key=$_geminiApiKey';
+      DebugPoint.log('Request URL: $url');
+
       final response = await dio.post(
-        '$_geminiEndpoint?key=$_geminiApiKey',
+        url,
         headers: {'Content-Type': 'application/json'},
         data: {
           'contents': [
@@ -167,7 +188,13 @@ class PromptAiProvider extends ChangeNotifier {
         },
       );
 
-      if (response == null) return null;
+      if (response == null) {
+        DebugPoint.error('No response from Gemini API');
+        return null;
+      }
+
+      DebugPoint.log('Gemini API Response status: ${response.statusCode}');
+      DebugPoint.debug('Response data: ${response.data}');
 
       // Parse response - extract image URL from Gemini response
       final data = response.data;
@@ -177,13 +204,25 @@ class PromptAiProvider extends ChangeNotifier {
           if (part['inlineData'] != null) {
             // Base64 encoded image
             final base64Image = part['inlineData']['data'];
+            DebugPoint.log('Found base64 image in response');
             // Save base64 to file and return path
-            return await _saveBase64Image(base64Image);
+            final savedPath = await _saveBase64Image(base64Image);
+            DebugPoint.log('Saved image to: $savedPath');
+            return savedPath;
           }
         }
       }
+
+      if (data['error'] != null) {
+        DebugPoint.error('Gemini API error: ${data['error']}');
+        ToastUtils.error(
+          'API Error: ${data['error']['message'] ?? 'Unknown error'}',
+        );
+      }
+
       return null;
     } catch (e) {
+      DebugPoint.error('Gemini API exception: $e');
       ToastUtils.error('API Error: $e');
       return null;
     }

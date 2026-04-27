@@ -284,8 +284,8 @@ class CreateAvatarProvider extends ChangeNotifier {
   // -------------------------
   // ElevenLabs API - Voice Cloning
   // -------------------------
-  static final String _elevenLabsApiKey = AppConfig.elevenLabsApiKey;
-  static const String _elevenLabsEndpoint =
+  static String get _elevenLabsApiKey => AppConfig.elevenLabsApiKey;
+  static String get _elevenLabsEndpoint =>
       '${AppConfig.elevenLabsEndpoint}/voices/add';
 
   /// Upload voice to ElevenLabs and get voice ID
@@ -306,7 +306,23 @@ class CreateAvatarProvider extends ChangeNotifier {
     // If recorded voice, clone it to ElevenLabs
     if (hasRecordedVoice && audioPath != null) {
       try {
+        // Check API key first
+        DebugPoint.log(
+          'ElevenLabs API Key configured: ${_elevenLabsApiKey.isNotEmpty}',
+        );
+        DebugPoint.log(
+          'ElevenLabs API Key length: ${_elevenLabsApiKey.length}',
+        );
+
+        if (_elevenLabsApiKey.isEmpty) {
+          ToastUtils.error(
+            'ElevenLabs API key not configured. Check .env file',
+          );
+          return null;
+        }
+
         ToastUtils.show('Cloning your voice with ElevenLabs...');
+        DebugPoint.log('Cloning voice from file: ${audioPath!}');
 
         final dio = DioClient();
         final file = File(audioPath!);
@@ -327,15 +343,21 @@ class CreateAvatarProvider extends ChangeNotifier {
           options: Options(headers: {'xi-api-key': _elevenLabsApiKey}),
         );
 
+        DebugPoint.log('ElevenLabs Response status: ${response.statusCode}');
+        DebugPoint.debug('Response data: ${response.data}');
+
         if (response.statusCode == 200) {
           final voiceId = response.data['voice_id'];
+          DebugPoint.log('Voice cloned successfully! ID: $voiceId');
           ToastUtils.success('Voice cloned successfully!');
           return voiceId;
         } else {
+          DebugPoint.error('Failed to clone voice: ${response.statusCode}');
           ToastUtils.error('Failed to clone voice: ${response.statusCode}');
           return null;
         }
       } catch (e) {
+        DebugPoint.error('ElevenLabs API Error: $e');
         ToastUtils.error('ElevenLabs API Error: $e');
         return null;
       }
@@ -348,6 +370,17 @@ class CreateAvatarProvider extends ChangeNotifier {
   // Create avatar with voice
   // -------------------------
   Future<void> createAvatar() async {
+    DebugPoint.log('Creating avatar...');
+    DebugPoint.log('Avatar name: $avatarName');
+    DebugPoint.log('Avatar image path: $avatarImagePath');
+    DebugPoint.log(
+      'Voice source: ${hasRecordedVoice
+          ? "recorded"
+          : hasSampleVoice
+          ? "sample"
+          : "default"}',
+    );
+
     if (avatarName.trim().isEmpty) {
       ToastUtils.error('Please enter a name for your avatar');
       return;
@@ -358,6 +391,7 @@ class CreateAvatarProvider extends ChangeNotifier {
 
     // Get voice ID based on selected source (recorded/sample/default)
     String? voiceId = await getOrCreateVoiceId();
+    DebugPoint.log('Voice ID result: $voiceId');
 
     try {
       // For now, store locally. Later: save to backend with voiceId
