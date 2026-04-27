@@ -7,6 +7,7 @@ class AppConfig {
   static String geminiApiKey = dotenv.env["GEMINI_API_KEY"] ?? '';
   static String elevenLabsApiKey = dotenv.env["ELEVENLABS_API_KEY"] ?? '';
   static String pollinationsApiKey = dotenv.env["POLLINATIONS_API_KEY"] ?? '';
+  static String removeBgApiKey = dotenv.env["REMOVE_BG_API_KEY"] ?? '';
 
   // API Endpoints
   static const String geminiEndpoint =
@@ -17,6 +18,9 @@ class AppConfig {
   // Format: https://image.pollinations.ai/prompt/{encoded_prompt}?params
   static const String pollinationsEndpoint =
       'https://image.pollinations.ai/prompt';
+
+  // remove.bg - Background removal API
+  static const String removeBgEndpoint = 'https://api.remove.bg/v1.0/removebg';
 
   // Supabase Storage
 }

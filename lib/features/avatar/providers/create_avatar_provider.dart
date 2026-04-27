@@ -409,16 +409,33 @@ class CreateAvatarProvider extends ChangeNotifier {
     // DebugPoint.log('Voice ID result: $voiceId');
 
     try {
-      // Step 1: Upload image to Supabase Storage
-      String? storageUrl =
-          avatarImageUrl; // Already uploaded (from Pollinations flow)
+      // Step 1: Remove background from image
+      String? imageToUpload = _avatarImagePath;
 
-      if (storageUrl == null && _avatarImagePath != null) {
-        // Local file not yet uploaded - upload now
+      if (imageToUpload != null) {
+        final file = File(imageToUpload);
+        if (await file.exists()) {
+          DebugPoint.log('Removing image background via remove.bg...');
+          ToastUtils.show('Removing background...');
+
+          final removedBgPath = await _removeBackground(file);
+          if (removedBgPath != null) {
+            DebugPoint.log('Background removed: $removedBgPath');
+            imageToUpload = removedBgPath;
+          } else {
+            DebugPoint.log('BG removal failed, using original image');
+          }
+        }
+      }
+
+      // Step 2: Upload image to Supabase Storage
+      String? storageUrl = avatarImageUrl;
+
+      if (storageUrl == null && imageToUpload != null) {
         DebugPoint.log('Uploading avatar image to Supabase Storage...');
         ToastUtils.show('Uploading image...');
 
-        final file = File(_avatarImagePath!);
+        final file = File(imageToUpload);
         if (await file.exists()) {
           storageUrl = await SupabaseStorageService.uploadImage(
             file: file,
@@ -435,7 +452,7 @@ class CreateAvatarProvider extends ChangeNotifier {
             return;
           }
         } else {
-          DebugPoint.error('Local image file not found: $_avatarImagePath');
+          DebugPoint.error('Local image file not found: $imageToUpload');
           ToastUtils.error('Image file not found');
           return;
         }
@@ -447,7 +464,7 @@ class CreateAvatarProvider extends ChangeNotifier {
         return;
       }
 
-      // Step 2: Build avatar model with storage URL
+      // Step 3: Build avatar model with storage URL
       final avatar = AvatarModel(
         name: avatarName,
         gender: selectedGender,
@@ -460,7 +477,7 @@ class CreateAvatarProvider extends ChangeNotifier {
       DebugPoint.log('Creating avatar in database...');
       DebugPoint.log('Avatar data: ${avatar.toJson()}');
 
-      // Step 3: Save avatar to database
+      // Step 4: Save avatar to database
       final createdAvatar = await _avatarRepo.createAvatar(avatar);
 
       DebugPoint.log(
@@ -484,6 +501,58 @@ class CreateAvatarProvider extends ChangeNotifier {
     } finally {
       _isCreating = false;
       notifyListeners();
+    }
+  }
+
+  /// Remove image background using remove.bg API
+  /// Returns path to the new image with transparent background, or null on failure
+  Future<String?> _removeBackground(File imageFile) async {
+    try {
+      final apiKey = AppConfig.removeBgApiKey;
+      if (apiKey.isEmpty) {
+        DebugPoint.log('remove.bg API key not configured, skipping BG removal');
+        return null;
+      }
+
+      final dio = DioClient();
+      final formData = FormData.fromMap({
+        'image_file': await MultipartFile.fromFile(
+          imageFile.path,
+          filename: 'avatar_image.png',
+        ),
+        'size': 'preview',
+      });
+
+      DebugPoint.log('Calling remove.bg API...');
+      final response = await dio.dio.post(
+        AppConfig.removeBgEndpoint,
+        data: formData,
+        options: Options(
+          headers: {'X-Api-Key': apiKey},
+          responseType: ResponseType.bytes,
+        ),
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        // Save the PNG with transparent background
+        final tempDir = await Directory.systemTemp.createTemp();
+        final outputPath =
+            '${tempDir.path}/avatar_nobg_${DateTime.now().millisecondsSinceEpoch}.png';
+        final outputFile = File(outputPath);
+        await outputFile.writeAsBytes(response.data);
+
+        final fileSize = await outputFile.length();
+        DebugPoint.log(
+          'BG removed image saved: $outputPath (${fileSize} bytes)',
+        );
+        return outputPath;
+      } else {
+        DebugPoint.error('remove.bg failed: ${response.statusCode}');
+        return null;
+      }
+    } catch (e) {
+      DebugPoint.error('remove.bg API error: $e');
+      return null;
     }
   }
 

@@ -159,8 +159,11 @@ class PromptAiProvider extends ChangeNotifier {
     try {
       DebugPoint.log('Calling Pollinations AI API');
 
-      // Build prompt with style - keep it simple for Pollinations
-      final fullPrompt = style != null ? '$prompt in $style style' : prompt;
+      // Build prompt with style - embed full body cartoon style for avatar generation
+      final basePrompt = '$prompt, full body, cartoon style';
+      final fullPrompt = style != null
+          ? '$basePrompt in $style style'
+          : basePrompt;
 
       // URL encode the prompt
       final encodedPrompt = Uri.encodeComponent(fullPrompt);

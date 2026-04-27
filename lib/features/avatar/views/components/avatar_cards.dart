@@ -194,7 +194,7 @@ class _AvatarCardsState extends State<AvatarCards> {
                           child: avatar.avatarUrl.isNotEmpty
                               ? CustomCachedNetworkImage(
                                   imageUrl: avatar.avatarUrl,
-                                  height: 180.h,
+                                  height: 200.h,
                                   width: 0.5.sw,
                                   borderRadius: AppConstants.smallRadius,
                                   cover: BoxFit.cover,
