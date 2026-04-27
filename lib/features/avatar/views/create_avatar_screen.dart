@@ -188,53 +188,61 @@ class CreateAvatarScreen extends StatelessWidget {
   }
 
   Widget _buildPreviewCard(BuildContext context, TextTheme textTheme) {
-    return Container(
-      height: isEdit ? 0.3.sh : .35.sh,
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(AppConstants.mediumRadius),
-        boxShadow: [AppConstants.defaultShadow],
-      ),
-      child: isEdit
-          ? Stack(
-              children: [
-                Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Padding(
-                    padding: const EdgeInsets.all(8),
-                    child: ClipPath(
-                      clipper: MyClipper(),
-                      child: Container(
-                        width: 1.sw,
-                        height: 0.16.sh,
-                        color: Colors.yellow.withValues(alpha: .3),
+    return GestureDetector(
+      onTap: () {
+        NavigationService.pushNamed(AppRoutes.promptAvatar);
+      },
+      child: Container(
+        height: isEdit ? 0.3.sh : .35.sh,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(AppConstants.mediumRadius),
+          boxShadow: [AppConstants.defaultShadow],
+        ),
+        child: isEdit
+            ? Stack(
+                children: [
+                  Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: ClipPath(
+                        clipper: MyClipper(),
+                        child: Container(
+                          width: 1.sw,
+                          height: 0.16.sh,
+                          color: Colors.yellow.withValues(alpha: .3),
+                        ),
                       ),
                     ),
                   ),
-                ),
-                Center(
-                  child: Image.asset(AppImagesPng.dummyImage, height: 0.22.sh),
-                ),
-              ],
-            )
-          : Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.asset(AppImagesPng.add, height: 50),
-                Spacing.y(1.5),
-                Text(
-                  "Create New\nAvatar",
-                  textAlign: TextAlign.center,
-                  style: textTheme.titleMedium?.copyWith(
-                    color: context.appColors.primary,
-                    fontWeight: FontWeight.w500,
-                    height: 1.2,
-                    fontSize: 16.sp,
+                  Center(
+                    child: Image.asset(
+                      AppImagesPng.dummyImage,
+                      height: 0.22.sh,
+                    ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              )
+            : Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset(AppImagesPng.add, height: 50),
+                  Spacing.y(1.5),
+                  Text(
+                    "Create New\nAvatar",
+                    textAlign: TextAlign.center,
+                    style: textTheme.titleMedium?.copyWith(
+                      color: context.appColors.primary,
+                      fontWeight: FontWeight.w500,
+                      height: 1.2,
+                      fontSize: 16.sp,
+                    ),
+                  ),
+                ],
+              ),
+      ),
     );
   }
 
