@@ -5,7 +5,7 @@ class AvatarModel {
   final String gender;
   final List<String> traits;
   final String avatarUrl;
-  final String? voiceUrl;
+  final String? voiceId;
   final String? userId;
   final bool voiceTerm;
 
@@ -17,7 +17,7 @@ class AvatarModel {
     required this.traits,
     required this.avatarUrl,
     required this.voiceTerm,
-    this.voiceUrl,
+    this.voiceId,
     this.userId,
   });
 
@@ -33,7 +33,7 @@ class AvatarModel {
       voiceTerm: json['voice_term'] ?? false,
       traits: List<String>.from(json['traits'] ?? []),
       avatarUrl: json['avatar_url'] ?? '',
-      voiceUrl: json['voice_url'],
+      voiceId: json['voice_id'],
       userId: json['user_id'] ?? '',
     );
   }
@@ -45,7 +45,7 @@ class AvatarModel {
       'gender': gender,
       'traits': traits,
       'avatar_url': avatarUrl,
-      'voice_url': voiceUrl,
+      'voice_id': voiceId,
       'user_id': userId,
       'voice_term': voiceTerm,
     };
@@ -72,7 +72,7 @@ class AvatarModel {
       gender: gender ?? this.gender,
       traits: traits ?? this.traits,
       avatarUrl: avatarUrl ?? this.avatarUrl,
-      voiceUrl: voiceUrl ?? this.voiceUrl,
+      voiceId: voiceUrl ?? this.voiceId,
       userId: userId ?? this.userId,
       voiceTerm: voiceTerm ?? this.voiceTerm,
     );

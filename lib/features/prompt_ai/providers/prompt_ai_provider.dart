@@ -77,9 +77,10 @@ class PromptAiProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Get API keys from AppConfig (accessed at runtime, not class load time)
+  /// Get API config from AppConfig (accessed at runtime, not class load time)
   static String get _geminiApiKey => AppConfig.geminiApiKey;
   static String get _geminiEndpoint => AppConfig.geminiEndpoint;
+  static String get _pollinationsEndpoint => AppConfig.pollinationsEndpoint;
 
   /// SEND USER MESSAGE - calls Gemini API
   Future<void> sendMessage() async {
@@ -111,119 +112,84 @@ class PromptAiProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    // 2. Check API key before calling
-    DebugPoint.log('Gemini API Key configured: ${_geminiApiKey.isNotEmpty}');
-    DebugPoint.log('Gemini API Key length: ${_geminiApiKey.length}');
-    if (_geminiApiKey.isEmpty) {
-      ToastUtils.error('API key not configured. Check .env file');
+    String? generatedImagePath;
+
+    try {
+      // 2. Call Pollinations AI for image generation
+      // Returns local file path to the downloaded image
+      generatedImagePath = await _callPollinationsApi(
+        prompt: text,
+        style: style,
+        imagePath: isAsset ? image : (image as File?)?.path,
+        isAsset: isAsset,
+      );
+
+      DebugPoint.log('Generated image path for chat: $generatedImagePath');
+    } catch (e) {
+      DebugPoint.error('Error generating image: $e');
+    } finally {
+      // 3. AI response with generated image (local file path only)
+      // Upload to storage happens in CreateAvatarProvider when avatar is created
+      _messages.add(
+        ChatMessage(
+          imagePath: generatedImagePath,
+          isAssetImage: false,
+          style: style,
+          text: generatedImagePath != null
+              ? "Here's your generated image based on your prompt ✨"
+              : "Failed to generate image. Please try again.",
+          isUser: false,
+          time: DateTime.now(),
+        ),
+      );
+
       _isLoading = false;
       notifyListeners();
-      return;
     }
-
-    // 3. Call Gemini API
-    final generatedImageUrl = await _callGeminiApi(
-      prompt: text,
-      style: style,
-      imagePath: isAsset ? image : (image as File?)?.path,
-      isAsset: isAsset,
-    );
-
-    // 4. AI response with generated image
-    _messages.add(
-      ChatMessage(
-        imageUrl: generatedImageUrl,
-        isAssetImage: false,
-        style: style,
-        text: generatedImageUrl != null
-            ? "Here's your generated image based on your prompt ✨"
-            : "Failed to generate image. Check API key and try again.",
-        isUser: false,
-        time: DateTime.now(),
-      ),
-    );
-
-    _isLoading = false;
-    notifyListeners();
   }
 
-  /// Call Gemini API for image generation
-  Future<String?> _callGeminiApi({
+  /// Call Pollinations AI for image generation
+  /// Returns local file path to downloaded image
+  Future<String?> _callPollinationsApi({
     required String prompt,
     String? style,
     String? imagePath,
     bool isAsset = false,
   }) async {
     try {
-      DebugPoint.log('Calling Gemini API at: $_geminiEndpoint');
-      DebugPoint.log(
-        'Using API key (first 10 chars): ${_geminiApiKey.substring(0, _geminiApiKey.length > 10 ? 10 : _geminiApiKey.length)}...',
-      );
+      DebugPoint.log('Calling Pollinations AI API');
 
-      // Build prompt with style
-      final fullPrompt = style != null
-          ? 'Generate an image of $prompt in $style style'
-          : 'Generate an image of $prompt';
+      // Build prompt with style - keep it simple for Pollinations
+      final fullPrompt = style != null ? '$prompt in $style style' : prompt;
+
+      // URL encode the prompt
+      final encodedPrompt = Uri.encodeComponent(fullPrompt);
+
+      // Build URL with parameters (no API key needed for basic use)
+      final url =
+          '$_pollinationsEndpoint/$encodedPrompt?width=1024&height=1024&seed=${DateTime.now().millisecond}&nologo=true';
 
       DebugPoint.log('Prompt: $fullPrompt');
-
-      final dio = DioClient();
-      final url = '$_geminiEndpoint?key=$_geminiApiKey';
       DebugPoint.log('Request URL: $url');
 
-      final response = await dio.post(
+      final dio = DioClient();
+
+      // Download image directly from Pollinations
+      final savePath = await dio.downloadImage(
         url,
-        headers: {'Content-Type': 'application/json'},
-        data: {
-          'contents': [
-            {
-              'parts': [
-                {'text': fullPrompt},
-              ],
-            },
-          ],
-          'generationConfig': {
-            'responseModalities': ['Text', 'Image'],
-          },
-        },
+        fileName: 'pollinations_${DateTime.now().millisecondsSinceEpoch}.png',
       );
 
-      if (response == null) {
-        DebugPoint.error('No response from Gemini API');
-        return null;
+      if (savePath != null) {
+        DebugPoint.log('Image downloaded successfully to: $savePath');
+      } else {
+        DebugPoint.error('Failed to download image from Pollinations');
       }
 
-      DebugPoint.log('Gemini API Response status: ${response.statusCode}');
-      DebugPoint.debug('Response data: ${response.data}');
-
-      // Parse response - extract image URL from Gemini response
-      final data = response.data;
-      if (data['candidates'] != null && data['candidates'].isNotEmpty) {
-        final parts = data['candidates'][0]['content']['parts'];
-        for (final part in parts) {
-          if (part['inlineData'] != null) {
-            // Base64 encoded image
-            final base64Image = part['inlineData']['data'];
-            DebugPoint.log('Found base64 image in response');
-            // Save base64 to file and return path
-            final savedPath = await _saveBase64Image(base64Image);
-            DebugPoint.log('Saved image to: $savedPath');
-            return savedPath;
-          }
-        }
-      }
-
-      if (data['error'] != null) {
-        DebugPoint.error('Gemini API error: ${data['error']}');
-        ToastUtils.error(
-          'API Error: ${data['error']['message'] ?? 'Unknown error'}',
-        );
-      }
-
-      return null;
+      return savePath;
     } catch (e) {
-      DebugPoint.error('Gemini API exception: $e');
-      ToastUtils.error('API Error: $e');
+      DebugPoint.error('Pollinations API exception: $e');
+      ToastUtils.error('Image generation failed: $e');
       return null;
     }
   }

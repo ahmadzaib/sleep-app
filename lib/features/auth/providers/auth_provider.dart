@@ -416,7 +416,7 @@ class AuthProvider extends ChangeNotifier with Validators {
       final imageUrl = await SupabaseStorageService.uploadImage(
         file: file,
         bucketName: DBConstansts.users,
-        folder: DBConstansts.avatars,
+        folder: DBConstansts.profiles,
       );
 
       if (imageUrl == null) {

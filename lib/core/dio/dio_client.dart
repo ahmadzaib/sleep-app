@@ -33,12 +33,46 @@ class DioClient {
 
       DebugPoint.log('Saving to: $savePath');
 
-      final response = await _dio.download(imageUrl, savePath);
+      final response = await _dio.download(
+        imageUrl,
+        savePath,
+        options: Options(
+          followRedirects: true,
+          validateStatus: (status) => status != null && status < 500,
+        ),
+        onReceiveProgress: (received, total) {
+          if (total != -1) {
+            final progress = (received / total * 100).toStringAsFixed(0);
+            DebugPoint.log('Download progress: $progress%');
+          }
+        },
+      );
 
       DebugPoint.log('Download response status: ${response.statusCode}');
-      DebugPoint.log('Image saved successfully');
+      DebugPoint.log('Response headers: ${response.headers}');
 
+      // Check if file was actually created and has content
+      final file = File(savePath);
+      if (await file.exists()) {
+        final fileSize = await file.length();
+        DebugPoint.log('File size: $fileSize bytes');
+        if (fileSize == 0) {
+          DebugPoint.error('Downloaded file is empty');
+          return null;
+        }
+      } else {
+        DebugPoint.error('File was not created');
+        return null;
+      }
+
+      DebugPoint.log('Image saved successfully');
       return savePath;
+    } on DioException catch (e) {
+      DebugPoint.error('Dio error downloading image: ${e.type}');
+      DebugPoint.error('Error message: ${e.message}');
+      DebugPoint.error('Response status: ${e.response?.statusCode}');
+      DebugPoint.error('Response data: ${e.response?.data}');
+      return null;
     } catch (e) {
       DebugPoint.error('Failed to download image: $e');
       return null;

@@ -85,7 +85,7 @@ class _PromptAvatarScreenState extends State<PromptAvatarScreen> {
                         children: [
                           AppLoading(size: 25),
                           Spacing.x(2),
-                          Text("AI is thinking..."),
+                          Text("AI is generating image..."),
                         ],
                       ),
                     ),
@@ -105,45 +105,36 @@ class _PromptAvatarScreenState extends State<PromptAvatarScreen> {
                           DebugPoint.log('Use as Avatar tapped');
                           DebugPoint.log('Message imagePath: ${msg.imagePath}');
                           DebugPoint.log('Message imageUrl: ${msg.imageUrl}');
-                          DebugPoint.log('Is asset image: ${msg.isAssetImage}');
-
-                          // Show loading indicator
-                          ToastUtils.show('Downloading image...');
 
                           String? localPath;
 
-                          // If it's a local file (from asset or picker), use it directly
-                          if (msg.isAssetImage && msg.imagePath != null) {
-                            DebugPoint.log('Using local asset path');
+                          // Use local file path (from Pollinations generation)
+                          if (msg.imagePath != null) {
+                            DebugPoint.log('Using local file path');
                             localPath = msg.imagePath;
                           }
-                          // If it's a URL (from AI response), download it
+                          // If it's a URL, download it
                           else if (msg.imageUrl != null) {
                             DebugPoint.log(
                               'Downloading from URL: ${msg.imageUrl}',
                             );
+                            ToastUtils.show('Downloading image...');
                             final dioClient = DioClient();
                             localPath = await dioClient.downloadImage(
                               msg.imageUrl!,
                             );
                           }
-                          // Fallback to imagePath if imageUrl is null
-                          else if (msg.imagePath != null) {
-                            DebugPoint.log('Using imagePath as fallback');
-                            localPath = msg.imagePath;
-                          }
 
                           if (localPath == null) {
                             DebugPoint.error('Failed to get local image path');
-                            ToastUtils.error('Failed to download image');
+                            ToastUtils.error('Failed to get image');
                             return;
                           }
 
-                          DebugPoint.log(
-                            'Local image path obtained: $localPath',
-                          );
+                          DebugPoint.log('Local image path: $localPath');
 
                           // Set the avatar image path in provider
+                          // Upload to storage happens in createAvatar()
                           context
                               .read<CreateAvatarProvider>()
                               .setAvatarImagePath(localPath);

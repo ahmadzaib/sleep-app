@@ -2,9 +2,15 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:avatar_flow/core/config/appconfig.dart';
+import 'package:avatar_flow/core/constants/db_constants.dart';
 import 'package:avatar_flow/core/debug/debug_point.dart';
 import 'package:avatar_flow/core/dio/dio_client.dart';
+import 'package:avatar_flow/core/router/navigation_service.dart';
+import 'package:avatar_flow/core/router/routes.dart';
+import 'package:avatar_flow/core/services/storage_service.dart';
 import 'package:avatar_flow/core/utils/toast_utils.dart';
+import 'package:avatar_flow/features/avatar/models/avatar_model.dart';
+import 'package:avatar_flow/features/avatar/repo/avatar_repo.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
@@ -12,6 +18,8 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:record/record.dart';
 
 class CreateAvatarProvider extends ChangeNotifier {
+  final AvatarRepo _avatarRepo = AvatarRepo();
+
   // -------------------------
   // Avatar fields
   // -------------------------
@@ -21,14 +29,18 @@ class CreateAvatarProvider extends ChangeNotifier {
   List<String> traits = ["Adventurous", "Charismatic"];
   String selectedVoice = "Voice 1";
   String prompt = "";
-  String? _avatarImagePath;
+  String? _avatarImagePath; // Local file path for preview
   String? get avatarImagePath => _avatarImagePath;
+  String? _avatarImageUrl; // Supabase Storage public URL
+  String? get avatarImageUrl => _avatarImageUrl;
   bool _isCreating = false;
 
   bool get isCreating => _isCreating;
 
-  void setAvatarImagePath(String? path) {
+  void setAvatarImagePath(String? path, {String? url}) {
     _avatarImagePath = path;
+    _avatarImageUrl = url;
+    DebugPoint.log('Avatar image set - path: $path, url: $url');
     notifyListeners();
   }
 
@@ -373,6 +385,7 @@ class CreateAvatarProvider extends ChangeNotifier {
     DebugPoint.log('Creating avatar...');
     DebugPoint.log('Avatar name: $avatarName');
     DebugPoint.log('Avatar image path: $avatarImagePath');
+    DebugPoint.log('Avatar image URL: $avatarImageUrl');
     DebugPoint.log(
       'Voice source: ${hasRecordedVoice
           ? "recorded"
@@ -389,15 +402,72 @@ class CreateAvatarProvider extends ChangeNotifier {
     _isCreating = true;
     notifyListeners();
 
-    // Get voice ID based on selected source (recorded/sample/default)
-    String? voiceId = await getOrCreateVoiceId();
-    DebugPoint.log('Voice ID result: $voiceId');
+    // TODO: Voice ID generation - commented for now
+    // String? voiceId = await getOrCreateVoiceId();
+    // DebugPoint.log('Voice ID result: $voiceId');
 
     try {
-      // For now, store locally. Later: save to backend with voiceId
-      ToastUtils.success('Avatar created! Voice ID: $voiceId');
-      DebugPoint.log('Avatar created with voice ID: $voiceId');
+      // Step 1: Upload image to Supabase Storage
+      String? storageUrl =
+          avatarImageUrl; // Already uploaded (from Pollinations flow)
+
+      if (storageUrl == null && _avatarImagePath != null) {
+        // Local file not yet uploaded - upload now
+        DebugPoint.log('Uploading avatar image to Supabase Storage...');
+        ToastUtils.show('Uploading image...');
+
+        final file = File(_avatarImagePath!);
+        if (await file.exists()) {
+          storageUrl = await SupabaseStorageService.uploadImage(
+            file: file,
+            bucketName: DBConstansts.avatars,
+          );
+
+          if (storageUrl != null) {
+            DebugPoint.log('Image uploaded to storage: $storageUrl');
+            _avatarImageUrl = storageUrl;
+            notifyListeners();
+          } else {
+            DebugPoint.error('Failed to upload image to storage');
+            ToastUtils.error('Failed to upload image');
+            return;
+          }
+        } else {
+          DebugPoint.error('Local image file not found: $_avatarImagePath');
+          ToastUtils.error('Image file not found');
+          return;
+        }
+      }
+
+      if (storageUrl == null || storageUrl.isEmpty) {
+        DebugPoint.error('No avatar image URL available');
+        ToastUtils.error('No avatar image available');
+        return;
+      }
+
+      // Step 2: Build avatar model with storage URL
+      final avatar = AvatarModel(
+        name: avatarName,
+        gender: selectedGender,
+        traits: traits,
+        avatarUrl: storageUrl,
+        voiceId: null, // TODO: add voice ID when voice cloning is enabled
+        voiceTerm: isAgreed,
+      );
+
+      DebugPoint.log('Creating avatar in database...');
+      DebugPoint.log('Avatar data: ${avatar.toJson()}');
+
+      // Step 3: Save avatar to database
+      final createdAvatar = await _avatarRepo.createAvatar(avatar);
+
+      DebugPoint.log(
+        'Avatar created successfully - ID: ${createdAvatar.id}, Name: ${createdAvatar.name}',
+      );
+      ToastUtils.success('Avatar "$avatarName" created successfully!');
+      NavigationService.goNamed(AppRoutes.bottomNavbar);
     } catch (e) {
+      DebugPoint.error('Failed to create avatar: $e');
       ToastUtils.error('Failed to create avatar: $e');
     } finally {
       _isCreating = false;
