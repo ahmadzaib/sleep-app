@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:ui';
 import 'package:avatar_flow/core/constants/app_constants.dart';
 import 'package:avatar_flow/core/constants/app_icons.dart';
@@ -184,7 +185,10 @@ class _AvatarCardsState extends State<AvatarCards> {
                     alignment: Alignment.bottomCenter,
                     child: Padding(
                       padding: AppConstants.defaultAllPadding,
-                      child: Image.asset(AppImagesPng.cardVector),
+                      child: Image.asset(
+                        AppImagesPng.cardVector,
+                        color: getNiceRandomColor(),
+                      ),
                     ),
                   ),
                   Column(
@@ -258,5 +262,15 @@ class _AvatarCardsState extends State<AvatarCards> {
   void dispose() {
     _pageController.dispose();
     super.dispose();
+  }
+
+  Color getNiceRandomColor() {
+    final random = Random();
+    return Color.fromARGB(
+      255,
+      100 + random.nextInt(156), // avoid very dark
+      100 + random.nextInt(156),
+      100 + random.nextInt(156),
+    );
   }
 }
