@@ -1,6 +1,7 @@
 import 'package:avatar_flow/core/constants/db_constants.dart';
 import 'package:avatar_flow/core/debug/debug_point.dart';
 import 'package:avatar_flow/features/avatar/models/avatar_model.dart';
+import 'package:avatar_flow/features/avatar/models/trait_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AvatarRepo {
@@ -31,7 +32,7 @@ class AvatarRepo {
     return AvatarModel.fromJson(response);
   }
 
-  /// GET ALL (current user)
+  /// GET ALL (current user) with traits
   Future<List<AvatarModel>> getMyAvatars() async {
     final userId = _client.auth.currentUser?.id;
 
@@ -45,10 +46,26 @@ class AvatarRepo {
         .eq('user_id', userId)
         .order('created_at', ascending: false);
 
-    return (response as List).map((e) => AvatarModel.fromJson(e)).toList();
+    final avatars = (response as List)
+        .map((e) => AvatarModel.fromJson(e))
+        .toList();
+
+    // Fetch traits for each avatar
+    final result = <AvatarModel>[];
+    for (final avatar in avatars) {
+      if (avatar.id != null) {
+        final traits = await _getAvatarTraits(avatar.id!);
+        result.add(avatar.copyWith(traits: traits));
+        DebugPoint.log('Avatar ${avatar.name} traits: $traits');
+      } else {
+        result.add(avatar);
+      }
+    }
+
+    return result;
   }
 
-  /// GET BY ID
+  /// GET BY ID with traits
   Future<AvatarModel?> getAvatarById(int id) async {
     final response = await _client
         .from(_table)
@@ -58,7 +75,44 @@ class AvatarRepo {
 
     if (response == null) return null;
 
-    return AvatarModel.fromJson(response);
+    var avatar = AvatarModel.fromJson(response);
+    final traits = await _getAvatarTraits(id);
+    avatar = avatar.copyWith(traits: traits);
+
+    return avatar;
+  }
+
+  /// GET traits for avatar from avatar_traits junction table
+  Future<List<TraitModel>> _getAvatarTraits(int avatarId) async {
+    DebugPoint.log('Fetching traits for avatar_id: $avatarId');
+
+    // Get trait_ids from avatar_traits junction table
+    final junctionResponse = await _client
+        .from(DBConstansts.avatarTraits)
+        .select('trait_id')
+        .eq('avatar_id', avatarId);
+
+    DebugPoint.log('Junction response: $junctionResponse');
+
+    if (junctionResponse.isEmpty) return [];
+
+    final traitIds = junctionResponse
+        .map((e) => e['trait_id'] as int?)
+        .where((id) => id != null)
+        .cast<int>()
+        .toList();
+
+    if (traitIds.isEmpty) return [];
+
+    // Fetch trait names and image_urls from traits table
+    final traitsResponse = await _client
+        .from(DBConstansts.traits)
+        .select('id, name, image_url')
+        .inFilter('id', traitIds);
+
+    DebugPoint.log('Traits response: $traitsResponse');
+
+    return traitsResponse.map((e) => TraitModel.fromJson(e)).toList();
   }
 
   /// UPDATE
@@ -98,7 +152,7 @@ class AvatarRepo {
   /// Update traits in avatar_traits junction table
   Future<void> _updateAvatarTraits(
     int avatarId,
-    List<String> traitNames,
+    List<TraitModel> traits,
   ) async {
     // Delete existing traits for this avatar
     await _client
@@ -106,9 +160,10 @@ class AvatarRepo {
         .delete()
         .eq('avatar_id', avatarId);
 
-    if (traitNames.isEmpty) return;
+    if (traits.isEmpty) return;
 
-    // Get trait_ids from traits table
+    // Get trait_ids from traits table by name
+    final traitNames = traits.map((t) => t.name).toList();
     final traitsResponse = await _client
         .from(DBConstansts.traits)
         .select('id, name')
@@ -125,8 +180,8 @@ class AvatarRepo {
 
     // Insert new trait associations
     final inserts = <Map<String, dynamic>>[];
-    for (final traitName in traitNames) {
-      final traitId = traitIdMap[traitName];
+    for (final trait in traits) {
+      final traitId = traitIdMap[trait.name];
       if (traitId != null) {
         inserts.add({'avatar_id': avatarId, 'trait_id': traitId});
       }

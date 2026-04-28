@@ -167,7 +167,7 @@ class _AvatarCardsState extends State<AvatarCards> {
     Color cardColor,
   ) {
     final traitsText = avatar.traits.isNotEmpty
-        ? avatar.traits.take(2).join(', ')
+        ? avatar.traits.take(2).map((trait) => trait.name).join(', ')
         : avatar.gender;
 
     return Column(

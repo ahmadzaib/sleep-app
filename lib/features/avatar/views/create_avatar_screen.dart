@@ -7,6 +7,7 @@ import 'package:avatar_flow/core/router/navigation_service.dart';
 import 'package:avatar_flow/core/router/routes.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
+import 'package:avatar_flow/features/avatar/models/trait_model.dart';
 import 'package:avatar_flow/features/avatar/providers/create_avatar_provider.dart';
 import 'package:avatar_flow/features/avatar/views/components/trait_selection_bottom_sheet.dart';
 import 'package:avatar_flow/features/avatar/views/components/voice_note_bs_tile.dart';
@@ -360,7 +361,7 @@ class CreateAvatarScreen extends StatelessWidget {
   }
 
   Widget _buildTraitChip(
-    String label,
+    TraitModel trait,
     CreateAvatarProvider provider,
     BuildContext context,
   ) {
@@ -377,14 +378,14 @@ class CreateAvatarScreen extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            label,
+            trait.name,
             style: Theme.of(
               context,
             ).textTheme.bodySmall?.copyWith(color: context.appColors.primary),
           ),
           Spacing.x(1),
           GestureDetector(
-            onTap: () => provider.removeTrait(label),
+            onTap: () => provider.removeTrait(trait.name),
             child: Icon(
               Icons.close,
               size: 14.sp,

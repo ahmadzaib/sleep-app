@@ -11,6 +11,7 @@ import 'package:avatar_flow/core/services/background_removal_service.dart';
 import 'package:avatar_flow/core/services/storage_service.dart';
 import 'package:avatar_flow/core/utils/toast_utils.dart';
 import 'package:avatar_flow/features/avatar/models/avatar_model.dart';
+import 'package:avatar_flow/features/avatar/models/trait_model.dart';
 import 'package:avatar_flow/features/avatar/providers/avatars_provider.dart';
 import 'package:avatar_flow/features/avatar/repo/avatar_repo.dart';
 import 'package:dio/dio.dart';
@@ -31,7 +32,10 @@ class CreateAvatarProvider extends ChangeNotifier {
   int currentIndex = 0;
   String avatarName = "Lilian";
   String selectedGender = "Female";
-  List<String> traits = ["Adventurous", "Charismatic"];
+  List<TraitModel> traits = [
+    TraitModel(id: 1, name: "Adventurous"),
+    TraitModel(id: 2, name: "Charismatic"),
+  ];
   String selectedVoice = "Voice 1";
   String prompt = "";
   String? _avatarImagePath; // Local file path for preview
@@ -132,7 +136,7 @@ class CreateAvatarProvider extends ChangeNotifier {
     _editingAvatarId = avatar.id;
     avatarName = avatar.name;
     selectedGender = avatar.gender;
-    traits = List<String>.from(avatar.traits);
+    traits = List<TraitModel>.from(avatar.traits);
     _avatarImageUrl = avatar.avatarUrl;
     _avatarImagePath = null; // no local path for existing avatars
     if (avatar.voiceId != null) {
@@ -142,22 +146,22 @@ class CreateAvatarProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  static const List<String> traitSuggestions = [
-    'Adventurous',
-    'Brave',
-    'Bold',
-    'Calm',
-    'Charismatic',
-    'Cheerful',
-    'Curious',
-    'Creative',
-    'Fearless',
-    'Friendly',
-    'Kind',
-    'Loyal',
-    'Playful',
-    'Smart',
-    'Wise',
+  static final List<TraitModel> traitSuggestions = [
+    TraitModel(id: 1, name: 'Adventurous'),
+    TraitModel(id: 2, name: 'Brave'),
+    TraitModel(id: 3, name: 'Bold'),
+    TraitModel(id: 4, name: 'Calm'),
+    TraitModel(id: 5, name: 'Charismatic'),
+    TraitModel(id: 6, name: 'Cheerful'),
+    TraitModel(id: 7, name: 'Curious'),
+    TraitModel(id: 8, name: 'Creative'),
+    TraitModel(id: 9, name: 'Fearless'),
+    TraitModel(id: 10, name: 'Friendly'),
+    TraitModel(id: 11, name: 'Kind'),
+    TraitModel(id: 12, name: 'Loyal'),
+    TraitModel(id: 13, name: 'Playful'),
+    TraitModel(id: 14, name: 'Smart'),
+    TraitModel(id: 15, name: 'Wise'),
   ];
 
   final AudioRecorder _recorder = AudioRecorder();
@@ -182,21 +186,21 @@ class CreateAvatarProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void addTrait(String trait) {
-    if (!traits.contains(trait)) {
+  void addTrait(TraitModel trait) {
+    if (!traits.any((t) => t.name == trait.name)) {
       traits.add(trait);
       notifyListeners();
     }
   }
 
-  void removeTrait(String trait) {
-    traits.remove(trait);
+  void removeTrait(String traitName) {
+    traits.removeWhere((t) => t.name == traitName);
     notifyListeners();
   }
 
-  void toggleTrait(String trait) {
-    if (traits.contains(trait)) {
-      traits.remove(trait);
+  void toggleTrait(TraitModel trait) {
+    if (traits.any((t) => t.name == trait.name)) {
+      traits.removeWhere((t) => t.name == trait.name);
     } else {
       traits.add(trait);
     }

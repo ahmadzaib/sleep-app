@@ -3,6 +3,7 @@ import 'package:avatar_flow/core/router/navigation_service.dart';
 import 'package:avatar_flow/core/router/routes.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
+import 'package:avatar_flow/features/avatar/models/trait_model.dart';
 import 'package:avatar_flow/features/avatar/providers/create_avatar_provider.dart';
 import 'package:avatar_flow/widgets/custom_button.dart';
 import 'package:avatar_flow/widgets/custom_svg.dart';
@@ -44,8 +45,8 @@ class _CharacterCharacteristicsPageState
           final suggestions = CreateAvatarProvider.traitSuggestions
               .where(
                 (t) =>
-                    !selectedTraits.contains(t) &&
-                    (query.isEmpty || t.toLowerCase().contains(query)),
+                    !selectedTraits.any((st) => st.name == t.name) &&
+                    (query.isEmpty || t.name.toLowerCase().contains(query)),
               )
               .toList();
 
@@ -81,7 +82,7 @@ class _CharacterCharacteristicsPageState
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              trait,
+                              trait.name,
                               style: textTheme.bodyMedium?.copyWith(
                                 fontWeight: FontWeight.w500,
                               ),
@@ -136,7 +137,7 @@ class _CharacterCharacteristicsPageState
                                   ),
                                 ),
                                 child: Text(
-                                  trait,
+                                  trait.name,
                                   style: textTheme.bodySmall?.copyWith(
                                     fontWeight: FontWeight.w600,
                                   ),

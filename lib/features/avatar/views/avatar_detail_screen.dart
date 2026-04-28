@@ -18,6 +18,7 @@ import 'package:avatar_flow/widgets/bg_widget.dart';
 import 'package:avatar_flow/widgets/circled_icon_widget.dart';
 import 'package:avatar_flow/widgets/confirmation_dialog.dart';
 import 'package:avatar_flow/widgets/custom_button.dart';
+import 'package:avatar_flow/widgets/custom_cache_netword_imge.dart';
 import 'package:avatar_flow/widgets/custom_divider.dart';
 import 'package:avatar_flow/widgets/custom_svg.dart';
 import 'package:avatar_flow/widgets/pop_menu_button.dart';
@@ -88,22 +89,11 @@ class _AvatarDetailScreenState extends State<AvatarDetailScreen> {
                     spacing: 8.w,
                     children: [
                       ...widget.avatar.traits.take(3).map((trait) {
-                        String imagePath;
-                        switch (trait.toLowerCase()) {
-                          case 'adventurous':
-                            imagePath = AppImagesPng.adventurous;
-                            break;
-                          case 'fearful':
-                          case 'fearless':
-                            imagePath = AppImagesPng.poison;
-                            break;
-                          case 'brave':
-                            imagePath = AppImagesPng.gold;
-                            break;
-                          default:
-                            imagePath = AppImagesPng.gold;
-                        }
-                        return _buildSkillChip(trait, imagePath, context);
+                        return _buildSkillChip(
+                          trait.name,
+                          trait.imageUrl,
+                          context,
+                        );
                       }),
                     ],
                   ),
@@ -270,12 +260,11 @@ class _AvatarDetailScreenState extends State<AvatarDetailScreen> {
     );
   }
 
-  Widget _buildSkillChip(String text, String imagePath, BuildContext context) {
+  Widget _buildSkillChip(String text, String? imageUrl, BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
     return Expanded(
       child: Container(
-        // padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 7.h),
         decoration: BoxDecoration(
           color: Colors.transparent,
           borderRadius: BorderRadius.circular(AppConstants.mediumRadius),
@@ -286,7 +275,15 @@ class _AvatarDetailScreenState extends State<AvatarDetailScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset(imagePath, height: 32),
+            if (imageUrl != null && imageUrl.isNotEmpty)
+              CustomCachedNetworkImage(
+                imageUrl: imageUrl,
+                height: 40,
+                width: 40,
+                borderRadius: AppConstants.smallRadius,
+              )
+            else
+              Icon(Icons.star, size: 32, color: colorScheme.primary),
             Spacing.y(.6),
             Text(text, style: textTheme.bodySmall),
           ],

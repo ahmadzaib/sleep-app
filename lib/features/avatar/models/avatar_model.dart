@@ -1,9 +1,11 @@
+import 'package:avatar_flow/features/avatar/models/trait_model.dart';
+
 class AvatarModel {
   final int? id;
   final DateTime? createdAt;
   final String name;
   final String gender;
-  final List<String> traits;
+  final List<TraitModel> traits;
   final String avatarUrl;
   final String? voiceId;
   final String? userId;
@@ -35,7 +37,11 @@ class AvatarModel {
       name: json['name'] ?? '',
       gender: json['gender'] ?? '',
       voiceTerm: json['voice_term'] ?? false,
-      traits: List<String>.from(json['traits'] ?? []),
+      traits:
+          (json['traits'] as List<dynamic>?)
+              ?.map((e) => TraitModel.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
       avatarUrl: json['avatar_url'] ?? '',
       voiceId: json['voice_id'],
       userId: json['user_id'] ?? '',
@@ -49,7 +55,7 @@ class AvatarModel {
     final data = <String, dynamic>{
       'name': name,
       'gender': gender,
-      'traits': traits,
+      'traits': traits.map((t) => t.toJson()).toList(),
       'avatar_url': avatarUrl,
       'voice_id': voiceId,
       'user_id': userId,
@@ -67,7 +73,7 @@ class AvatarModel {
     DateTime? createdAt,
     String? name,
     String? gender,
-    List<String>? traits,
+    List<TraitModel>? traits,
     String? avatarUrl,
     String? voiceUrl,
     String? userId,
