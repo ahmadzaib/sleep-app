@@ -62,7 +62,11 @@ class _AvatarDetailScreenState extends State<AvatarDetailScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     spacing: 8.w,
                     children: [
-                      _buildChip("10 Stories", AppIconsSvg.book, context),
+                      _buildChip(
+                        "${widget.avatar.storiesCount} Stories",
+                        AppIconsSvg.book,
+                        context,
+                      ),
                       _buildChip(
                         "${widget.avatar.shareCount} Shares",
                         AppIconsSvg.upload,
