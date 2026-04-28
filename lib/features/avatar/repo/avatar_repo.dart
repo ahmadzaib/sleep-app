@@ -76,7 +76,6 @@ class AvatarRepo {
     final data = {
       'name': avatar.name,
       'gender': avatar.gender,
-      'traits': avatar.traits,
       'avatar_url': avatar.avatarUrl,
       'voice_id': avatar.voiceId,
       'voice_term': avatar.voiceTerm,
@@ -90,7 +89,52 @@ class AvatarRepo {
         .select()
         .single();
 
+    // Update traits in avatar_traits junction table
+    await _updateAvatarTraits(avatar.id!, avatar.traits);
+
     return AvatarModel.fromJson(response);
+  }
+
+  /// Update traits in avatar_traits junction table
+  Future<void> _updateAvatarTraits(
+    int avatarId,
+    List<String> traitNames,
+  ) async {
+    // Delete existing traits for this avatar
+    await _client
+        .from(DBConstansts.avatarTraits)
+        .delete()
+        .eq('avatar_id', avatarId);
+
+    if (traitNames.isEmpty) return;
+
+    // Get trait_ids from traits table
+    final traitsResponse = await _client
+        .from(DBConstansts.traits)
+        .select('id, name')
+        .inFilter('name', traitNames);
+
+    final traitIdMap = <String, int>{};
+    for (final row in traitsResponse) {
+      final id = row['id'] as int?;
+      final name = row['name'] as String?;
+      if (id != null && name != null) {
+        traitIdMap[name] = id;
+      }
+    }
+
+    // Insert new trait associations
+    final inserts = <Map<String, dynamic>>[];
+    for (final traitName in traitNames) {
+      final traitId = traitIdMap[traitName];
+      if (traitId != null) {
+        inserts.add({'avatar_id': avatarId, 'trait_id': traitId});
+      }
+    }
+
+    if (inserts.isNotEmpty) {
+      await _client.from(DBConstansts.avatarTraits).insert(inserts);
+    }
   }
 
   /// DELETE
