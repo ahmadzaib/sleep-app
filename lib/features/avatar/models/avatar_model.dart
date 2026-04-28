@@ -8,6 +8,7 @@ class AvatarModel {
   final String? voiceId;
   final String? userId;
   final bool voiceTerm;
+  final int shareCount;
 
   AvatarModel({
     this.id,
@@ -17,6 +18,7 @@ class AvatarModel {
     required this.traits,
     required this.avatarUrl,
     required this.voiceTerm,
+    this.shareCount = 0,
     this.voiceId,
     this.userId,
   });
@@ -35,6 +37,7 @@ class AvatarModel {
       avatarUrl: json['avatar_url'] ?? '',
       voiceId: json['voice_id'],
       userId: json['user_id'] ?? '',
+      shareCount: json['share_count'] ?? 0,
     );
   }
 
@@ -48,6 +51,7 @@ class AvatarModel {
       'voice_id': voiceId,
       'user_id': userId,
       'voice_term': voiceTerm,
+      'share_count': shareCount,
     };
     if (id != null) data['id'] = id;
     return data;
@@ -64,6 +68,7 @@ class AvatarModel {
     String? voiceUrl,
     String? userId,
     bool? voiceTerm,
+    int? shareCount,
   }) {
     return AvatarModel(
       id: id ?? this.id,
@@ -75,6 +80,7 @@ class AvatarModel {
       voiceId: voiceUrl ?? voiceId,
       userId: userId ?? this.userId,
       voiceTerm: voiceTerm ?? this.voiceTerm,
+      shareCount: shareCount ?? this.shareCount,
     );
   }
 }

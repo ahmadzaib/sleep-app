@@ -2,17 +2,26 @@ import 'package:avatar_flow/core/constants/app_constants.dart';
 import 'package:avatar_flow/core/constants/app_icons.dart';
 import 'package:avatar_flow/core/constants/app_images.dart';
 import 'package:avatar_flow/core/constants/mock_data.dart';
+import 'package:avatar_flow/core/router/navigation_service.dart';
+import 'package:avatar_flow/core/router/routes.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
+import 'package:avatar_flow/features/avatar/models/avatar_model.dart';
+import 'package:avatar_flow/features/avatar/providers/create_avatar_provider.dart';
+import 'package:avatar_flow/features/avatar/views/components/voice_button_widget.dart';
 import 'package:avatar_flow/widgets/custom_cache_netword_imge.dart';
 import 'package:avatar_flow/widgets/custom_icon_button.dart';
 import 'package:avatar_flow/widgets/custom_svg.dart';
 import 'package:avatar_flow/widgets/custom_text_button.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
 
 class AvatarSection extends StatelessWidget {
-  const AvatarSection({super.key});
+  final AvatarModel avatarModel;
+
+  const AvatarSection({super.key, required this.avatarModel});
 
   @override
   Widget build(BuildContext context) {
@@ -37,11 +46,32 @@ class AvatarSection extends StatelessWidget {
               ),
               Align(
                 alignment: Alignment.topCenter,
-                child: Image.asset(AppImagesPng.dummyImage, height: 250.h),
+                child: CachedNetworkImage(
+                  imageUrl: avatarModel.avatarUrl,
+                  width: double.infinity,
+                  height: 250.h,
+
+                  placeholder: (context, url) => const SizedBox.shrink(),
+
+                  errorWidget: (context, url, error) => const Icon(Icons.error),
+
+                  fadeInDuration: const Duration(milliseconds: 300),
+                  fadeInCurve: Curves.easeIn,
+                ),
               ),
               Align(
                 alignment: Alignment.centerLeft,
                 child: CustomIconButton(
+                  onPressed: () {
+                    context.read<CreateAvatarProvider>().loadAvatarForEdit(
+                      avatarModel,
+                    );
+                    NavigationService.pushNamed(
+                      AppRoutes.createAvatar,
+                      extra: true,
+                    );
+                  },
+
                   svgPath: AppIconsSvg.edit,
                   iconColor: context.appColors.primary,
                 ),
@@ -51,6 +81,7 @@ class AvatarSection extends StatelessWidget {
                 child: Padding(
                   padding: AppConstants.defaultPaddingHorizental,
                   child: CustomTextButton(
+                    onPressed: () {},
                     text: "Share",
                     iconSpacing: 6.w,
                     borderRadius: 100.r,
@@ -69,19 +100,9 @@ class AvatarSection extends StatelessWidget {
                 alignment: Alignment.bottomRight,
                 child: Padding(
                   padding: AppConstants.defaultAllPadding,
-                  child: CustomTextButton(
-                    backgroundColor: Theme.of(context).colorScheme.surface,
-                    text: "Voice",
-                    textColor: Theme.of(context).colorScheme.onSurface,
-                    iconSpacing: 6.w,
-                    borderRadius: 100.r,
-                    padding: EdgeInsets.symmetric(horizontal: 12.w),
-
-                    prefixIcon: CustomSvg(
-                      path: AppIconsSvg.play,
-                      color: Theme.of(context).colorScheme.onSurface,
-                      size: 16,
-                    ),
+                  child: VoicePlayButton(
+                    source: "assets/audio/music.mp3",
+                    isAsset: true,
                   ),
                 ),
               ),
@@ -90,7 +111,7 @@ class AvatarSection extends StatelessWidget {
         ),
         Spacing.y(2.5),
         Text(
-          "Lilian",
+          avatarModel.name,
           style: textTheme.titleLarge!.copyWith(
             fontSize: 37.sp,
             fontWeight: FontWeight.w600,

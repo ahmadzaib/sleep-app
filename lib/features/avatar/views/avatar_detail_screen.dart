@@ -5,6 +5,7 @@ import 'package:avatar_flow/core/router/navigation_service.dart';
 import 'package:avatar_flow/core/router/routes.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
+import 'package:avatar_flow/features/avatar/models/avatar_model.dart';
 import 'package:avatar_flow/features/avatar/providers/create_avatar_provider.dart';
 import 'package:avatar_flow/features/avatar/providers/avatars_provider.dart';
 import 'package:avatar_flow/features/avatar/views/components/achievement_tile.dart';
@@ -26,8 +27,8 @@ import 'package:provider/provider.dart';
 import 'package:super_tooltip/super_tooltip.dart';
 
 class AvatarDetailScreen extends StatefulWidget {
-  final int avatarId;
-  const AvatarDetailScreen({super.key, required this.avatarId});
+  final AvatarModel avatar;
+  const AvatarDetailScreen({super.key, required this.avatar});
 
   @override
   State<AvatarDetailScreen> createState() => _AvatarDetailScreenState();
@@ -51,7 +52,7 @@ class _AvatarDetailScreenState extends State<AvatarDetailScreen> {
           child: SingleChildScrollView(
             child: Column(
               children: [
-                AvatarSection(),
+                AvatarSection(avatarModel: widget.avatar),
                 Spacing.y(2),
 
                 CustomToolTip(
@@ -62,8 +63,16 @@ class _AvatarDetailScreenState extends State<AvatarDetailScreen> {
                     spacing: 8.w,
                     children: [
                       _buildChip("10 Stories", AppIconsSvg.book, context),
-                      _buildChip("10 Shares", AppIconsSvg.upload, context),
-                      _buildChip("Female", AppIconsSvg.woman, context),
+                      _buildChip(
+                        "${widget.avatar.shareCount} Shares",
+                        AppIconsSvg.upload,
+                        context,
+                      ),
+                      _buildChip(
+                        widget.avatar.gender,
+                        AppIconsSvg.woman,
+                        context,
+                      ),
                     ],
                   ),
                 ),
@@ -74,13 +83,24 @@ class _AvatarDetailScreenState extends State<AvatarDetailScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     spacing: 8.w,
                     children: [
-                      _buildSkillChip(
-                        "Adventurous",
-                        AppImagesPng.adventurous,
-                        context,
-                      ),
-                      _buildSkillChip("Fearful", AppImagesPng.poison, context),
-                      _buildSkillChip("Brave", AppImagesPng.gold, context),
+                      ...widget.avatar.traits.take(3).map((trait) {
+                        String imagePath;
+                        switch (trait.toLowerCase()) {
+                          case 'adventurous':
+                            imagePath = AppImagesPng.adventurous;
+                            break;
+                          case 'fearful':
+                          case 'fearless':
+                            imagePath = AppImagesPng.poison;
+                            break;
+                          case 'brave':
+                            imagePath = AppImagesPng.gold;
+                            break;
+                          default:
+                            imagePath = AppImagesPng.gold;
+                        }
+                        return _buildSkillChip(trait, imagePath, context);
+                      }),
                     ],
                   ),
                 ),
@@ -140,7 +160,8 @@ class _AvatarDetailScreenState extends State<AvatarDetailScreen> {
       subtitleText: "Meet and manage your character",
       widgetWithTitle: CustomToolTip(
         tooltipController: _infoTooltipCont,
-        text: "Share Lilian's profile with friends or in the community.",
+        text:
+            "Share ${widget.avatar.name}'s profile with friends or in the community.",
         child: IconButton(
           style: IconButton.styleFrom(
             alignment: Alignment.center,
@@ -176,15 +197,9 @@ class _AvatarDetailScreenState extends State<AvatarDetailScreen> {
           onSelected: (value) {
             switch (value) {
               case 'edit':
-                final avatar = context
-                    .read<AvatarsProvider>()
-                    .avatars
-                    .firstWhere(
-                      (a) => a.id == widget.avatarId,
-                      orElse: () =>
-                          context.read<AvatarsProvider>().avatars.first,
-                    );
-                context.read<CreateAvatarProvider>().loadAvatarForEdit(avatar);
+                context.read<CreateAvatarProvider>().loadAvatarForEdit(
+                  widget.avatar,
+                );
                 NavigationService.pushNamed(
                   AppRoutes.createAvatar,
                   extra: true,
@@ -212,7 +227,9 @@ class _AvatarDetailScreenState extends State<AvatarDetailScreen> {
       confirmText: "Delete",
       cancelText: "Cancel",
       onConfirm: () async {
-        await context.read<AvatarsProvider>().deleteAvatar(widget.avatarId);
+        if (widget.avatar.id != null) {
+          await context.read<AvatarsProvider>().deleteAvatar(widget.avatar.id!);
+        }
       },
     );
   }

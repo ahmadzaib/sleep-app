@@ -114,7 +114,7 @@ class _AvatarCardsState extends State<AvatarCards> {
                           () {
                             NavigationService.pushNamed(
                               AppRoutes.avatarDetail,
-                              extra: {'id': avatar.id},
+                              extra: {'avatar': avatar},
                             );
                           },
                           widget.showRemoveButton ?? false,
