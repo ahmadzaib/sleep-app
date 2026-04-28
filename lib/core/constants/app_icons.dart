@@ -18,7 +18,10 @@ class AppIconsSvg {
   static const String upload = "assets/icons/upload.svg";
   static const String play = "assets/icons/play.svg";
   static const String pause = "assets/icons/pause.svg";
+  static const String man = "assets/icons/men.svg";
   static const String woman = "assets/icons/woman.svg";
+  static const String intersex = "assets/icons/intersex.svg";
+
   static const String book = "assets/icons/book.svg";
   static const String cross = "assets/icons/cross.svg";
   static const String delete = "assets/icons/delete.svg";

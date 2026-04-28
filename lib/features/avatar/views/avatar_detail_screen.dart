@@ -70,7 +70,7 @@ class _AvatarDetailScreenState extends State<AvatarDetailScreen> {
                       ),
                       _buildChip(
                         widget.avatar.gender,
-                        AppIconsSvg.woman,
+                        getGenderIcon(widget.avatar.gender),
                         context,
                       ),
                     ],
@@ -232,6 +232,17 @@ class _AvatarDetailScreenState extends State<AvatarDetailScreen> {
         }
       },
     );
+  }
+
+  String getGenderIcon(String gender) {
+    switch (gender) {
+      case "Male":
+        return AppIconsSvg.man;
+      case "Female":
+        return AppIconsSvg.woman;
+      default:
+        return AppIconsSvg.intersex;
+    }
   }
 
   Widget _buildChip(String text, String svgPath, BuildContext context) {
