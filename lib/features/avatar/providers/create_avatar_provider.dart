@@ -7,6 +7,7 @@ import 'package:avatar_flow/core/debug/debug_point.dart';
 import 'package:avatar_flow/core/dio/dio_client.dart';
 import 'package:avatar_flow/core/router/navigation_service.dart';
 import 'package:avatar_flow/core/router/routes.dart';
+import 'package:avatar_flow/core/services/background_removal_service.dart';
 import 'package:avatar_flow/core/services/storage_service.dart';
 import 'package:avatar_flow/core/utils/toast_utils.dart';
 import 'package:avatar_flow/features/avatar/models/avatar_model.dart';
@@ -21,6 +22,8 @@ import 'package:record/record.dart';
 
 class CreateAvatarProvider extends ChangeNotifier {
   final AvatarRepo _avatarRepo = AvatarRepo();
+  final BackgroundRemovalService _backgroundRemovalService =
+      BackgroundRemovalService(DioClient());
 
   // -------------------------
   // Avatar fields
@@ -597,7 +600,9 @@ class CreateAvatarProvider extends ChangeNotifier {
 
       DebugPoint.log('Removing image background via remove.bg...');
 
-      final removedBgPath = await _removeBackground(file);
+      final removedBgPath = await _backgroundRemovalService.removeBackground(
+        file,
+      );
       if (removedBgPath != null) {
         DebugPoint.log('Background removed for preview: $removedBgPath');
         _avatarImagePath = removedBgPath;
@@ -615,56 +620,6 @@ class CreateAvatarProvider extends ChangeNotifier {
     } finally {
       _isPreparingPreview = false;
       notifyListeners();
-    }
-  }
-
-  /// Remove image background using remove.bg API
-  /// Returns path to the new image with transparent background, or null on failure
-  Future<String?> _removeBackground(File imageFile) async {
-    try {
-      final apiKey = AppConfig.removeBgApiKey;
-      if (apiKey.isEmpty) {
-        DebugPoint.log('remove.bg API key not configured, skipping BG removal');
-        return null;
-      }
-
-      final dio = DioClient();
-      final formData = FormData.fromMap({
-        'image_file': await MultipartFile.fromFile(
-          imageFile.path,
-          filename: 'avatar_image.png',
-        ),
-        'size': 'preview',
-      });
-
-      DebugPoint.log('Calling remove.bg API...');
-      final response = await dio.dio.post(
-        AppConfig.removeBgEndpoint,
-        data: formData,
-        options: Options(
-          headers: {'X-Api-Key': apiKey},
-          responseType: ResponseType.bytes,
-        ),
-      );
-
-      if (response.statusCode == 200 && response.data != null) {
-        // Save the PNG with transparent background
-        final tempDir = await Directory.systemTemp.createTemp();
-        final outputPath =
-            '${tempDir.path}/avatar_nobg_${DateTime.now().millisecondsSinceEpoch}.png';
-        final outputFile = File(outputPath);
-        await outputFile.writeAsBytes(response.data);
-
-        final fileSize = await outputFile.length();
-        DebugPoint.log('BG removed image saved: $outputPath ($fileSize bytes)');
-        return outputPath;
-      } else {
-        DebugPoint.error('remove.bg failed: ${response.statusCode}');
-        return null;
-      }
-    } catch (e) {
-      DebugPoint.error('remove.bg API error: $e');
-      return null;
     }
   }
 
