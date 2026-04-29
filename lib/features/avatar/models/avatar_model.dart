@@ -51,11 +51,11 @@ class AvatarModel {
   }
 
   /// TO JSON (for Supabase insert/update)
+  /// NOTE: traits are NOT included - they go to avatar_traits junction table separately
   Map<String, dynamic> toJson() {
     final data = <String, dynamic>{
       'name': name,
       'gender': gender,
-      'traits': traits.map((t) => t.toJson()).toList(),
       'avatar_url': avatarUrl,
       'voice_id': voiceId,
       'user_id': userId,

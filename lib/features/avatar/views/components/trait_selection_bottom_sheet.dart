@@ -42,11 +42,13 @@ class _TraitSelectionBottomSheetState extends State<TraitSelectionBottomSheet> {
   @override
   void initState() {
     super.initState();
-    // Fetch traits if not already loaded
-    if (widget.provider.availableTraits.isEmpty &&
-        !widget.provider.isLoadingTraits) {
-      widget.provider.fetchAvailableTraits();
-    }
+    // Fetch traits after first frame is built (avoids setState during build)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.provider.availableTraits.isEmpty &&
+          !widget.provider.isLoadingTraits) {
+        widget.provider.fetchAvailableTraits();
+      }
+    });
   }
 
   @override
