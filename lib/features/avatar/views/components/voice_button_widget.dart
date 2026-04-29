@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:avatar_flow/core/services/voice_clone_service.dart';
+import 'package:avatar_flow/widgets/app_loading.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:path_provider/path_provider.dart';
@@ -232,14 +233,7 @@ class _VoiceTTSButtonState extends State<VoiceTTSButton> {
             mainAxisSize: MainAxisSize.min,
             children: [
               if (isLoading)
-                SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(iconC),
-                  ),
-                )
+                SizedBox(width: 18, height: 18, child: AppLoading())
               else
                 Icon(
                   isPlaying ? Icons.pause : Icons.play_arrow,

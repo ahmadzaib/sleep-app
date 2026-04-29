@@ -189,7 +189,7 @@ class _RecordVoicePageState extends State<RecordVoicePage> {
                     Text(
                       hasRecording
                           ? (transcript ?? "Transcript not available")
-                          : "Record your voice to generate transcript",
+                          : "Record your voice to clone",
                       textAlign: TextAlign.center,
                       style: textTheme.headlineMedium?.copyWith(
                         fontWeight: FontWeight.w500,
