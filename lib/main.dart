@@ -53,7 +53,7 @@ void main() async {
   };
 
   // await initialize();
-  await initDependencies();
+  // await initDependencies();
 
   // Initialize local notifications with enhanced setup
   // if (!kIsWeb) {
