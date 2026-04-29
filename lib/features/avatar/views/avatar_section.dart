@@ -100,9 +100,9 @@ class AvatarSection extends StatelessWidget {
                 alignment: Alignment.bottomRight,
                 child: Padding(
                   padding: AppConstants.defaultAllPadding,
-                  child: VoicePlayButton(
-                    source: "assets/audio/music.mp3",
-                    isAsset: true,
+                  child: VoiceTTSButton(
+                    voiceId: avatarModel.voiceId,
+                    text: "Hi, I'm ${avatarModel.name}. Nice to meet you!",
                   ),
                 ),
               ),

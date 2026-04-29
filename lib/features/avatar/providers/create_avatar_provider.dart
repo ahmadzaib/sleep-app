@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
-import 'package:avatar_flow/core/config/appconfig.dart';
 import 'package:avatar_flow/core/constants/db_constants.dart';
 import 'package:avatar_flow/core/debug/debug_point.dart';
 import 'package:avatar_flow/core/dio/dio_client.dart';
@@ -10,13 +9,13 @@ import 'package:avatar_flow/core/router/navigation_service.dart';
 import 'package:avatar_flow/core/router/routes.dart';
 import 'package:avatar_flow/core/services/background_removal_service.dart';
 import 'package:avatar_flow/core/services/storage_service.dart';
+import 'package:avatar_flow/core/services/voice_clone_service.dart';
 import 'package:avatar_flow/core/utils/toast_utils.dart';
 import 'package:avatar_flow/features/avatar/models/avatar_model.dart';
 import 'package:avatar_flow/features/avatar/models/trait_model.dart';
 import 'package:avatar_flow/features/avatar/providers/avatars_provider.dart';
 import 'package:avatar_flow/features/avatar/repo/avatar_repo.dart';
 import 'package:avatar_flow/features/prompt_ai/providers/prompt_ai_provider.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:path_provider/path_provider.dart';
@@ -81,8 +80,15 @@ class CreateAvatarProvider extends ChangeNotifier {
   // -------------------------
   // Voice source selection
   // -------------------------
-  static const String defaultVoiceId = 'default_voice';
+  // ElevenLabs default voice IDs based on gender
+  static const String defaultMaleVoiceId = 'IKne3meq5aSn9XLyUdCD'; // Adam
+  static const String defaultFemaleVoiceId = 'EXAVITQu4vr4xnSDxMaL'; // Sarah
   static const String defaultVoiceName = 'Default Voice';
+
+  /// Get default voice ID based on selected gender
+  String get defaultVoiceId => selectedGender.toLowerCase() == 'male'
+      ? defaultMaleVoiceId
+      : defaultFemaleVoiceId;
 
   String? _selectedSampleVoiceId;
   String? get selectedSampleVoiceId => _selectedSampleVoiceId;
@@ -339,13 +345,6 @@ class CreateAvatarProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // -------------------------
-  // ElevenLabs API - Voice Cloning
-  // -------------------------
-  static String get _elevenLabsApiKey => AppConfig.elevenLabsApiKey;
-  static String get _elevenLabsEndpoint =>
-      '${AppConfig.elevenLabsEndpoint}/voices/add';
-
   /// Upload voice to ElevenLabs and get voice ID
   /// Returns voice ID based on source: recorded (cloned), sample (used as-is), or default
   Future<String?> getOrCreateVoiceId() async {
@@ -361,62 +360,31 @@ class CreateAvatarProvider extends ChangeNotifier {
       return _selectedSampleVoiceId;
     }
 
-    // If recorded voice, clone it to ElevenLabs
+    // If recorded voice, clone it to ElevenLabs using VoiceCloneService
     if (hasRecordedVoice && audioPath != null) {
       try {
-        // Check API key first
-        DebugPoint.log(
-          'ElevenLabs API Key configured: ${_elevenLabsApiKey.isNotEmpty}',
-        );
-        DebugPoint.log(
-          'ElevenLabs API Key length: ${_elevenLabsApiKey.length}',
-        );
+        DebugPoint.log('Cloning voice with VoiceCloneService...');
+        ToastUtils.show('Cloning your voice...');
 
-        if (_elevenLabsApiKey.isEmpty) {
-          ToastUtils.error(
-            'ElevenLabs API key not configured. Check .env file',
-          );
-          return null;
-        }
-
-        ToastUtils.show('Cloning your voice with ElevenLabs...');
-        DebugPoint.log('Cloning voice from file: ${audioPath!}');
-
-        final dio = DioClient();
+        final voiceCloneService = VoiceCloneService();
         final file = File(audioPath!);
-
-        // Create multipart form data
-        final formData = FormData.fromMap({
-          'name': voiceName.isNotEmpty ? voiceName : avatarName,
-          'description': 'Voice cloned for $avatarName',
-          'files': await MultipartFile.fromFile(
-            file.path,
-            filename: 'voice_sample.mp3',
-          ),
-        });
-
-        final response = await dio.dio.post(
-          _elevenLabsEndpoint,
-          data: formData,
-          options: Options(headers: {'xi-api-key': _elevenLabsApiKey}),
+        final clonedVoiceId = await voiceCloneService.cloneVoice(
+          name: voiceName.isNotEmpty ? voiceName : avatarName,
+          audioFile: file,
         );
 
-        DebugPoint.log('ElevenLabs Response status: ${response.statusCode}');
-        DebugPoint.debug('Response data: ${response.data}');
-
-        if (response.statusCode == 200) {
-          final voiceId = response.data['voice_id'];
-          DebugPoint.log('Voice cloned successfully! ID: $voiceId');
-          ToastUtils.success('Voice cloned successfully!');
-          return voiceId;
+        if (clonedVoiceId != null) {
+          DebugPoint.log('Voice cloned successfully: $clonedVoiceId');
+          ToastUtils.success('Voice cloned!');
+          return clonedVoiceId;
         } else {
-          DebugPoint.error('Failed to clone voice: ${response.statusCode}');
-          ToastUtils.error('Failed to clone voice: ${response.statusCode}');
+          DebugPoint.error('Failed to clone voice');
+          ToastUtils.error('Failed to clone voice');
           return null;
         }
       } catch (e) {
-        DebugPoint.error('ElevenLabs API Error: $e');
-        ToastUtils.error('ElevenLabs API Error: $e');
+        DebugPoint.error('VoiceCloneService Error: $e');
+        ToastUtils.error('Voice cloning failed: $e');
         return null;
       }
     }
@@ -440,6 +408,42 @@ class CreateAvatarProvider extends ChangeNotifier {
 
     _isCreating = true;
     notifyListeners();
+
+    // Voice ID from ElevenLabs
+    // Start with gender-appropriate default voice
+    String voiceId = defaultVoiceId;
+    DebugPoint.log('Default voice for $selectedGender: $voiceId');
+
+    // If recorded voice, clone it to ElevenLabs first
+    if (hasRecordedVoice && audioPath != null) {
+      try {
+        DebugPoint.log('Cloning voice with VoiceCloneService...');
+        ToastUtils.show('Cloning your voice...');
+
+        final voiceCloneService = VoiceCloneService();
+        final file = File(audioPath!);
+        final clonedVoiceId = await voiceCloneService.cloneVoice(
+          name: voiceName.isNotEmpty ? voiceName : '$avatarName\'s Voice',
+          audioFile: file,
+        );
+
+        if (clonedVoiceId != null) {
+          voiceId = clonedVoiceId;
+          DebugPoint.log('Voice cloned successfully: $voiceId');
+          ToastUtils.success('Voice cloned!');
+        } else {
+          DebugPoint.error('Failed to clone voice');
+          ToastUtils.error('Failed to clone voice, using default voice');
+        }
+      } catch (e) {
+        DebugPoint.error('Error cloning voice: $e');
+        ToastUtils.error('Voice cloning failed: $e');
+      }
+    } else if (hasSampleVoice && _selectedSampleVoiceId != null) {
+      // Use selected sample voice
+      voiceId = _selectedSampleVoiceId!;
+      DebugPoint.log('Using sample voice: $voiceId');
+    }
 
     try {
       // If a new local image was picked, upload it first
@@ -467,7 +471,7 @@ class CreateAvatarProvider extends ChangeNotifier {
         gender: selectedGender,
         traits: traits,
         avatarUrl: storageUrl ?? '',
-        voiceId: _selectedSampleVoiceId,
+        voiceId: voiceId,
       );
 
       await _avatarRepo.updateAvatar(updated);
@@ -521,9 +525,41 @@ class CreateAvatarProvider extends ChangeNotifier {
     _isCreating = true;
     notifyListeners();
 
-    // TODO: Voice ID generation - commented for now
-    // String? voiceId = await getOrCreateVoiceId();
-    // DebugPoint.log('Voice ID result: $voiceId');
+    // Voice ID from ElevenLabs
+    // Start with gender-appropriate default voice
+    String voiceId = defaultVoiceId;
+    DebugPoint.log('Default voice for $selectedGender: $voiceId');
+
+    // If recorded voice, clone it to ElevenLabs first
+    if (hasRecordedVoice && audioPath != null) {
+      try {
+        DebugPoint.log('Cloning voice with VoiceCloneService...');
+        ToastUtils.show('Cloning your voice...');
+
+        final voiceCloneService = VoiceCloneService();
+        final file = File(audioPath!);
+        final clonedVoiceId = await voiceCloneService.cloneVoice(
+          name: voiceName.isNotEmpty ? voiceName : '$avatarName\'s Voice',
+          audioFile: file,
+        );
+
+        if (clonedVoiceId != null) {
+          voiceId = clonedVoiceId;
+          DebugPoint.log('Voice cloned successfully: $voiceId');
+          ToastUtils.success('Voice cloned!');
+        } else {
+          DebugPoint.error('Failed to clone voice');
+          ToastUtils.error('Failed to clone voice, using default voice');
+        }
+      } catch (e) {
+        DebugPoint.error('Error cloning voice: $e');
+        ToastUtils.error('Voice cloning failed: $e');
+      }
+    } else if (hasSampleVoice && _selectedSampleVoiceId != null) {
+      // Use selected sample voice
+      voiceId = _selectedSampleVoiceId!;
+      DebugPoint.log('Using sample voice: $voiceId');
+    }
 
     try {
       // Step 1: Upload image to Supabase Storage (BG already removed in preview)
@@ -572,7 +608,7 @@ class CreateAvatarProvider extends ChangeNotifier {
         gender: selectedGender,
         traits: traits,
         avatarUrl: storageUrl,
-        voiceId: null, // TODO: add voice ID when voice cloning is enabled
+        voiceId: voiceId,
         color: color,
       );
 
