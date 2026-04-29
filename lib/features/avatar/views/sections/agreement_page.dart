@@ -2,6 +2,7 @@ import 'package:avatar_flow/core/constants/app_constants.dart';
 import 'package:avatar_flow/core/constants/app_icons.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
+import 'package:avatar_flow/features/auth/services/auth_service.dart';
 import 'package:avatar_flow/features/avatar/providers/create_avatar_provider.dart';
 import 'package:avatar_flow/features/avatar/views/components/sample_voices_bottom_sheet.dart';
 import 'package:avatar_flow/widgets/circled_icon_widget.dart';
@@ -109,7 +110,15 @@ class AgreementPage extends StatelessWidget {
                   builder: (context, value, child) => CustomButton(
                     isDisabled: !value.isAgreed,
                     text: "Next",
-                    onPressed: () {
+                    onPressed: () async {
+                      // Save agreement to user profile
+                      final userId = AuthService.currentUser?.id;
+                      if (userId != null) {
+                        await AuthService.updateVoiceAgreement(
+                          id: userId,
+                          accepted: true,
+                        );
+                      }
                       value.nextVoiceStep();
                     },
                   ),

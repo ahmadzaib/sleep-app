@@ -142,7 +142,6 @@ class AvatarRepo {
       'gender': avatar.gender,
       'avatar_url': avatar.avatarUrl,
       'voice_id': avatar.voiceId,
-      'voice_term': avatar.voiceTerm,
     };
 
     final response = await _client

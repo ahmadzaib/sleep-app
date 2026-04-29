@@ -468,7 +468,6 @@ class CreateAvatarProvider extends ChangeNotifier {
         traits: traits,
         avatarUrl: storageUrl ?? '',
         voiceId: _selectedSampleVoiceId,
-        voiceTerm: isAgreed,
       );
 
       await _avatarRepo.updateAvatar(updated);
@@ -574,7 +573,6 @@ class CreateAvatarProvider extends ChangeNotifier {
         traits: traits,
         avatarUrl: storageUrl,
         voiceId: null, // TODO: add voice ID when voice cloning is enabled
-        voiceTerm: isAgreed,
         color: color,
       );
 
