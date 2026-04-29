@@ -12,6 +12,7 @@ class AvatarModel {
   final bool voiceTerm;
   final int shareCount;
   final int storiesCount;
+  final String? color;
 
   AvatarModel({
     this.id,
@@ -23,6 +24,7 @@ class AvatarModel {
     required this.voiceTerm,
     this.shareCount = 0,
     this.storiesCount = 0,
+    this.color,
     this.voiceId,
     this.userId,
   });
@@ -47,6 +49,7 @@ class AvatarModel {
       userId: json['user_id'] ?? '',
       shareCount: json['share_count'] ?? 0,
       storiesCount: json['stories_count'] ?? 0,
+      color: json['color'] as String?,
     );
   }
 
@@ -62,6 +65,7 @@ class AvatarModel {
       'voice_term': voiceTerm,
       'share_count': shareCount,
       'stories_count': storiesCount,
+      'color': color,
     };
     if (id != null) data['id'] = id;
     return data;
@@ -80,6 +84,7 @@ class AvatarModel {
     bool? voiceTerm,
     int? shareCount,
     int? storiesCount,
+    String? color,
   }) {
     return AvatarModel(
       id: id ?? this.id,
@@ -93,6 +98,7 @@ class AvatarModel {
       voiceTerm: voiceTerm ?? this.voiceTerm,
       shareCount: shareCount ?? this.shareCount,
       storiesCount: storiesCount ?? this.storiesCount,
+      color: color ?? this.color,
     );
   }
 }

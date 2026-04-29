@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:avatar_flow/core/config/appconfig.dart';
 import 'package:avatar_flow/core/constants/db_constants.dart';
@@ -33,6 +34,8 @@ class CreateAvatarProvider extends ChangeNotifier {
   String avatarName = "Lilian";
   String selectedGender = "Female";
   List<TraitModel> traits = [];
+  String? _avatarColor; // Random hex color for avatar background
+  String? get avatarColor => _avatarColor;
   String selectedVoice = "Voice 1";
   String prompt = "";
   String? _avatarImagePath; // Local file path for preview
@@ -555,6 +558,10 @@ class CreateAvatarProvider extends ChangeNotifier {
         return;
       }
 
+      // Use existing color or generate new one
+      final color = _avatarColor ?? _generateRandomColor();
+      DebugPoint.log('Using avatar color: $color');
+
       // Step 2: Build avatar model with storage URL
       final avatar = AvatarModel(
         name: avatarName,
@@ -563,6 +570,7 @@ class CreateAvatarProvider extends ChangeNotifier {
         avatarUrl: storageUrl,
         voiceId: null, // TODO: add voice ID when voice cloning is enabled
         voiceTerm: isAgreed,
+        color: color,
       );
 
       DebugPoint.log('Creating avatar in database...');
@@ -671,8 +679,31 @@ class CreateAvatarProvider extends ChangeNotifier {
       voicePageController.jumpToPage(0);
     }
 
+    // Reset color
+    _avatarColor = null;
+
     DebugPoint.log('CreateAvatarProvider reset');
     notifyListeners();
+  }
+
+  /// Generate a random hex color string (e.g., "#FF5733")
+  String _generateRandomColor() {
+    final random = Random();
+    final r = random.nextInt(256);
+    final g = random.nextInt(256);
+    final b = random.nextInt(256);
+    return '#${r.toRadixString(16).padLeft(2, '0')}${g.toRadixString(16).padLeft(2, '0')}${b.toRadixString(16).padLeft(2, '0')}';
+  }
+
+  /// Generate or get the avatar color (used for preview)
+  Color getBackgroundColor() {
+    if (_avatarColor == null) {
+      _avatarColor = _generateRandomColor();
+      DebugPoint.log('Generated new avatar color: $_avatarColor');
+    }
+    final hex = _avatarColor!.replaceFirst('#', '');
+    final color = Color(int.parse('FF$hex', radix: 16));
+    return color;
   }
 
   @override

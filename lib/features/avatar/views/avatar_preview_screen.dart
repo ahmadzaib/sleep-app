@@ -119,7 +119,7 @@ class _AvatarPreviewCard extends StatelessWidget {
                 child: Container(
                   height: 0.18.sh,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF6EED8),
+                    color: provider.getBackgroundColor(),
                     borderRadius: BorderRadius.circular(24.r),
                   ),
                 ),

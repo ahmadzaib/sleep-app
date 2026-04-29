@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:avatar_flow/core/constants/app_constants.dart';
 import 'package:avatar_flow/core/constants/app_icons.dart';
 import 'package:avatar_flow/core/constants/app_images.dart';
+import 'package:avatar_flow/core/debug/debug_point.dart';
 import 'package:avatar_flow/core/router/navigation_service.dart';
 import 'package:avatar_flow/core/router/routes.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
@@ -119,7 +120,7 @@ class _AvatarCardsState extends State<AvatarCards> {
                           },
                           widget.showRemoveButton ?? false,
                           widget.onRemoveTap ?? () {},
-                          Colors.red,
+                          _getAvatarColor(avatar),
                         ),
                       ),
                     );
@@ -259,6 +260,19 @@ class _AvatarCardsState extends State<AvatarCards> {
           ),
       ],
     );
+  }
+
+  /// Get avatar background color from hex string or fallback to red
+  Color _getAvatarColor(AvatarModel avatar) {
+    if (avatar.color != null && avatar.color!.isNotEmpty) {
+      try {
+        final hex = avatar.color!.replaceFirst('#', '');
+        return Color(int.parse('FF$hex', radix: 16)).withValues(alpha: 0.3);
+      } catch (e) {
+        DebugPoint.error('Failed to parse avatar color: ${avatar.color}');
+      }
+    }
+    return Colors.red.withValues(alpha: 0.3);
   }
 
   @override
