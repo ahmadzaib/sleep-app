@@ -1,6 +1,5 @@
 import 'package:avatar_flow/core/constants/app_constants.dart';
 import 'package:avatar_flow/core/constants/app_icons.dart';
-import 'package:avatar_flow/core/constants/app_images.dart';
 import 'package:avatar_flow/core/constants/mock_data.dart';
 import 'package:avatar_flow/core/router/navigation_service.dart';
 import 'package:avatar_flow/core/router/routes.dart';

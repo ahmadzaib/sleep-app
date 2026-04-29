@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'dart:ui';
 import 'package:avatar_flow/core/constants/app_constants.dart';
 import 'package:avatar_flow/core/constants/app_icons.dart';
