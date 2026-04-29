@@ -52,6 +52,10 @@ class CreateAvatarProvider extends ChangeNotifier {
   String? _traitsError;
   String? get traitsError => _traitsError;
 
+  // Max traits limit
+  static const int maxTraits = 3;
+  bool get hasReachedMaxTraits => traits.length >= maxTraits;
+
   bool get isCreating => _isCreating;
   bool get isPreparingPreview => _isPreparingPreview;
 

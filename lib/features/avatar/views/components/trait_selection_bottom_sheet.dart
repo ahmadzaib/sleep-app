@@ -161,15 +161,16 @@ class _TraitSelectionBottomSheetState extends State<TraitSelectionBottomSheet> {
                   children: suggestions
                       .map(
                         (trait) => InkWell(
-                          onTap: () {
-                            controller.text = trait.name;
-                            controller.selection = TextSelection.collapsed(
-                              offset: controller.text.length,
-                            );
-                            setModalState(() {
-                              query = trait.name;
-                            });
-                          },
+                          onTap: widget.provider.hasReachedMaxTraits
+                              ? null // Disable when max reached
+                              : () {
+                                  // Add trait immediately and clear search
+                                  widget.provider.addTrait(trait);
+                                  controller.clear();
+                                  setModalState(() {
+                                    query = '';
+                                  });
+                                },
                           borderRadius: BorderRadius.circular(999.r),
                           child: Container(
                             padding: EdgeInsets.symmetric(
@@ -179,14 +180,22 @@ class _TraitSelectionBottomSheetState extends State<TraitSelectionBottomSheet> {
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(999.r),
                               border: Border.all(
-                                color: context.appColors.lightGrey,
+                                color: widget.provider.hasReachedMaxTraits
+                                    ? context.appColors.lightGrey.withValues(
+                                        alpha: 0.5,
+                                      )
+                                    : context.appColors.lightGrey,
                               ),
                               color: Colors.transparent,
                             ),
                             child: Text(
                               trait.name,
                               style: textTheme.bodySmall?.copyWith(
-                                color: context.appColors.grey,
+                                color: widget.provider.hasReachedMaxTraits
+                                    ? context.appColors.grey.withValues(
+                                        alpha: 0.5,
+                                      )
+                                    : context.appColors.grey,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -196,23 +205,58 @@ class _TraitSelectionBottomSheetState extends State<TraitSelectionBottomSheet> {
                       .toList(),
                 ),
               ],
+              // Show selected traits count
+              if (widget.provider.traits.isNotEmpty) ...[
+                Spacing.y(1.6),
+                Text(
+                  '${widget.provider.traits.length}/${CreateAvatarProvider.maxTraits} traits selected',
+                  style: textTheme.bodySmall?.copyWith(
+                    color: widget.provider.hasReachedMaxTraits
+                        ? context.appColors.primary
+                        : context.appColors.grey,
+                    fontWeight: widget.provider.hasReachedMaxTraits
+                        ? FontWeight.w600
+                        : FontWeight.normal,
+                  ),
+                ),
+              ],
+              // Show max reached message
+              if (widget.provider.hasReachedMaxTraits) ...[
+                Spacing.y(1),
+                Text(
+                  'Maximum ${CreateAvatarProvider.maxTraits} traits reached',
+                  style: textTheme.bodySmall?.copyWith(
+                    color: context.appColors.primary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
               Spacing.y(2),
-              CustomButton(
-                text: "Add Trait",
-                onPressed: canAdd
-                    ? () {
-                        final trait = TraitModel(
-                          id: DateTime.now().millisecondsSinceEpoch,
-                          name: normalizedQuery,
-                        );
-                        widget.provider.addTrait(trait);
-                        Navigator.of(context).pop();
-                      }
-                    : null,
-                isDisabled: !canAdd,
-                buttonColor: context.appColors.secondary,
-                textColor: Theme.of(context).colorScheme.onPrimary,
-              ),
+              // Custom trait button (only when search doesn't match existing AND not at max)
+              if (canAdd && !widget.provider.hasReachedMaxTraits)
+                CustomButton(
+                  text: "Add \"$normalizedQuery\"",
+                  onPressed: () {
+                    final trait = TraitModel(
+                      id: DateTime.now().millisecondsSinceEpoch,
+                      name: normalizedQuery,
+                    );
+                    widget.provider.addTrait(trait);
+                    controller.clear();
+                    setModalState(() {
+                      query = '';
+                    });
+                  },
+                  buttonColor: context.appColors.secondary,
+                  textColor: Theme.of(context).colorScheme.onPrimary,
+                )
+              else
+                CustomButton(
+                  text: "Done",
+                  onPressed: () => Navigator.of(context).pop(),
+                  buttonColor: context.appColors.primary,
+                  textColor: Theme.of(context).colorScheme.onPrimary,
+                ),
             ],
           ),
         );
