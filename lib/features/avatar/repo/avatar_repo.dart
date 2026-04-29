@@ -201,4 +201,14 @@ class AvatarRepo {
       return false;
     }
   }
+
+  /// GET ALL traits from traits table
+  Future<List<TraitModel>> getAllTraits() async {
+    final response = await _client
+        .from(DBConstansts.traits)
+        .select('id, name, image_url')
+        .order('name', ascending: true);
+
+    return (response as List).map((e) => TraitModel.fromJson(e)).toList();
+  }
 }

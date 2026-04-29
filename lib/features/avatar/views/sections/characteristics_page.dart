@@ -3,8 +3,8 @@ import 'package:avatar_flow/core/router/navigation_service.dart';
 import 'package:avatar_flow/core/router/routes.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
-import 'package:avatar_flow/features/avatar/models/trait_model.dart';
 import 'package:avatar_flow/features/avatar/providers/create_avatar_provider.dart';
+import 'package:avatar_flow/widgets/app_loading.dart';
 import 'package:avatar_flow/widgets/custom_button.dart';
 import 'package:avatar_flow/widgets/custom_svg.dart';
 import 'package:avatar_flow/widgets/custom_textfield.dart';
@@ -26,6 +26,15 @@ class _CharacterCharacteristicsPageState
   String _query = '';
 
   @override
+  void initState() {
+    super.initState();
+    // Fetch traits from Supabase when page loads
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<CreateAvatarProvider>().fetchAvailableTraits();
+    });
+  }
+
+  @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
@@ -42,7 +51,8 @@ class _CharacterCharacteristicsPageState
           final selectedTraits = provider.traits;
           final query = _query.trim().toLowerCase();
 
-          final suggestions = CreateAvatarProvider.traitSuggestions
+          final availableTraits = provider.availableTraits;
+          final suggestions = availableTraits
               .where(
                 (t) =>
                     !selectedTraits.any((st) => st.name == t.name) &&
@@ -116,43 +126,71 @@ class _CharacterCharacteristicsPageState
               Text('All', style: textTheme.headlineMedium),
               Spacing.y(2),
 
-              Wrap(
-                spacing: 8.w,
-                runSpacing: 8.h,
-                children: suggestions.isNotEmpty
-                    ? suggestions
-                          .map(
-                            (trait) => InkWell(
-                              onTap: () => provider.toggleTrait(trait),
-                              borderRadius: BorderRadius.circular(999.r),
-                              child: Container(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 12.w,
-                                  vertical: 8.h,
-                                ),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(999.r),
-                                  border: Border.all(
-                                    color: context.appColors.lightGrey,
+              // Show loading while fetching traits
+              if (provider.isLoadingTraits)
+                const Center(child: AppLoading(size: 40))
+              else if (provider.traitsError != null)
+                Center(
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        color: context.appColors.error,
+                        size: 32,
+                      ),
+                      Spacing.y(1),
+                      Text(
+                        'Failed to load traits',
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: context.appColors.error,
+                        ),
+                      ),
+                      Spacing.y(1),
+                      TextButton(
+                        onPressed: () => provider.fetchAvailableTraits(),
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
+                )
+              else
+                Wrap(
+                  spacing: 8.w,
+                  runSpacing: 8.h,
+                  children: suggestions.isNotEmpty
+                      ? suggestions
+                            .map(
+                              (trait) => InkWell(
+                                onTap: () => provider.toggleTrait(trait),
+                                borderRadius: BorderRadius.circular(999.r),
+                                child: Container(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 12.w,
+                                    vertical: 8.h,
                                   ),
-                                ),
-                                child: Text(
-                                  trait.name,
-                                  style: textTheme.bodySmall?.copyWith(
-                                    fontWeight: FontWeight.w600,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(999.r),
+                                    border: Border.all(
+                                      color: context.appColors.lightGrey,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    trait.name,
+                                    style: textTheme.bodySmall?.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                          )
-                          .toList()
-                    : [
-                        Text(
-                          'No traits found',
-                          style: textTheme.bodySmall?.copyWith(),
-                        ),
-                      ],
-              ),
+                            )
+                            .toList()
+                      : [
+                          Text(
+                            'No traits found',
+                            style: textTheme.bodySmall?.copyWith(),
+                          ),
+                        ],
+                ),
               const Spacer(),
               CustomButton(
                 text: 'Next',

@@ -4,34 +4,17 @@ import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
 import 'package:avatar_flow/features/avatar/models/trait_model.dart';
 import 'package:avatar_flow/features/avatar/providers/create_avatar_provider.dart';
+import 'package:avatar_flow/widgets/app_loading.dart';
 import 'package:avatar_flow/widgets/custom_button.dart';
 import 'package:avatar_flow/widgets/custom_svg.dart';
 import 'package:avatar_flow/widgets/custom_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-class TraitSelectionBottomSheet extends StatelessWidget {
+class TraitSelectionBottomSheet extends StatefulWidget {
   const TraitSelectionBottomSheet({super.key, required this.provider});
 
   final CreateAvatarProvider provider;
-
-  static final List<TraitModel> traitSuggestions = [
-    TraitModel(id: 1, name: 'Adventurous'),
-    TraitModel(id: 2, name: 'Brave'),
-    TraitModel(id: 3, name: 'Bold'),
-    TraitModel(id: 4, name: 'Calm'),
-    TraitModel(id: 5, name: 'Charismatic'),
-    TraitModel(id: 6, name: 'Cheerful'),
-    TraitModel(id: 7, name: 'Curious'),
-    TraitModel(id: 8, name: 'Creative'),
-    TraitModel(id: 9, name: 'Fearless'),
-    TraitModel(id: 10, name: 'Friendly'),
-    TraitModel(id: 11, name: 'Kind'),
-    TraitModel(id: 12, name: 'Loyal'),
-    TraitModel(id: 13, name: 'Playful'),
-    TraitModel(id: 14, name: 'Smart'),
-    TraitModel(id: 15, name: 'Wise'),
-  ];
 
   static Future<void> show(
     BuildContext context, {
@@ -51,6 +34,22 @@ class TraitSelectionBottomSheet extends StatelessWidget {
   }
 
   @override
+  State<TraitSelectionBottomSheet> createState() =>
+      _TraitSelectionBottomSheetState();
+}
+
+class _TraitSelectionBottomSheetState extends State<TraitSelectionBottomSheet> {
+  @override
+  void initState() {
+    super.initState();
+    // Fetch traits if not already loaded
+    if (widget.provider.availableTraits.isEmpty &&
+        !widget.provider.isLoadingTraits) {
+      widget.provider.fetchAvailableTraits();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final TextEditingController controller = TextEditingController();
@@ -58,17 +57,18 @@ class TraitSelectionBottomSheet extends StatelessWidget {
 
     return StatefulBuilder(
       builder: (context, setModalState) {
-        final suggestions = traitSuggestions
+        final availableTraits = widget.provider.availableTraits;
+        final suggestions = availableTraits
             .where(
               (trait) =>
-                  !provider.traits.any((t) => t.name == trait.name) &&
+                  !widget.provider.traits.any((t) => t.name == trait.name) &&
                   trait.name.toLowerCase().contains(query.toLowerCase()),
             )
             .toList();
         final normalizedQuery = query.trim();
         final canAdd =
             normalizedQuery.isNotEmpty &&
-            !provider.traits.any(
+            !widget.provider.traits.any(
               (trait) =>
                   trait.name.toLowerCase() == normalizedQuery.toLowerCase(),
             );
@@ -126,7 +126,34 @@ class TraitSelectionBottomSheet extends StatelessWidget {
                   return null;
                 },
               ),
-              if (suggestions.isNotEmpty) ...[
+              // Show loading or suggestions
+              if (widget.provider.isLoadingTraits)
+                const Center(child: AppLoading(size: 40))
+              else if (widget.provider.traitsError != null)
+                Center(
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        color: context.appColors.error,
+                        size: 32,
+                      ),
+                      Spacing.y(1),
+                      Text(
+                        'Failed to load traits',
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: context.appColors.error,
+                        ),
+                      ),
+                      Spacing.y(1),
+                      TextButton(
+                        onPressed: () => widget.provider.fetchAvailableTraits(),
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
+                )
+              else if (suggestions.isNotEmpty) ...[
                 Spacing.y(1.6),
                 Wrap(
                   spacing: 8.w,
@@ -178,7 +205,7 @@ class TraitSelectionBottomSheet extends StatelessWidget {
                           id: DateTime.now().millisecondsSinceEpoch,
                           name: normalizedQuery,
                         );
-                        provider.addTrait(trait);
+                        widget.provider.addTrait(trait);
                         Navigator.of(context).pop();
                       }
                     : null,

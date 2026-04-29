@@ -32,10 +32,7 @@ class CreateAvatarProvider extends ChangeNotifier {
   int currentIndex = 0;
   String avatarName = "Lilian";
   String selectedGender = "Female";
-  List<TraitModel> traits = [
-    TraitModel(id: 1, name: "Adventurous"),
-    TraitModel(id: 2, name: "Charismatic"),
-  ];
+  List<TraitModel> traits = [];
   String selectedVoice = "Voice 1";
   String prompt = "";
   String? _avatarImagePath; // Local file path for preview
@@ -44,6 +41,16 @@ class CreateAvatarProvider extends ChangeNotifier {
   String? get avatarImageUrl => _avatarImageUrl;
   bool _isCreating = false;
   bool _isPreparingPreview = false;
+
+  // -------------------------
+  // Traits from Supabase
+  // -------------------------
+  List<TraitModel> _availableTraits = [];
+  List<TraitModel> get availableTraits => _availableTraits;
+  bool _isLoadingTraits = false;
+  bool get isLoadingTraits => _isLoadingTraits;
+  String? _traitsError;
+  String? get traitsError => _traitsError;
 
   bool get isCreating => _isCreating;
   bool get isPreparingPreview => _isPreparingPreview;
@@ -146,23 +153,23 @@ class CreateAvatarProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  static final List<TraitModel> traitSuggestions = [
-    TraitModel(id: 1, name: 'Adventurous'),
-    TraitModel(id: 2, name: 'Brave'),
-    TraitModel(id: 3, name: 'Bold'),
-    TraitModel(id: 4, name: 'Calm'),
-    TraitModel(id: 5, name: 'Charismatic'),
-    TraitModel(id: 6, name: 'Cheerful'),
-    TraitModel(id: 7, name: 'Curious'),
-    TraitModel(id: 8, name: 'Creative'),
-    TraitModel(id: 9, name: 'Fearless'),
-    TraitModel(id: 10, name: 'Friendly'),
-    TraitModel(id: 11, name: 'Kind'),
-    TraitModel(id: 12, name: 'Loyal'),
-    TraitModel(id: 13, name: 'Playful'),
-    TraitModel(id: 14, name: 'Smart'),
-    TraitModel(id: 15, name: 'Wise'),
-  ];
+  /// Fetch all available traits from Supabase
+  Future<void> fetchAvailableTraits() async {
+    _isLoadingTraits = true;
+    _traitsError = null;
+    notifyListeners();
+
+    try {
+      _availableTraits = await _avatarRepo.getAllTraits();
+      DebugPoint.log('Fetched ${_availableTraits.length} traits from Supabase');
+    } catch (e) {
+      _traitsError = e.toString();
+      DebugPoint.error('Failed to fetch traits: $e');
+    } finally {
+      _isLoadingTraits = false;
+      notifyListeners();
+    }
+  }
 
   final AudioRecorder _recorder = AudioRecorder();
   Timer? _recordingTimer;
