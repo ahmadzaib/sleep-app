@@ -175,10 +175,35 @@ class CreateAvatarProvider extends ChangeNotifier {
     _avatarImagePath = null; // no local path for existing avatars
     if (avatar.voiceId != null) {
       _selectedSampleVoiceId = avatar.voiceId;
+      // Fetch preview URL from ElevenLabs in the background
+      _fetchAndSetVoicePreviewUrl(avatar.voiceId!);
     }
     DebugPoint.log('Loaded avatar for edit: ${avatar.name} (id: ${avatar.id})');
     notifyListeners();
   }
+
+  /// Fetch the voice preview URL (and name) from ElevenLabs for a given voiceId,
+  /// then update state so the VoiceNoteBSTile can play it.
+  Future<void> _fetchAndSetVoicePreviewUrl(String voiceId) async {
+    try {
+      final voiceService = VoiceCloneService();
+      final voice = await voiceService.fetchVoiceById(voiceId);
+      if (voice != null) {
+        _selectedSampleVoiceName = voice.name;
+        _selectedSampleVoiceUrl = voice.previewUrl;
+        DebugPoint.log(
+          'Fetched voice preview for $voiceId: name=${voice.name}, url=${voice.previewUrl}',
+        );
+        notifyListeners();
+      } else {
+        DebugPoint.error('Could not fetch voice preview for id: $voiceId');
+      }
+    } catch (e) {
+      DebugPoint.error('Error fetching voice preview: $e');
+    }
+  }
+
+
 
   /// Fetch all available traits from Supabase
   Future<void> fetchAvailableTraits() async {

@@ -67,6 +67,26 @@ class VoiceCloneService {
     }
   }
 
+  /// Fetch a single voice by its ID — returns null if not found or on error
+  Future<ElevenLabsVoice?> fetchVoiceById(String voiceId) async {
+    try {
+      final response = await _dio.get("/voices/$voiceId");
+      if (response.statusCode == 200) {
+        return ElevenLabsVoice.fromJson(
+          response.data as Map<String, dynamic>,
+        );
+      }
+      return null;
+    } on DioException catch (e) {
+      print("Fetch voice by id error: ${e.response?.data}");
+      return null;
+    } catch (e) {
+      print("Unexpected error fetching voice by id: $e");
+      return null;
+    }
+  }
+
+
   /// 1. Clone Voice → returns voice_id
   Future<String?> cloneVoice({
     required String name,

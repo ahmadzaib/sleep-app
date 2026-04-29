@@ -17,6 +17,7 @@ class SampleVoicesBottomSheet extends StatelessWidget {
   const SampleVoicesBottomSheet({super.key});
 
   static Future<void> show(BuildContext context) {
+    final createAvatarProvider = context.read<CreateAvatarProvider>();
     return showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -26,12 +27,16 @@ class SampleVoicesBottomSheet extends StatelessWidget {
           top: Radius.circular(AppConstants.extraLargeRadius),
         ),
       ),
-      builder: (_) => ChangeNotifierProvider(
-        create: (_) => SampleVoicesProvider(),
+      builder: (_) => MultiProvider(
+        providers: [
+          ChangeNotifierProvider.value(value: createAvatarProvider),
+          ChangeNotifierProvider(create: (_) => SampleVoicesProvider()),
+        ],
         child: const SampleVoicesBottomSheet(),
       ),
     );
   }
+
 
   @override
   Widget build(BuildContext context) {

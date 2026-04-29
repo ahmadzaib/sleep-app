@@ -9,6 +9,7 @@ import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
 import 'package:avatar_flow/features/avatar/models/trait_model.dart';
 import 'package:avatar_flow/features/avatar/providers/create_avatar_provider.dart';
+import 'package:avatar_flow/features/avatar/views/components/sample_voices_bottom_sheet.dart';
 import 'package:avatar_flow/features/avatar/views/components/trait_selection_bottom_sheet.dart';
 import 'package:avatar_flow/features/avatar/views/components/voice_note_bs_tile.dart';
 import 'package:avatar_flow/features/avatar/views/avatar_section.dart';
@@ -146,18 +147,30 @@ class CreateAvatarScreen extends StatelessWidget {
                             .toList(),
                       ),
                       Spacing.y(3),
-                      Text(
-                        "Voice",
-                        style: textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Voice",
+                            style: textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              SampleVoicesBottomSheet.show(context);
+                            },
+                            child: Text(
+                              "Change",
+                              style: textTheme.bodyMedium?.copyWith(
+                                color: context.appColors.blue,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                       Spacing.y(1.5),
-                      const VoiceNoteBSTile(
-                        title: 'Avatar Voice',
-                        audioPath: 'assets/audio/music.mp3',
-                        isNetwork: false,
-                      ),
+                      _buildVoiceTile(provider),
                       Spacing.y(4),
                       CustomButton(
                         text: "Save",
@@ -396,6 +409,35 @@ class CreateAvatarScreen extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildVoiceTile(CreateAvatarProvider provider) {
+    // 1. Sample voice selected — play from network preview URL
+    if (provider.hasSampleVoice && provider.selectedSampleVoiceUrl != null) {
+      return VoiceNoteBSTile(
+        key: ValueKey(provider.selectedSampleVoiceId),
+        title: provider.effectiveVoiceName,
+        audioPath: provider.selectedSampleVoiceUrl!,
+        isNetwork: true,
+      );
+    }
+
+    // 2. Recorded (cloned) voice — play from local file
+    if (provider.hasRecordedVoice && provider.audioPath != null) {
+      return VoiceNoteBSTile(
+        key: ValueKey(provider.audioPath),
+        title: provider.effectiveVoiceName,
+        audioPath: provider.audioPath!,
+        isFile: true,
+      );
+    }
+
+    // 3. Default fallback — static asset placeholder
+    return const VoiceNoteBSTile(
+      title: 'Default Voice',
+      audioPath: 'assets/audio/music.mp3',
+      isNetwork: false,
     );
   }
 
