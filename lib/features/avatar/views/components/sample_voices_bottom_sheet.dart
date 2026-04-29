@@ -8,7 +8,6 @@ import 'package:avatar_flow/widgets/app_loading.dart';
 import 'package:avatar_flow/widgets/custom_button.dart';
 import 'package:avatar_flow/widgets/custom_svg.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
@@ -148,21 +147,6 @@ class _CategoryChips extends StatelessWidget {
                         createProvider.selectedSampleVoiceId!,
                       )) {
                     return;
-                  }
-
-                  // Auto-select first voice in category
-                  final fallbackVoiceId = sampleProvider.firstFilteredVoiceId;
-                  final fallbackVoiceName =
-                      sampleProvider.firstFilteredVoiceName;
-                  final fallbackVoiceUrl = sampleProvider.filteredVoices.isEmpty
-                      ? null
-                      : sampleProvider.filteredVoices.first.audioPath;
-                  if (fallbackVoiceId != null) {
-                    createProvider.selectSampleVoice(
-                      fallbackVoiceId,
-                      name: fallbackVoiceName,
-                      url: fallbackVoiceUrl,
-                    );
                   }
                 },
                 child: Container(

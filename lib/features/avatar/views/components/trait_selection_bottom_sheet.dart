@@ -39,6 +39,8 @@ class TraitSelectionBottomSheet extends StatefulWidget {
 }
 
 class _TraitSelectionBottomSheetState extends State<TraitSelectionBottomSheet> {
+  final TextEditingController controller = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -54,7 +56,6 @@ class _TraitSelectionBottomSheetState extends State<TraitSelectionBottomSheet> {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final TextEditingController controller = TextEditingController();
     String query = '';
 
     return StatefulBuilder(
