@@ -4,19 +4,26 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class StepIndicator extends StatelessWidget {
-  const StepIndicator({super.key, required this.currentStep});
+  const StepIndicator({
+    super.key,
+    required this.currentStep,
+    this.totalSteps = 3,
+    this.labels = const ['Agreement', 'Record', 'Character'],
+  });
 
   final int currentStep;
+  final int totalSteps;
+  final List<String> labels;
 
   @override
   Widget build(BuildContext context) {
-    const labels = ['Agreement', 'Record', 'Character'];
+    final displayStep = currentStep;
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
       child: Row(
         children: List.generate(labels.length, (index) {
-          final isActive = index == currentStep;
+          final isActive = index == displayStep;
           return Expanded(
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 4.w),

@@ -255,14 +255,7 @@ class _CreatingAvatarDialog extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            SizedBox(
-              width: 48.w,
-              height: 48.h,
-              child: CircularProgressIndicator(
-                strokeWidth: 3,
-                valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
-              ),
-            ),
+            AppLoading(color: colorScheme.primary, size: 48.w),
             Spacing.y(3),
             Text(
               'Creating your avatar...',

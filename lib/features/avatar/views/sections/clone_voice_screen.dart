@@ -6,6 +6,7 @@ import 'package:avatar_flow/features/avatar/views/sections/agreement_page.dart';
 import 'package:avatar_flow/features/avatar/views/sections/characteristics_page.dart';
 import 'package:avatar_flow/features/avatar/views/components/step_indicator.dart';
 import 'package:avatar_flow/features/avatar/views/components/record_page.dart';
+import 'package:avatar_flow/widgets/app_loading.dart';
 import 'package:avatar_flow/widgets/bg_widget.dart';
 import 'package:avatar_flow/widgets/custom_app_bar.dart';
 import 'package:flutter/material.dart';
@@ -29,7 +30,8 @@ class _CloneVoiceView extends StatefulWidget {
 }
 
 class _CloneVoiceViewState extends State<_CloneVoiceView> {
-  bool _hasCheckedAgreement = false;
+  bool _isLoading = true;
+  bool _hasAcceptedAgreement = false;
 
   @override
   void initState() {
@@ -40,7 +42,10 @@ class _CloneVoiceViewState extends State<_CloneVoiceView> {
   Future<void> _checkUserAgreement() async {
     final userId = AuthService.currentUser?.id;
     if (userId == null) {
-      setState(() => _hasCheckedAgreement = true);
+      setState(() {
+        _isLoading = false;
+        _hasAcceptedAgreement = false;
+      });
       return;
     }
 
@@ -53,18 +58,26 @@ class _CloneVoiceViewState extends State<_CloneVoiceView> {
 
       final hasAccepted = response['voice_agreement_accepted'] == true;
 
-      if (hasAccepted && mounted) {
-        // Skip agreement page - jump to record page
-        final provider = context.read<CreateAvatarProvider>();
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          provider.voicePageController.jumpToPage(1);
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _hasAcceptedAgreement = hasAccepted;
         });
+
+        // If already accepted, set provider to step 0 (which is now Record page in our 2-page view)
+        if (hasAccepted) {
+          final provider = context.read<CreateAvatarProvider>();
+          // Reset to step 0 since we're showing only 2 pages (Record, Character)
+          provider.currentVoiceStep = 0;
+        }
       }
     } catch (e) {
       debugPrint('[CloneVoiceScreen] Error checking agreement: $e');
-    } finally {
       if (mounted) {
-        setState(() => _hasCheckedAgreement = true);
+        setState(() {
+          _isLoading = false;
+          _hasAcceptedAgreement = false;
+        });
       }
     }
   }
@@ -73,14 +86,22 @@ class _CloneVoiceViewState extends State<_CloneVoiceView> {
   Widget build(BuildContext context) {
     final provider = context.watch<CreateAvatarProvider>();
 
-    if (!_hasCheckedAgreement) {
+    if (_isLoading) {
       return const BgWidget(
         child: Scaffold(
           backgroundColor: Colors.transparent,
-          body: Center(child: CircularProgressIndicator()),
+          body: Center(child: AppLoading()),
         ),
       );
     }
+
+    final pages = _hasAcceptedAgreement
+        ? const [RecordVoicePage(), CharacterCharacteristicsPage()]
+        : const [
+            AgreementPage(),
+            RecordVoicePage(),
+            CharacterCharacteristicsPage(),
+          ];
 
     return BgWidget(
       child: Scaffold(
@@ -88,28 +109,31 @@ class _CloneVoiceViewState extends State<_CloneVoiceView> {
         appBar: CustomAppBar(
           title: "Clone Voice",
           onBackBtnPress: () {
-            if (provider.currentVoiceStep > 0) {
-              provider.previousVoiceStep();
+            // If showing 2 pages and on first page (Record), or on Agreement page, pop screen
+            if (provider.currentVoiceStep == 0) {
+              NavigationService.pop();
               return;
             }
-            NavigationService.pop();
-            return;
+            // Otherwise go to previous step
+            provider.previousVoiceStep();
           },
         ),
         body: SafeArea(
           child: Column(
             children: [
-              StepIndicator(currentStep: provider.currentVoiceStep),
+              StepIndicator(
+                currentStep: provider.currentVoiceStep,
+                totalSteps: pages.length,
+                labels: _hasAcceptedAgreement
+                    ? const ['Record', 'Character']
+                    : const ['Agreement', 'Record', 'Character'],
+              ),
               Spacing.y(1.5),
               Expanded(
                 child: PageView(
                   controller: provider.voicePageController,
                   physics: const NeverScrollableScrollPhysics(),
-                  children: const [
-                    AgreementPage(),
-                    RecordVoicePage(),
-                    CharacterCharacteristicsPage(),
-                  ],
+                  children: pages,
                 ),
               ),
             ],
