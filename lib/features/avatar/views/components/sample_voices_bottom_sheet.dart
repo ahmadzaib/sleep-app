@@ -7,6 +7,7 @@ import 'package:avatar_flow/features/avatar/providers/sample_voices_provider.dar
 import 'package:avatar_flow/widgets/custom_button.dart';
 import 'package:avatar_flow/widgets/custom_svg.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
@@ -58,7 +59,6 @@ class SampleVoicesBottomSheet extends StatelessWidget {
               text: "Clone your voice instead",
               onPressed: () {
                 Navigator.of(context).pop();
-                context.read<CreateAvatarProvider>().nextVoiceStep();
               },
             ),
             Spacing.y(1),
@@ -118,66 +118,83 @@ class _CategoryChips extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final categoryLabels = context.select<SampleVoicesProvider, List<String>>(
+      (provider) => provider.categoryLabels,
+    );
 
-    return Wrap(
-      spacing: 8.w,
-      runSpacing: 8.h,
-      children: SampleVoicesProvider.categoryLabels.map((label) {
-        return Selector<SampleVoicesProvider, bool>(
-          selector: (_, provider) => provider.selectedCategory == label,
-          builder: (context, isActive, _) {
-            return InkWell(
-              borderRadius: BorderRadius.circular(999.r),
-              onTap: () {
-                final sampleProvider = context.read<SampleVoicesProvider>();
-                final createProvider = context.read<CreateAvatarProvider>();
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        spacing: 8.w,
+        children: categoryLabels.map((label) {
+          return Selector<SampleVoicesProvider, bool>(
+            selector: (_, provider) => provider.selectedCategory == label,
+            builder: (context, isActive, _) {
+              return InkWell(
+                borderRadius: BorderRadius.circular(999.r),
+                onTap: () {
+                  final sampleProvider = context.read<SampleVoicesProvider>();
+                  final createProvider = context.read<CreateAvatarProvider>();
 
-                sampleProvider.selectCategory(label);
+                  sampleProvider.selectCategory(label);
 
-                // Check if current sample voice is in this category
-                if (createProvider.selectedSampleVoiceId != null &&
-                    sampleProvider.containsVoice(
-                      createProvider.selectedSampleVoiceId!,
-                    )) {
-                  return;
-                }
+                  // Check if current sample voice is in this category
+                  if (createProvider.selectedSampleVoiceId != null &&
+                      sampleProvider.containsVoice(
+                        createProvider.selectedSampleVoiceId!,
+                      )) {
+                    return;
+                  }
 
-                // Auto-select first voice in category
-                final fallbackVoice = sampleProvider.firstFilteredVoiceName;
-                if (fallbackVoice != null) {
-                  createProvider.selectSampleVoice(fallbackVoice);
-                }
-              },
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(999.r),
-                  border: isActive
+                  // Auto-select first voice in category
+                  final fallbackVoiceId = sampleProvider.firstFilteredVoiceId;
+                  final fallbackVoiceName =
+                      sampleProvider.firstFilteredVoiceName;
+                  final fallbackVoiceUrl = sampleProvider.filteredVoices.isEmpty
                       ? null
-                      : Border.all(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onSurface.withValues(alpha: .3),
-                        ),
-                  color: isActive
-                      ? context.appColors.secondary
-                      : Colors.transparent,
-                ),
-                child: Text(
-                  label,
-                  style: textTheme.bodySmall?.copyWith(
+                      : sampleProvider.filteredVoices.first.audioPath;
+                  if (fallbackVoiceId != null) {
+                    createProvider.selectSampleVoice(
+                      fallbackVoiceId,
+                      name: fallbackVoiceName,
+                      url: fallbackVoiceUrl,
+                    );
+                  }
+                },
+                child: Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 14.w,
+                    vertical: 10.h,
+                  ),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(999.r),
+                    border: isActive
+                        ? null
+                        : Border.all(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurface.withValues(alpha: .3),
+                          ),
                     color: isActive
-                        ? Theme.of(context).colorScheme.onPrimary
-                        : label == 'Random'
-                        ? context.appColors.primary
-                        : context.appColors.grey,
+                        ? context.appColors.secondary
+                        : Colors.transparent,
+                  ),
+                  child: Text(
+                    label,
+                    style: textTheme.bodySmall?.copyWith(
+                      color: isActive
+                          ? Theme.of(context).colorScheme.onPrimary
+                          : label == 'Random'
+                          ? context.appColors.primary
+                          : context.appColors.grey,
+                    ),
                   ),
                 ),
-              ),
-            );
-          },
-        );
-      }).toList(),
+              );
+            },
+          );
+        }).toList(),
+      ),
     );
   }
 }
@@ -189,6 +206,10 @@ class _VoicesList extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<SampleVoicesProvider>(
       builder: (context, provider, _) {
+        if (provider.isLoading) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
         final voices = provider.filteredVoices;
 
         // Build list with default voice as first item
@@ -220,7 +241,7 @@ class _SampleVoiceTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final isSelected = context.select<CreateAvatarProvider, bool>(
-      (provider) => provider.selectedSampleVoiceId == voice.name,
+      (provider) => provider.selectedSampleVoiceId == voice.id,
     );
     final isFavorite = context.select<SampleVoicesProvider, bool>(
       (provider) => provider.isFavorite(voice.id),
@@ -233,7 +254,11 @@ class _SampleVoiceTile extends StatelessWidget {
       borderRadius: BorderRadius.circular(16.r),
       onTap: () {
         // Select this sample voice - this also clears any recorded voice
-        context.read<CreateAvatarProvider>().selectSampleVoice(voice.name);
+        context.read<CreateAvatarProvider>().selectSampleVoice(
+          voice.id,
+          name: voice.name,
+          url: voice.audioPath,
+        );
       },
       child: AnimatedContainer(
         duration: AppConstants.defaultDuration,
@@ -380,6 +405,14 @@ class _DefaultVoiceTile extends StatelessWidget {
     final isSelected = context.select<CreateAvatarProvider, bool>(
       (provider) => provider.isUsingDefaultVoice,
     );
+    final isPlaying = context.select<SampleVoicesProvider, bool>(
+      (provider) => provider.isPlaying('default_voice'),
+    );
+    final createProvider = context.read<CreateAvatarProvider>();
+    final gender = createProvider.selectedGender;
+    final defaultVoiceId = gender.toLowerCase() == 'male'
+        ? CreateAvatarProvider.defaultMaleVoiceId
+        : CreateAvatarProvider.defaultFemaleVoiceId;
 
     return InkWell(
       borderRadius: BorderRadius.circular(16.r),
@@ -422,6 +455,17 @@ class _DefaultVoiceTile extends StatelessWidget {
                     ),
                   ),
                 ],
+              ),
+            ),
+            IconButton(
+              onPressed: () async {
+                final sampleProvider = context.read<SampleVoicesProvider>();
+                // Play TTS with default voice using text-to-speech
+                await sampleProvider.playDefaultVoice(defaultVoiceId);
+              },
+              icon: CustomSvg(
+                path: isPlaying ? AppIconsSvg.pause : AppIconsSvg.play,
+                color: context.appColors.primary,
               ),
             ),
           ],

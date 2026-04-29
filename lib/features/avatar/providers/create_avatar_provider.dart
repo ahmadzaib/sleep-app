@@ -91,7 +91,11 @@ class CreateAvatarProvider extends ChangeNotifier {
       : defaultFemaleVoiceId;
 
   String? _selectedSampleVoiceId;
+  String? _selectedSampleVoiceName;
+  String? _selectedSampleVoiceUrl;
   String? get selectedSampleVoiceId => _selectedSampleVoiceId;
+  String? get selectedSampleVoiceName => _selectedSampleVoiceName;
+  String? get selectedSampleVoiceUrl => _selectedSampleVoiceUrl;
 
   bool get hasRecordedVoice => audioPath != null;
   bool get hasSampleVoice => _selectedSampleVoiceId != null;
@@ -99,7 +103,7 @@ class CreateAvatarProvider extends ChangeNotifier {
 
   String get effectiveVoiceName {
     if (hasRecordedVoice) return voiceName.isNotEmpty ? voiceName : 'My Voice';
-    if (hasSampleVoice) return _selectedSampleVoiceId!;
+    if (hasSampleVoice) return _selectedSampleVoiceName ?? _selectedSampleVoiceId!;
     return defaultVoiceName;
   }
 
@@ -114,8 +118,10 @@ class CreateAvatarProvider extends ChangeNotifier {
   String voiceName = '';
 
   /// Select a sample voice (clears recorded voice)
-  void selectSampleVoice(String voiceId) {
+  void selectSampleVoice(String voiceId, {String? name, String? url}) {
     _selectedSampleVoiceId = voiceId;
+    if (name != null) _selectedSampleVoiceName = name;
+    if (url != null) _selectedSampleVoiceUrl = url;
     // Clear recorded voice when sample is selected
     audioPath = null;
     voiceName = '';
@@ -125,6 +131,8 @@ class CreateAvatarProvider extends ChangeNotifier {
   /// Clear sample voice selection
   void clearSampleVoice() {
     _selectedSampleVoiceId = null;
+    _selectedSampleVoiceName = null;
+    _selectedSampleVoiceUrl = null;
     notifyListeners();
   }
 
@@ -134,6 +142,8 @@ class CreateAvatarProvider extends ChangeNotifier {
     if (name != null) voiceName = name;
     // Clear sample when recording is set
     _selectedSampleVoiceId = null;
+    _selectedSampleVoiceName = null;
+    _selectedSampleVoiceUrl = null;
     notifyListeners();
   }
 
@@ -142,6 +152,8 @@ class CreateAvatarProvider extends ChangeNotifier {
     audioPath = null;
     voiceName = '';
     _selectedSampleVoiceId = null;
+    _selectedSampleVoiceName = null;
+    _selectedSampleVoiceUrl = null;
     notifyListeners();
   }
 
@@ -712,6 +724,8 @@ class CreateAvatarProvider extends ChangeNotifier {
 
     // Voice source selection
     _selectedSampleVoiceId = null;
+    _selectedSampleVoiceName = null;
+    _selectedSampleVoiceUrl = null;
 
     // Voice recording state
     isRecording = false;

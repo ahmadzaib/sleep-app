@@ -270,24 +270,12 @@ class _RecordVoicePageState extends State<RecordVoicePage> {
                     ),
                   ),
                 ),
-                Spacing.y(0.8),
-                TextButton(
-                  onPressed: () {
-                    provider.useDefaultVoice();
-                    provider.nextVoiceStep();
-                  },
-                  child: Text(
-                    "Use default voice",
-                    style: textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w500,
-                      color: context.appColors.grey,
-                    ),
-                  ),
-                ),
+
                 Spacing.y(1.2),
               ],
               CustomButton(
-                text: 'Continue with ${provider.effectiveVoiceName}',
+                text:
+                    'Continue with ${provider.effectiveVoiceName.split("-").first}',
                 isDisabled:
                     isRecording ||
                     (!hasRecording &&
@@ -396,7 +384,7 @@ class _RecordVoicePageState extends State<RecordVoicePage> {
       icon = Icons.mic;
       color = context.appColors.primary;
     } else if (hasSample) {
-      label = 'Sample: ${provider.selectedSampleVoiceId}';
+      label = 'Voice: ${provider.effectiveVoiceName.split("-").first}';
       icon = Icons.headphones;
       color = context.appColors.secondary;
     } else {

@@ -2,10 +2,37 @@ import 'dart:io';
 import 'package:avatar_flow/core/config/appconfig.dart';
 import 'package:dio/dio.dart';
 
+class ElevenLabsVoice {
+  final String voiceId;
+  final String name;
+  final List<String> labels;
+  final String? previewUrl;
+
+  ElevenLabsVoice({
+    required this.voiceId,
+    required this.name,
+    required this.labels,
+    this.previewUrl,
+  });
+
+  factory ElevenLabsVoice.fromJson(Map<String, dynamic> json) {
+    return ElevenLabsVoice(
+      voiceId: json['voice_id'] ?? '',
+      name: json['name'] ?? 'Unknown',
+      labels:
+          (json['labels'] as Map<String, dynamic>?)?.values
+              .map((e) => e.toString())
+              .toList() ??
+          [],
+      previewUrl: json['preview_url'],
+    );
+  }
+}
+
 class VoiceCloneService {
   late final Dio _dio;
 
-  VoiceCloneService({r}) {
+  VoiceCloneService() {
     _dio = Dio(
       BaseOptions(
         baseUrl: "https://api.elevenlabs.io/v1",
@@ -13,6 +40,31 @@ class VoiceCloneService {
         responseType: ResponseType.json,
       ),
     );
+  }
+
+  /// Fetch all available voices from ElevenLabs
+  Future<List<ElevenLabsVoice>> fetchVoices() async {
+    try {
+      final response = await _dio.get("/voices");
+
+      if (response.statusCode == 200) {
+        final voicesData = response.data['voices'] as List<dynamic>;
+        return voicesData
+            .map(
+              (voice) =>
+                  ElevenLabsVoice.fromJson(voice as Map<String, dynamic>),
+            )
+            .toList();
+      }
+
+      return [];
+    } on DioException catch (e) {
+      print("Fetch voices error: ${e.response?.data}");
+      return [];
+    } catch (e) {
+      print("Unexpected error fetching voices: $e");
+      return [];
+    }
   }
 
   /// 1. Clone Voice → returns voice_id
