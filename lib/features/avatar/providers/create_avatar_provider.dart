@@ -150,6 +150,7 @@ class CreateAvatarProvider extends ChangeNotifier {
     _editingAvatarId = avatar.id;
     avatarName = avatar.name;
     selectedGender = avatar.gender;
+    _avatarColor = avatar.color;
     traits = List<TraitModel>.from(avatar.traits);
     _avatarImageUrl = avatar.avatarUrl;
     _avatarImagePath = null; // no local path for existing avatars
@@ -583,7 +584,7 @@ class CreateAvatarProvider extends ChangeNotifier {
         'Avatar created successfully - ID: ${createdAvatar.id}, Name: ${createdAvatar.name}',
       );
       ToastUtils.success('Avatar "$avatarName" created successfully!');
-      reset();
+      reset(preserveVoiceAndTraits: true);
 
       // Refresh avatars list
       try {
@@ -647,12 +648,16 @@ class CreateAvatarProvider extends ChangeNotifier {
   }
 
   /// Reset all fields after avatar creation
-  void reset() {
+  /// Set [preserveVoiceAndTraits] to true to keep voice and characteristics data
+  void reset({bool preserveVoiceAndTraits = false}) {
     // Avatar fields
     currentIndex = 0;
     avatarName = '';
     selectedGender = 'Female';
-    traits = [];
+    // Only reset traits if not preserving
+    if (!preserveVoiceAndTraits) {
+      traits = [];
+    }
     selectedVoice = 'Voice 1';
     prompt = '';
     _avatarImagePath = null;
@@ -668,11 +673,14 @@ class CreateAvatarProvider extends ChangeNotifier {
 
     // Voice recording state
     isRecording = false;
-    audioPath = null;
-    transcript = null;
-    voiceDuration = null;
+    // Only reset audio/transcript if not preserving
+    if (!preserveVoiceAndTraits) {
+      audioPath = null;
+      transcript = null;
+      voiceDuration = null;
+      voiceName = '';
+    }
     recordingElapsed = Duration.zero;
-    voiceName = '';
 
     // Reset page controller
     if (voicePageController.hasClients) {
@@ -682,7 +690,9 @@ class CreateAvatarProvider extends ChangeNotifier {
     // Reset color
     _avatarColor = null;
 
-    DebugPoint.log('CreateAvatarProvider reset');
+    DebugPoint.log(
+      'CreateAvatarProvider reset (preserveVoiceAndTraits: $preserveVoiceAndTraits)',
+    );
     notifyListeners();
   }
 

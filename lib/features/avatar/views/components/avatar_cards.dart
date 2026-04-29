@@ -10,6 +10,7 @@ import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
 import 'package:avatar_flow/features/avatar/models/avatar_model.dart';
 import 'package:avatar_flow/features/avatar/providers/avatars_provider.dart';
+import 'package:avatar_flow/features/avatar/views/avatar_section.dart';
 import 'package:avatar_flow/widgets/custom_cache_netword_imge.dart';
 import 'package:avatar_flow/widgets/custom_svg.dart';
 import 'package:flutter/material.dart';
@@ -189,9 +190,13 @@ class _AvatarCardsState extends State<AvatarCards> {
                     alignment: Alignment.bottomCenter,
                     child: Padding(
                       padding: AppConstants.defaultAllPadding,
-                      child: Image.asset(
-                        AppImagesPng.cardVector,
-                        color: cardColor,
+                      child: ClipPath(
+                        clipper: MyClipper(),
+                        child: Container(
+                          width: 1.sw,
+                          height: 0.21.sh,
+                          color: cardColor,
+                        ),
                       ),
                     ),
                   ),

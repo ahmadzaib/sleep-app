@@ -218,7 +218,9 @@ class CreateAvatarScreen extends StatelessWidget {
                         child: Container(
                           width: 1.sw,
                           height: 0.16.sh,
-                          color: provider.getBackgroundColor(),
+                          color: provider.getBackgroundColor().withValues(
+                            alpha: .3,
+                          ),
                         ),
                       ),
                     ),
