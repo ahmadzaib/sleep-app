@@ -217,6 +217,17 @@ class PromptAiProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Reset all fields after avatar creation
+  void reset() {
+    _messages.clear();
+    _selectedImage = null;
+    _selectedStyle = null;
+    promptController.clear();
+    _isLoading = false;
+    DebugPoint.log('PromptAiProvider reset');
+    notifyListeners();
+  }
+
   @override
   void dispose() {
     promptController.dispose();

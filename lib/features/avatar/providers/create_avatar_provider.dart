@@ -15,6 +15,7 @@ import 'package:avatar_flow/features/avatar/models/avatar_model.dart';
 import 'package:avatar_flow/features/avatar/models/trait_model.dart';
 import 'package:avatar_flow/features/avatar/providers/avatars_provider.dart';
 import 'package:avatar_flow/features/avatar/repo/avatar_repo.dart';
+import 'package:avatar_flow/features/prompt_ai/providers/prompt_ai_provider.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -484,7 +485,10 @@ class CreateAvatarProvider extends ChangeNotifier {
       } catch (_) {}
 
       _editingAvatarId = null;
-      NavigationService.pop();
+
+      // Navigate and reset
+      NavigationService.goNamed(AppRoutes.bottomNavbar);
+      reset(preserveVoiceAndTraits: false);
     } catch (e) {
       DebugPoint.error('Failed to update avatar: $e');
       ToastUtils.error('Failed to update avatar: $e');
@@ -584,17 +588,21 @@ class CreateAvatarProvider extends ChangeNotifier {
         'Avatar created successfully - ID: ${createdAvatar.id}, Name: ${createdAvatar.name}',
       );
       ToastUtils.success('Avatar "$avatarName" created successfully!');
-      reset(preserveVoiceAndTraits: true);
 
-      // Refresh avatars list
+      // Navigate first, then reset (to avoid UI flicker)
+      NavigationService.goNamed(AppRoutes.bottomNavbar);
+
+      // Reset all fields after navigation
+      reset(preserveVoiceAndTraits: false);
+
+      // Reset Prompt AI provider
       try {
         final ctx = NavigationService.context;
         if (ctx != null) {
           ctx.read<AvatarsProvider>().fetchAvatars();
+          ctx.read<PromptAiProvider>().reset();
         }
       } catch (_) {}
-
-      NavigationService.goNamed(AppRoutes.bottomNavbar);
     } catch (e) {
       DebugPoint.error('Failed to create avatar: $e');
       ToastUtils.error('Failed to create avatar: $e');

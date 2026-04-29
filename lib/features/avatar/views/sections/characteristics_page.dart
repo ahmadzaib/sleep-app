@@ -193,30 +193,38 @@ class _CharacterCharacteristicsPageState
                 ),
               const Spacer(),
               CustomButton(
-                text: 'Next',
-                onPressed: () async {
-                  final provider = context.read<CreateAvatarProvider>();
+                text: provider.traits.isEmpty
+                    ? 'Select at least 1 trait'
+                    : provider.traits.length >= CreateAvatarProvider.maxTraits
+                    ? 'Max ${CreateAvatarProvider.maxTraits} traits'
+                    : 'Next',
+                onPressed:
+                    provider.traits.isEmpty || provider.hasReachedMaxTraits
+                    ? null
+                    : () async {
+                        final provider = context.read<CreateAvatarProvider>();
 
-                  // Show loading dialog while removing background
-                  showDialog(
-                    context: context,
-                    barrierDismissible: false,
-                    builder: (_) => const _CreatingAvatarDialog(),
-                  );
+                        // Show loading dialog while removing background
+                        showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (_) => const _CreatingAvatarDialog(),
+                        );
 
-                  // Prepare avatar (remove background)
-                  final success = await provider.prepareAvatarForPreview();
+                        // Prepare avatar (remove background)
+                        final success = await provider
+                            .prepareAvatarForPreview();
 
-                  // Close loading dialog
-                  if (context.mounted) {
-                    Navigator.of(context).pop();
-                  }
+                        // Close loading dialog
+                        if (context.mounted) {
+                          Navigator.of(context).pop();
+                        }
 
-                  // Navigate to preview if successful
-                  if (success) {
-                    NavigationService.pushNamed(AppRoutes.avatarPreview);
-                  }
-                },
+                        // Navigate to preview if successful
+                        if (success) {
+                          NavigationService.pushNamed(AppRoutes.avatarPreview);
+                        }
+                      },
               ),
               Spacing.y(1.5),
             ],

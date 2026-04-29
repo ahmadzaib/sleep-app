@@ -5,6 +5,7 @@ import 'package:avatar_flow/core/constants/app_icons.dart';
 import 'package:avatar_flow/core/constants/app_images.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
+import 'package:avatar_flow/core/utils/toast_utils.dart';
 import 'package:avatar_flow/features/avatar/models/trait_model.dart';
 import 'package:avatar_flow/features/avatar/providers/create_avatar_provider.dart';
 import 'package:avatar_flow/features/avatar/views/components/sample_voices_bottom_sheet.dart';
@@ -313,9 +314,16 @@ class _DetailsCard extends StatelessWidget {
           buttonColor: context.appColors.secondaryBlack,
           onPressed: provider.isCreating
               ? null
-              : () => provider.isEditMode
-                    ? provider.updateAvatar()
-                    : provider.createAvatar(),
+              : () {
+                  // Validate traits before create/update
+                  if (provider.traits.isEmpty) {
+                    ToastUtils.error('Please select at least 1 trait');
+                    return;
+                  }
+                  provider.isEditMode
+                      ? provider.updateAvatar()
+                      : provider.createAvatar();
+                },
         ),
         Spacing.y(1),
         Center(
