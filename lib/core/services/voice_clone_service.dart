@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:avatar_flow/core/config/appconfig.dart';
 import 'package:dio/dio.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' hide MultipartFile;
 
 class ElevenLabsVoice {
   final String voiceId;
@@ -72,9 +73,7 @@ class VoiceCloneService {
     try {
       final response = await _dio.get("/voices/$voiceId");
       if (response.statusCode == 200) {
-        return ElevenLabsVoice.fromJson(
-          response.data as Map<String, dynamic>,
-        );
+        return ElevenLabsVoice.fromJson(response.data as Map<String, dynamic>);
       }
       return null;
     } on DioException catch (e) {
@@ -85,7 +84,6 @@ class VoiceCloneService {
       return null;
     }
   }
-
 
   /// 1. Clone Voice → returns voice_id
   Future<String?> cloneVoice({
@@ -143,6 +141,60 @@ class VoiceCloneService {
     } catch (e) {
       print("Unexpected error: $e");
       return null;
+    }
+  }
+
+  // --- FAVORITES LOGIC ---
+
+  final _supabase = Supabase.instance.client;
+
+  /// Fetch IDs of favorite voices for the current user
+  Future<List<String>> fetchFavoriteVoiceIds() async {
+    try {
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) return [];
+
+      final response = await _supabase
+          .from('favorite_voices')
+          .select('voice_id');
+
+      return (response as List)
+          .map((item) => item['voice_id'] as String)
+          .toList();
+    } catch (e) {
+      print("Error fetching favorite voices: $e");
+      return [];
+    }
+  }
+
+  /// Add a voice to favorites
+  Future<void> addFavoriteVoice(String voiceId) async {
+    try {
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) return;
+
+      await _supabase.from('favorite_voices').upsert({
+        'user_id': userId,
+        'voice_id': voiceId,
+      });
+    } catch (e) {
+      print("Error adding favorite voice: $e");
+    }
+  }
+
+  /// Remove a voice from favorites
+  Future<void> removeFavoriteVoice(String voiceId) async {
+    try {
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) return;
+
+      await _supabase
+          .from('favorite_voices')
+          .delete()
+          .eq('user_id', userId)
+          .eq('voice_id', voiceId);
+    } catch (e) {
+      print("Error removing favorite voice: $e");
     }
   }
 }
