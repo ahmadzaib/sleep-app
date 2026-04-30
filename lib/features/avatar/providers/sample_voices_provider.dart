@@ -2,7 +2,9 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:avatar_flow/core/debug/debug_point.dart';
+import 'package:avatar_flow/core/services/service_locator.dart';
 import 'package:avatar_flow/core/services/voice_clone_service.dart';
+import 'package:avatar_flow/features/avatar/models/eleven_labs_voice_model.dart';
 import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
 
