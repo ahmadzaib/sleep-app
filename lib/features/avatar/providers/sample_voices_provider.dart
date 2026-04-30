@@ -41,7 +41,7 @@ class SampleVoicesProvider extends ChangeNotifier {
     fetchVoicesFromElevenLabs();
   }
 
-  final VoiceCloneService _voiceService = VoiceCloneService();
+  final VoiceCloneService _voiceService = getIt<VoiceCloneService>();
 
   // Static categories - All and Liked are first
   static const List<String> _staticCategories = ['All', 'Liked'];

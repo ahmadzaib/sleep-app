@@ -1,34 +1,9 @@
 import 'dart:io';
 import 'package:avatar_flow/core/config/appconfig.dart';
+import 'package:avatar_flow/core/services/supabase_client.dart';
+import 'package:avatar_flow/features/avatar/models/eleven_labs_voice_model.dart';
 import 'package:dio/dio.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide MultipartFile;
-
-class ElevenLabsVoice {
-  final String voiceId;
-  final String name;
-  final List<String> labels;
-  final String? previewUrl;
-
-  ElevenLabsVoice({
-    required this.voiceId,
-    required this.name,
-    required this.labels,
-    this.previewUrl,
-  });
-
-  factory ElevenLabsVoice.fromJson(Map<String, dynamic> json) {
-    return ElevenLabsVoice(
-      voiceId: json['voice_id'] ?? '',
-      name: json['name'] ?? 'Unknown',
-      labels:
-          (json['labels'] as Map<String, dynamic>?)?.values
-              .map((e) => e.toString())
-              .toList() ??
-          [],
-      previewUrl: json['preview_url'],
-    );
-  }
-}
 
 class VoiceCloneService {
   late final Dio _dio;
@@ -146,17 +121,13 @@ class VoiceCloneService {
 
   // --- FAVORITES LOGIC ---
 
-  final _supabase = Supabase.instance.client;
-
   /// Fetch IDs of favorite voices for the current user
   Future<List<String>> fetchFavoriteVoiceIds() async {
     try {
-      final userId = _supabase.auth.currentUser?.id;
+      final userId = supabase.auth.currentUser?.id;
       if (userId == null) return [];
 
-      final response = await _supabase
-          .from('favorite_voices')
-          .select('voice_id');
+      final response = await supabase.from('favorite_voices').select('voice_id');
 
       return (response as List)
           .map((item) => item['voice_id'] as String)
@@ -170,10 +141,10 @@ class VoiceCloneService {
   /// Add a voice to favorites
   Future<void> addFavoriteVoice(String voiceId) async {
     try {
-      final userId = _supabase.auth.currentUser?.id;
+      final userId = supabase.auth.currentUser?.id;
       if (userId == null) return;
 
-      await _supabase.from('favorite_voices').upsert({
+      await supabase.from('favorite_voices').upsert({
         'user_id': userId,
         'voice_id': voiceId,
       });
@@ -185,10 +156,10 @@ class VoiceCloneService {
   /// Remove a voice from favorites
   Future<void> removeFavoriteVoice(String voiceId) async {
     try {
-      final userId = _supabase.auth.currentUser?.id;
+      final userId = supabase.auth.currentUser?.id;
       if (userId == null) return;
 
-      await _supabase
+      await supabase
           .from('favorite_voices')
           .delete()
           .eq('user_id', userId)

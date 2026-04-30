@@ -4,10 +4,11 @@ import 'package:avatar_flow/features/auth/models/user_model.dart';
 import 'package:avatar_flow/features/avatar/models/avatar_model.dart';
 import 'package:avatar_flow/features/avatar/models/shared_avatar_model.dart';
 import 'package:avatar_flow/features/avatar/models/trait_model.dart';
+import 'package:avatar_flow/core/services/supabase_client.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AvatarRepo {
-  final SupabaseClient _client = Supabase.instance.client;
+  final SupabaseClient _client = supabase;
 
   static const String _table = DBConstansts.avatars;
 

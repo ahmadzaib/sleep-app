@@ -2,12 +2,13 @@ import 'dart:io';
 import 'package:avatar_flow/core/constants/db_constants.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:avatar_flow/core/services/supabase_client.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:avatar_flow/features/auth/models/user_model.dart';
 
 class AuthService {
-  static final SupabaseClient _supabase = Supabase.instance.client;
+  static final SupabaseClient _supabase = supabase;
   static final GoogleSignIn _googleSignIn = GoogleSignIn(
     serverClientId: dotenv.env['SERVE_CLIENT_ID'] ?? '',
     clientId: Platform.isIOS || Platform.isMacOS

@@ -1,9 +1,10 @@
+import 'package:avatar_flow/core/services/service_locator.dart';
 import 'package:avatar_flow/features/auth/models/user_model.dart';
 import 'package:avatar_flow/features/avatar/repo/avatar_repo.dart';
 import 'package:flutter/material.dart';
 
 class AvatarShareProvider extends ChangeNotifier {
-  final AvatarRepo _avatarRepo = AvatarRepo();
+  final AvatarRepo _avatarRepo = getIt<AvatarRepo>();
 
   List<UserModel> _recipients = [];
   List<UserModel> get recipients => _recipients;

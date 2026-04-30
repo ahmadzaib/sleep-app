@@ -1,5 +1,6 @@
 import 'package:avatar_flow/core/router/router.dart';
 import 'package:avatar_flow/core/services/preferences.dart';
+import 'package:avatar_flow/core/services/service_locator.dart';
 import 'package:avatar_flow/core/theme/app_colors.dart';
 import 'package:avatar_flow/my_app.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +11,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 void main() async {
   await dotenv.load(fileName: ".env");
   WidgetsFlutterBinding.ensureInitialized();
+  
+  setupServiceLocator();
+  
   final prefs = await Preferences().init();
 
   // Initialize Supabase with auth persistence

@@ -1,9 +1,10 @@
 import 'dart:io';
+import 'package:avatar_flow/core/services/supabase_client.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:path/path.dart' as path;
 
 class SupabaseStorageService {
-  static final SupabaseClient _client = Supabase.instance.client;
+  static final SupabaseClient _client = supabase;
 
   static Future<String?> uploadImage({
     required File file,
