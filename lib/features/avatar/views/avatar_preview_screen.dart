@@ -5,10 +5,12 @@ import 'package:avatar_flow/core/constants/app_icons.dart';
 import 'package:avatar_flow/core/constants/app_images.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
+import 'package:avatar_flow/core/utils/toast_utils.dart';
 import 'package:avatar_flow/features/avatar/models/trait_model.dart';
 import 'package:avatar_flow/features/avatar/providers/create_avatar_provider.dart';
 import 'package:avatar_flow/features/avatar/views/components/sample_voices_bottom_sheet.dart';
 import 'package:avatar_flow/features/avatar/views/components/trait_selection_bottom_sheet.dart';
+import 'package:avatar_flow/features/avatar/views/components/voice_note_bs_tile.dart';
 import 'package:avatar_flow/widgets/bg_widget.dart';
 import 'package:avatar_flow/widgets/circled_icon_widget.dart';
 import 'package:avatar_flow/widgets/confirmation_dialog.dart';
@@ -119,7 +121,7 @@ class _AvatarPreviewCard extends StatelessWidget {
                 child: Container(
                   height: 0.18.sh,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF6EED8),
+                    color: provider.getBackgroundColor().withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(24.r),
                   ),
                 ),
@@ -313,9 +315,16 @@ class _DetailsCard extends StatelessWidget {
           buttonColor: context.appColors.secondaryBlack,
           onPressed: provider.isCreating
               ? null
-              : () => provider.isEditMode
-                    ? provider.updateAvatar()
-                    : provider.createAvatar(),
+              : () {
+                  // Validate traits before create/update
+                  if (provider.traits.isEmpty) {
+                    ToastUtils.error('Please select at least 1 trait');
+                    return;
+                  }
+                  provider.isEditMode
+                      ? provider.updateAvatar()
+                      : provider.createAvatar();
+                },
         ),
         Spacing.y(1),
         Center(
@@ -335,47 +344,41 @@ class _DetailsCard extends StatelessWidget {
   }
 
   /// Build voice info tile based on selected source
+  /// Build voice info tile based on selected source
   Widget _buildVoiceInfo(BuildContext context, CreateAvatarProvider provider) {
     final textTheme = Theme.of(context).textTheme;
-    final hasRecorded = provider.hasRecordedVoice;
-    final hasSample = provider.hasSampleVoice;
-    final voiceName = provider.effectiveVoiceName;
 
-    // Determine icon and subtitle based on source
-    IconData icon;
-    String subtitle;
-    Color color;
-
-    if (hasRecorded) {
-      icon = Icons.mic;
-      subtitle = 'Your recorded voice';
-      color = context.appColors.primary;
-    } else if (hasSample) {
-      icon = Icons.headphones;
-      subtitle = 'Sample voice';
-      color = context.appColors.secondary;
-    } else {
-      icon = Icons.volume_up;
-      subtitle = 'Default AI voice';
-      color = context.appColors.grey;
+    if (provider.hasRecordedVoice && provider.audioPath != null) {
+      return VoiceNoteBSTile(
+        title: provider.effectiveVoiceName,
+        audioPath: provider.audioPath!,
+        isFile: true,
+      );
+    } else if (provider.hasSampleVoice && provider.selectedSampleVoiceUrl != null) {
+      return VoiceNoteBSTile(
+        title: provider.effectiveVoiceName,
+        audioPath: provider.selectedSampleVoiceUrl!,
+        isNetwork: true,
+      );
     }
 
+    // Default voice
     return Container(
       padding: EdgeInsets.all(12.w),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
+        color: context.appColors.grey.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: color.withValues(alpha: 0.2)),
+        border: Border.all(color: context.appColors.grey.withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [
           Container(
             padding: EdgeInsets.all(8.w),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.15),
+              color: context.appColors.grey.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, size: 20, color: color),
+            child: Icon(Icons.volume_up, size: 20, color: context.appColors.grey),
           ),
           SizedBox(width: 12.w),
           Expanded(
@@ -383,14 +386,14 @@ class _DetailsCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  voiceName,
+                  provider.effectiveVoiceName,
                   style: textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 SizedBox(height: 2.h),
                 Text(
-                  subtitle,
+                  'Default AI voice',
                   style: textTheme.bodySmall?.copyWith(
                     color: context.appColors.grey,
                   ),

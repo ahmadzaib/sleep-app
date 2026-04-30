@@ -1,14 +1,15 @@
-import 'dart:math';
 import 'dart:ui';
 import 'package:avatar_flow/core/constants/app_constants.dart';
 import 'package:avatar_flow/core/constants/app_icons.dart';
 import 'package:avatar_flow/core/constants/app_images.dart';
+import 'package:avatar_flow/core/debug/debug_point.dart';
 import 'package:avatar_flow/core/router/navigation_service.dart';
 import 'package:avatar_flow/core/router/routes.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
 import 'package:avatar_flow/features/avatar/models/avatar_model.dart';
 import 'package:avatar_flow/features/avatar/providers/avatars_provider.dart';
+import 'package:avatar_flow/features/avatar/views/avatar_section.dart';
 import 'package:avatar_flow/widgets/custom_cache_netword_imge.dart';
 import 'package:avatar_flow/widgets/custom_svg.dart';
 import 'package:flutter/material.dart';
@@ -119,7 +120,7 @@ class _AvatarCardsState extends State<AvatarCards> {
                           },
                           widget.showRemoveButton ?? false,
                           widget.onRemoveTap ?? () {},
-                          Colors.red,
+                          _getAvatarColor(avatar),
                         ),
                       ),
                     );
@@ -188,9 +189,13 @@ class _AvatarCardsState extends State<AvatarCards> {
                     alignment: Alignment.bottomCenter,
                     child: Padding(
                       padding: AppConstants.defaultAllPadding,
-                      child: Image.asset(
-                        AppImagesPng.cardVector,
-                        color: cardColor,
+                      child: ClipPath(
+                        clipper: MyClipper(),
+                        child: Container(
+                          width: 1.sw,
+                          height: 0.21.sh,
+                          color: cardColor,
+                        ),
                       ),
                     ),
                   ),
@@ -259,6 +264,19 @@ class _AvatarCardsState extends State<AvatarCards> {
           ),
       ],
     );
+  }
+
+  /// Get avatar background color from hex string or fallback to red
+  Color _getAvatarColor(AvatarModel avatar) {
+    if (avatar.color != null && avatar.color!.isNotEmpty) {
+      try {
+        final hex = avatar.color!.replaceFirst('#', '');
+        return Color(int.parse('FF$hex', radix: 16)).withValues(alpha: 0.3);
+      } catch (e) {
+        DebugPoint.error('Failed to parse avatar color: ${avatar.color}');
+      }
+    }
+    return Colors.red.withValues(alpha: 0.3);
   }
 
   @override

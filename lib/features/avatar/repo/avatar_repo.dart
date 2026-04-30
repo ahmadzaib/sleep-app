@@ -29,7 +29,17 @@ class AvatarRepo {
 
     final response = await _client.from(_table).insert(data).select().single();
 
-    return AvatarModel.fromJson(response);
+    final createdAvatar = AvatarModel.fromJson(response);
+
+    // Insert traits into avatar_traits junction table if avatar has traits
+    if (createdAvatar.id != null && avatar.traits.isNotEmpty) {
+      await _updateAvatarTraits(createdAvatar.id!, avatar.traits);
+      DebugPoint.log(
+        'Created avatar ${createdAvatar.id} with ${avatar.traits.length} traits',
+      );
+    }
+
+    return createdAvatar;
   }
 
   /// GET ALL (current user) with traits
@@ -132,7 +142,6 @@ class AvatarRepo {
       'gender': avatar.gender,
       'avatar_url': avatar.avatarUrl,
       'voice_id': avatar.voiceId,
-      'voice_term': avatar.voiceTerm,
     };
 
     final response = await _client
@@ -195,10 +204,28 @@ class AvatarRepo {
   /// DELETE
   Future<bool> deleteAvatar(int id) async {
     try {
+      // First delete traits from junction table (foreign key constraint safety)
+      await _client
+          .from(DBConstansts.avatarTraits)
+          .delete()
+          .eq('avatar_id', id);
+
+      // Then delete the avatar
       await _client.from(_table).delete().eq('id', id);
       return true;
     } catch (e) {
+      DebugPoint.error('Failed to delete avatar: $e');
       return false;
     }
+  }
+
+  /// GET ALL traits from traits table
+  Future<List<TraitModel>> getAllTraits() async {
+    final response = await _client
+        .from(DBConstansts.traits)
+        .select('id, name, image_url')
+        .order('name', ascending: true);
+
+    return (response as List).map((e) => TraitModel.fromJson(e)).toList();
   }
 }

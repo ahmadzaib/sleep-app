@@ -179,6 +179,7 @@ class AuthService {
     required String email,
     String? name,
     String? avatarUrl,
+    bool? voiceAgreementAccepted,
   }) async {
     try {
       // Build data map for upsert - always update all fields
@@ -187,6 +188,7 @@ class AuthService {
         'email': email,
         'name': name,
         'avatar_url': avatarUrl,
+        'voice_agreement_accepted': voiceAgreementAccepted ?? false,
       };
 
       debugPrint('[AUTH_SERVICE] Inserting user data: $data');
@@ -199,6 +201,22 @@ class AuthService {
     } catch (e) {
       debugPrint('[AUTH_SERVICE] ERROR creating user in table: $e');
       // Don't rethrow - auth should work even if user table insert fails
+    }
+  }
+
+  // Update user voice agreement status
+  static Future<void> updateVoiceAgreement({
+    required String id,
+    required bool accepted,
+  }) async {
+    try {
+      final data = <String, dynamic>{'voice_agreement_accepted': accepted};
+
+      await _supabase.from(DBConstansts.users).update(data).eq('id', id);
+
+      debugPrint('[AUTH_SERVICE] Voice agreement updated: $accepted');
+    } catch (e) {
+      debugPrint('[AUTH_SERVICE] ERROR updating voice agreement: $e');
     }
   }
 

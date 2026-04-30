@@ -1,0 +1,148 @@
+import 'dart:io';
+import 'package:avatar_flow/core/config/appconfig.dart';
+import 'package:dio/dio.dart';
+
+class ElevenLabsVoice {
+  final String voiceId;
+  final String name;
+  final List<String> labels;
+  final String? previewUrl;
+
+  ElevenLabsVoice({
+    required this.voiceId,
+    required this.name,
+    required this.labels,
+    this.previewUrl,
+  });
+
+  factory ElevenLabsVoice.fromJson(Map<String, dynamic> json) {
+    return ElevenLabsVoice(
+      voiceId: json['voice_id'] ?? '',
+      name: json['name'] ?? 'Unknown',
+      labels:
+          (json['labels'] as Map<String, dynamic>?)?.values
+              .map((e) => e.toString())
+              .toList() ??
+          [],
+      previewUrl: json['preview_url'],
+    );
+  }
+}
+
+class VoiceCloneService {
+  late final Dio _dio;
+
+  VoiceCloneService() {
+    _dio = Dio(
+      BaseOptions(
+        baseUrl: "https://api.elevenlabs.io/v1",
+        headers: {"xi-api-key": AppConfig.elevenLabsApiKey},
+        responseType: ResponseType.json,
+      ),
+    );
+  }
+
+  /// Fetch all available voices from ElevenLabs
+  Future<List<ElevenLabsVoice>> fetchVoices() async {
+    try {
+      final response = await _dio.get("/voices");
+
+      if (response.statusCode == 200) {
+        final voicesData = response.data['voices'] as List<dynamic>;
+        return voicesData
+            .map(
+              (voice) =>
+                  ElevenLabsVoice.fromJson(voice as Map<String, dynamic>),
+            )
+            .toList();
+      }
+
+      return [];
+    } on DioException catch (e) {
+      print("Fetch voices error: ${e.response?.data}");
+      return [];
+    } catch (e) {
+      print("Unexpected error fetching voices: $e");
+      return [];
+    }
+  }
+
+  /// Fetch a single voice by its ID — returns null if not found or on error
+  Future<ElevenLabsVoice?> fetchVoiceById(String voiceId) async {
+    try {
+      final response = await _dio.get("/voices/$voiceId");
+      if (response.statusCode == 200) {
+        return ElevenLabsVoice.fromJson(
+          response.data as Map<String, dynamic>,
+        );
+      }
+      return null;
+    } on DioException catch (e) {
+      print("Fetch voice by id error: ${e.response?.data}");
+      return null;
+    } catch (e) {
+      print("Unexpected error fetching voice by id: $e");
+      return null;
+    }
+  }
+
+
+  /// 1. Clone Voice → returns voice_id
+  Future<String?> cloneVoice({
+    required String name,
+    required File audioFile,
+  }) async {
+    try {
+      FormData formData = FormData.fromMap({
+        "name": name,
+        "files": await MultipartFile.fromFile(
+          audioFile.path,
+          filename: audioFile.path.split('/').last,
+        ),
+      });
+
+      final response = await _dio.post("/voices/add", data: formData);
+
+      if (response.statusCode == 200) {
+        return response.data["voice_id"];
+      }
+
+      return null;
+    } on DioException catch (e) {
+      print("Clone error: ${e.response?.data}");
+      return null;
+    } catch (e) {
+      print("Unexpected error: $e");
+      return null;
+    }
+  }
+
+  /// 2. Text to Speech → returns audio bytes
+  Future<List<int>?> textToSpeech({
+    required String voiceId,
+    required String text,
+  }) async {
+    try {
+      final response = await _dio.post(
+        "/text-to-speech/$voiceId",
+        data: {"text": text, "model_id": "eleven_multilingual_v2"},
+        options: Options(
+          responseType: ResponseType.bytes,
+          headers: {"Content-Type": "application/json", "Accept": "audio/mpeg"},
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        return response.data; // audio bytes
+      }
+
+      return null;
+    } on DioException catch (e) {
+      print("TTS error: ${e.response?.data}");
+      return null;
+    } catch (e) {
+      print("Unexpected error: $e");
+      return null;
+    }
+  }
+}

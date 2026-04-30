@@ -103,10 +103,14 @@ class _VoiceNoteBSTileState extends State<VoiceNoteBSTile> {
           Spacing.x(3),
 
           /// Title
-          Text(
-            widget.title,
-            style: textTheme.bodyMedium!.copyWith(
-              color: context.appColors.grey,
+          Expanded(
+            child: Text(
+              widget.title,
+              style: textTheme.bodyMedium!.copyWith(
+                color: context.appColors.grey,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
 

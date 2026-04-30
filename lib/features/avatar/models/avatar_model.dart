@@ -9,9 +9,9 @@ class AvatarModel {
   final String avatarUrl;
   final String? voiceId;
   final String? userId;
-  final bool voiceTerm;
   final int shareCount;
   final int storiesCount;
+  final String? color;
 
   AvatarModel({
     this.id,
@@ -20,9 +20,9 @@ class AvatarModel {
     required this.gender,
     required this.traits,
     required this.avatarUrl,
-    required this.voiceTerm,
     this.shareCount = 0,
     this.storiesCount = 0,
+    this.color,
     this.voiceId,
     this.userId,
   });
@@ -36,7 +36,6 @@ class AvatarModel {
           : null,
       name: json['name'] ?? '',
       gender: json['gender'] ?? '',
-      voiceTerm: json['voice_term'] ?? false,
       traits:
           (json['traits'] as List<dynamic>?)
               ?.map((e) => TraitModel.fromJson(e as Map<String, dynamic>))
@@ -47,21 +46,22 @@ class AvatarModel {
       userId: json['user_id'] ?? '',
       shareCount: json['share_count'] ?? 0,
       storiesCount: json['stories_count'] ?? 0,
+      color: json['color'] as String?,
     );
   }
 
   /// TO JSON (for Supabase insert/update)
+  /// NOTE: traits are NOT included - they go to avatar_traits junction table separately
   Map<String, dynamic> toJson() {
     final data = <String, dynamic>{
       'name': name,
       'gender': gender,
-      'traits': traits.map((t) => t.toJson()).toList(),
       'avatar_url': avatarUrl,
       'voice_id': voiceId,
       'user_id': userId,
-      'voice_term': voiceTerm,
       'share_count': shareCount,
       'stories_count': storiesCount,
+      'color': color,
     };
     if (id != null) data['id'] = id;
     return data;
@@ -77,9 +77,9 @@ class AvatarModel {
     String? avatarUrl,
     String? voiceUrl,
     String? userId,
-    bool? voiceTerm,
     int? shareCount,
     int? storiesCount,
+    String? color,
   }) {
     return AvatarModel(
       id: id ?? this.id,
@@ -90,9 +90,9 @@ class AvatarModel {
       avatarUrl: avatarUrl ?? this.avatarUrl,
       voiceId: voiceUrl ?? voiceId,
       userId: userId ?? this.userId,
-      voiceTerm: voiceTerm ?? this.voiceTerm,
       shareCount: shareCount ?? this.shareCount,
       storiesCount: storiesCount ?? this.storiesCount,
+      color: color ?? this.color,
     );
   }
 }

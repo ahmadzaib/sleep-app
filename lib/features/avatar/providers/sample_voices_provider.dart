@@ -1,5 +1,8 @@
 import 'dart:async';
+import 'dart:io';
 
+import 'package:avatar_flow/core/debug/debug_point.dart';
+import 'package:avatar_flow/core/services/voice_clone_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
 
@@ -17,6 +20,16 @@ class SampleVoice {
     required this.audioPath,
     this.isNetwork = false,
   });
+
+  factory SampleVoice.fromElevenLabs(ElevenLabsVoice voice) {
+    return SampleVoice(
+      id: voice.voiceId,
+      name: voice.name,
+      tags: voice.labels,
+      audioPath: voice.previewUrl ?? '',
+      isNetwork: voice.previewUrl != null && voice.previewUrl!.isNotEmpty,
+    );
+  }
 }
 
 class SampleVoicesProvider extends ChangeNotifier {
@@ -24,45 +37,36 @@ class SampleVoicesProvider extends ChangeNotifier {
     _playerStateSubscription = _player.playerStateStream.listen(
       _handlePlayerStateChanged,
     );
+    // Fetch voices from ElevenLabs on init
+    fetchVoicesFromElevenLabs();
   }
 
-  static const List<String> categoryLabels = [
-    'All',
-    'Man',
-    'Woman',
-    'Excited',
-    'Calm',
-    'Serious',
-    'Deep',
-    'Random',
-  ];
+  final VoiceCloneService _voiceService = VoiceCloneService();
 
-  static const List<SampleVoice> _voices = [
-    SampleVoice(
-      id: 'voice_1',
-      name: 'Voice 1',
-      tags: ['Man', 'Serious', 'Deep'],
-      audioPath: 'assets/audio/music.mp3',
-    ),
-    SampleVoice(
-      id: 'voice_2',
-      name: 'Voice 2',
-      tags: ['Woman', 'Calm', 'Random'],
-      audioPath: 'assets/audio/music.mp3',
-    ),
-    SampleVoice(
-      id: 'voice_3',
-      name: 'Voice 3',
-      tags: ['Excited', 'Random'],
-      audioPath: 'assets/audio/music.mp3',
-    ),
-  ];
+  // Static categories - All is first, others dynamically generated
+  static const List<String> _staticCategories = ['All'];
+
+  /// Dynamically generate categories from voice labels
+  List<String> get categoryLabels {
+    final allLabels = _voices.expand((v) => v.tags).toSet().toList()..sort();
+    return [..._staticCategories, ...allLabels];
+  }
+
+  /// Static access for widget initialization
+  static const String defaultCategory = 'All';
+
+  List<SampleVoice> _voices = [];
+  bool _isLoading = true;
+  String? _error;
+
+  bool get isLoading => _isLoading;
+  String? get error => _error;
 
   final AudioPlayer _player = AudioPlayer();
   final Set<String> _favoriteVoiceIds = {};
 
   StreamSubscription<PlayerState>? _playerStateSubscription;
-  String _selectedCategory = categoryLabels.first;
+  String _selectedCategory = 'All';
   String? _activeVoiceId;
   bool _isPlaying = false;
 
@@ -77,15 +81,118 @@ class SampleVoicesProvider extends ChangeNotifier {
         .toList(growable: false);
   }
 
+  /// Fetch voices from ElevenLabs API
+  Future<void> fetchVoicesFromElevenLabs() async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final elevenLabsVoices = await _voiceService.fetchVoices();
+
+      if (elevenLabsVoices.isEmpty) {
+        _error = 'No voices available';
+        _voices = [];
+      } else {
+        _voices = elevenLabsVoices
+            .where((v) => v.previewUrl != null && v.previewUrl!.isNotEmpty)
+            .map((v) => SampleVoice.fromElevenLabs(v))
+            .toList();
+        DebugPoint.log(
+          'Fetched ${_voices.length} voices from ElevenLabs with labels: ${categoryLabels.skip(1).toList()}',
+        );
+      }
+    } catch (e) {
+      _error = 'Failed to load voices: $e';
+      DebugPoint.error('Error fetching voices: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Play TTS with default voice for preview
+  Future<void> playDefaultVoice(String voiceId) async {
+    try {
+      if (_activeVoiceId == 'default_voice' && _isPlaying) {
+        await _player.pause();
+        return;
+      }
+
+      await _player.stop();
+      _activeVoiceId = 'default_voice';
+      _isPlaying = false;
+      notifyListeners();
+
+      // Use text-to-speech to generate audio with default voice
+      final voiceService = VoiceCloneService();
+      final audioBytes = await voiceService.textToSpeech(
+        text: 'Hello, this is the default voice preview.',
+        voiceId: voiceId,
+      );
+
+      if (audioBytes != null) {
+        // Save to temp file and play
+        final tempDir = await Directory.systemTemp.createTemp();
+        final tempFile = File('${tempDir.path}/default_preview.mp3');
+        await tempFile.writeAsBytes(audioBytes);
+        await _player.setFilePath(tempFile.path);
+        await _player.seek(Duration.zero);
+        await _player.play();
+      }
+    } catch (error) {
+      debugPrint('Default voice playback error: $error');
+      _activeVoiceId = null;
+      _isPlaying = false;
+      notifyListeners();
+    }
+  }
+
+  /// Play a voice by URL (for default voices that aren't in the list)
+  Future<void> playVoiceByUrl(String voiceId, String url) async {
+    try {
+      if (_activeVoiceId == voiceId) {
+        if (_isPlaying) {
+          await _player.pause();
+          return;
+        }
+        await _player.seek(Duration.zero);
+        await _player.play();
+        return;
+      }
+
+      await _player.stop();
+      _activeVoiceId = voiceId;
+      _isPlaying = false;
+      notifyListeners();
+
+      await _player.setUrl(url);
+      await _player.seek(Duration.zero);
+      await _player.play();
+    } catch (error) {
+      debugPrint('Voice playback error: $error');
+      _activeVoiceId = null;
+      _isPlaying = false;
+      notifyListeners();
+    }
+  }
+
+  void refreshVoices() {
+    fetchVoicesFromElevenLabs();
+  }
+
   bool isFavorite(String voiceId) => _favoriteVoiceIds.contains(voiceId);
 
   bool isPlaying(String voiceId) => _activeVoiceId == voiceId && _isPlaying;
 
-  bool containsVoice(String voiceName) =>
-      filteredVoices.any((voice) => voice.name == voiceName);
+  bool containsVoice(String voiceId) =>
+      filteredVoices.any((voice) => voice.id == voiceId);
 
   String? get firstFilteredVoiceName =>
       filteredVoices.isEmpty ? null : filteredVoices.first.name;
+
+  String? get firstFilteredVoiceId =>
+      filteredVoices.isEmpty ? null : filteredVoices.first.id;
 
   void selectCategory(String category) {
     if (_selectedCategory == category) {

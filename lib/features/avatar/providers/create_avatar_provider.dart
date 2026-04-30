@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 
-import 'package:avatar_flow/core/config/appconfig.dart';
 import 'package:avatar_flow/core/constants/db_constants.dart';
 import 'package:avatar_flow/core/debug/debug_point.dart';
 import 'package:avatar_flow/core/dio/dio_client.dart';
@@ -9,12 +9,13 @@ import 'package:avatar_flow/core/router/navigation_service.dart';
 import 'package:avatar_flow/core/router/routes.dart';
 import 'package:avatar_flow/core/services/background_removal_service.dart';
 import 'package:avatar_flow/core/services/storage_service.dart';
+import 'package:avatar_flow/core/services/voice_clone_service.dart';
 import 'package:avatar_flow/core/utils/toast_utils.dart';
 import 'package:avatar_flow/features/avatar/models/avatar_model.dart';
 import 'package:avatar_flow/features/avatar/models/trait_model.dart';
 import 'package:avatar_flow/features/avatar/providers/avatars_provider.dart';
 import 'package:avatar_flow/features/avatar/repo/avatar_repo.dart';
-import 'package:dio/dio.dart';
+import 'package:avatar_flow/features/prompt_ai/providers/prompt_ai_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:path_provider/path_provider.dart';
@@ -32,10 +33,9 @@ class CreateAvatarProvider extends ChangeNotifier {
   int currentIndex = 0;
   String avatarName = "Lilian";
   String selectedGender = "Female";
-  List<TraitModel> traits = [
-    TraitModel(id: 1, name: "Adventurous"),
-    TraitModel(id: 2, name: "Charismatic"),
-  ];
+  List<TraitModel> traits = [];
+  String? _avatarColor; // Random hex color for avatar background
+  String? get avatarColor => _avatarColor;
   String selectedVoice = "Voice 1";
   String prompt = "";
   String? _avatarImagePath; // Local file path for preview
@@ -44,6 +44,20 @@ class CreateAvatarProvider extends ChangeNotifier {
   String? get avatarImageUrl => _avatarImageUrl;
   bool _isCreating = false;
   bool _isPreparingPreview = false;
+
+  // -------------------------
+  // Traits from Supabase
+  // -------------------------
+  List<TraitModel> _availableTraits = [];
+  List<TraitModel> get availableTraits => _availableTraits;
+  bool _isLoadingTraits = false;
+  bool get isLoadingTraits => _isLoadingTraits;
+  String? _traitsError;
+  String? get traitsError => _traitsError;
+
+  // Max traits limit
+  static const int maxTraits = 3;
+  bool get hasReachedMaxTraits => traits.length >= maxTraits;
 
   bool get isCreating => _isCreating;
   bool get isPreparingPreview => _isPreparingPreview;
@@ -66,11 +80,22 @@ class CreateAvatarProvider extends ChangeNotifier {
   // -------------------------
   // Voice source selection
   // -------------------------
-  static const String defaultVoiceId = 'default_voice';
+  // ElevenLabs default voice IDs based on gender
+  static const String defaultMaleVoiceId = 'IKne3meq5aSn9XLyUdCD'; // Adam
+  static const String defaultFemaleVoiceId = 'EXAVITQu4vr4xnSDxMaL'; // Sarah
   static const String defaultVoiceName = 'Default Voice';
 
+  /// Get default voice ID based on selected gender
+  String get defaultVoiceId => selectedGender.toLowerCase() == 'male'
+      ? defaultMaleVoiceId
+      : defaultFemaleVoiceId;
+
   String? _selectedSampleVoiceId;
+  String? _selectedSampleVoiceName;
+  String? _selectedSampleVoiceUrl;
   String? get selectedSampleVoiceId => _selectedSampleVoiceId;
+  String? get selectedSampleVoiceName => _selectedSampleVoiceName;
+  String? get selectedSampleVoiceUrl => _selectedSampleVoiceUrl;
 
   bool get hasRecordedVoice => audioPath != null;
   bool get hasSampleVoice => _selectedSampleVoiceId != null;
@@ -78,7 +103,7 @@ class CreateAvatarProvider extends ChangeNotifier {
 
   String get effectiveVoiceName {
     if (hasRecordedVoice) return voiceName.isNotEmpty ? voiceName : 'My Voice';
-    if (hasSampleVoice) return _selectedSampleVoiceId!;
+    if (hasSampleVoice) return _selectedSampleVoiceName ?? _selectedSampleVoiceId!;
     return defaultVoiceName;
   }
 
@@ -93,8 +118,10 @@ class CreateAvatarProvider extends ChangeNotifier {
   String voiceName = '';
 
   /// Select a sample voice (clears recorded voice)
-  void selectSampleVoice(String voiceId) {
+  void selectSampleVoice(String voiceId, {String? name, String? url}) {
     _selectedSampleVoiceId = voiceId;
+    if (name != null) _selectedSampleVoiceName = name;
+    if (url != null) _selectedSampleVoiceUrl = url;
     // Clear recorded voice when sample is selected
     audioPath = null;
     voiceName = '';
@@ -104,6 +131,8 @@ class CreateAvatarProvider extends ChangeNotifier {
   /// Clear sample voice selection
   void clearSampleVoice() {
     _selectedSampleVoiceId = null;
+    _selectedSampleVoiceName = null;
+    _selectedSampleVoiceUrl = null;
     notifyListeners();
   }
 
@@ -113,6 +142,8 @@ class CreateAvatarProvider extends ChangeNotifier {
     if (name != null) voiceName = name;
     // Clear sample when recording is set
     _selectedSampleVoiceId = null;
+    _selectedSampleVoiceName = null;
+    _selectedSampleVoiceUrl = null;
     notifyListeners();
   }
 
@@ -121,6 +152,8 @@ class CreateAvatarProvider extends ChangeNotifier {
     audioPath = null;
     voiceName = '';
     _selectedSampleVoiceId = null;
+    _selectedSampleVoiceName = null;
+    _selectedSampleVoiceUrl = null;
     notifyListeners();
   }
 
@@ -136,33 +169,59 @@ class CreateAvatarProvider extends ChangeNotifier {
     _editingAvatarId = avatar.id;
     avatarName = avatar.name;
     selectedGender = avatar.gender;
+    _avatarColor = avatar.color;
     traits = List<TraitModel>.from(avatar.traits);
     _avatarImageUrl = avatar.avatarUrl;
     _avatarImagePath = null; // no local path for existing avatars
     if (avatar.voiceId != null) {
       _selectedSampleVoiceId = avatar.voiceId;
+      // Fetch preview URL from ElevenLabs in the background
+      _fetchAndSetVoicePreviewUrl(avatar.voiceId!);
     }
     DebugPoint.log('Loaded avatar for edit: ${avatar.name} (id: ${avatar.id})');
     notifyListeners();
   }
 
-  static final List<TraitModel> traitSuggestions = [
-    TraitModel(id: 1, name: 'Adventurous'),
-    TraitModel(id: 2, name: 'Brave'),
-    TraitModel(id: 3, name: 'Bold'),
-    TraitModel(id: 4, name: 'Calm'),
-    TraitModel(id: 5, name: 'Charismatic'),
-    TraitModel(id: 6, name: 'Cheerful'),
-    TraitModel(id: 7, name: 'Curious'),
-    TraitModel(id: 8, name: 'Creative'),
-    TraitModel(id: 9, name: 'Fearless'),
-    TraitModel(id: 10, name: 'Friendly'),
-    TraitModel(id: 11, name: 'Kind'),
-    TraitModel(id: 12, name: 'Loyal'),
-    TraitModel(id: 13, name: 'Playful'),
-    TraitModel(id: 14, name: 'Smart'),
-    TraitModel(id: 15, name: 'Wise'),
-  ];
+  /// Fetch the voice preview URL (and name) from ElevenLabs for a given voiceId,
+  /// then update state so the VoiceNoteBSTile can play it.
+  Future<void> _fetchAndSetVoicePreviewUrl(String voiceId) async {
+    try {
+      final voiceService = VoiceCloneService();
+      final voice = await voiceService.fetchVoiceById(voiceId);
+      if (voice != null) {
+        _selectedSampleVoiceName = voice.name;
+        _selectedSampleVoiceUrl = voice.previewUrl;
+        DebugPoint.log(
+          'Fetched voice preview for $voiceId: name=${voice.name}, url=${voice.previewUrl}',
+        );
+        notifyListeners();
+      } else {
+        DebugPoint.error('Could not fetch voice preview for id: $voiceId');
+      }
+    } catch (e) {
+      DebugPoint.error('Error fetching voice preview: $e');
+    }
+  }
+
+
+
+  /// Fetch all available traits from Supabase
+  Future<void> fetchAvailableTraits() async {
+    _isLoadingTraits = true;
+    _traitsError = null;
+    notifyListeners();
+
+    try {
+      _availableTraits = await _avatarRepo.getAllTraits();
+      DebugPoint.log('Fetched ${_availableTraits.length} traits from Supabase');
+    } catch (e) {
+      _traitsError = e.toString();
+      DebugPoint.error('Failed to fetch traits: $e');
+    } finally {
+      _isLoadingTraits = false;
+      notifyListeners();
+    }
+  }
 
   final AudioRecorder _recorder = AudioRecorder();
   Timer? _recordingTimer;
@@ -323,13 +382,6 @@ class CreateAvatarProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // -------------------------
-  // ElevenLabs API - Voice Cloning
-  // -------------------------
-  static String get _elevenLabsApiKey => AppConfig.elevenLabsApiKey;
-  static String get _elevenLabsEndpoint =>
-      '${AppConfig.elevenLabsEndpoint}/voices/add';
-
   /// Upload voice to ElevenLabs and get voice ID
   /// Returns voice ID based on source: recorded (cloned), sample (used as-is), or default
   Future<String?> getOrCreateVoiceId() async {
@@ -345,62 +397,31 @@ class CreateAvatarProvider extends ChangeNotifier {
       return _selectedSampleVoiceId;
     }
 
-    // If recorded voice, clone it to ElevenLabs
+    // If recorded voice, clone it to ElevenLabs using VoiceCloneService
     if (hasRecordedVoice && audioPath != null) {
       try {
-        // Check API key first
-        DebugPoint.log(
-          'ElevenLabs API Key configured: ${_elevenLabsApiKey.isNotEmpty}',
-        );
-        DebugPoint.log(
-          'ElevenLabs API Key length: ${_elevenLabsApiKey.length}',
-        );
+        DebugPoint.log('Cloning voice with VoiceCloneService...');
+        ToastUtils.show('Cloning your voice...');
 
-        if (_elevenLabsApiKey.isEmpty) {
-          ToastUtils.error(
-            'ElevenLabs API key not configured. Check .env file',
-          );
-          return null;
-        }
-
-        ToastUtils.show('Cloning your voice with ElevenLabs...');
-        DebugPoint.log('Cloning voice from file: ${audioPath!}');
-
-        final dio = DioClient();
+        final voiceCloneService = VoiceCloneService();
         final file = File(audioPath!);
-
-        // Create multipart form data
-        final formData = FormData.fromMap({
-          'name': voiceName.isNotEmpty ? voiceName : avatarName,
-          'description': 'Voice cloned for $avatarName',
-          'files': await MultipartFile.fromFile(
-            file.path,
-            filename: 'voice_sample.mp3',
-          ),
-        });
-
-        final response = await dio.dio.post(
-          _elevenLabsEndpoint,
-          data: formData,
-          options: Options(headers: {'xi-api-key': _elevenLabsApiKey}),
+        final clonedVoiceId = await voiceCloneService.cloneVoice(
+          name: voiceName.isNotEmpty ? voiceName : avatarName,
+          audioFile: file,
         );
 
-        DebugPoint.log('ElevenLabs Response status: ${response.statusCode}');
-        DebugPoint.debug('Response data: ${response.data}');
-
-        if (response.statusCode == 200) {
-          final voiceId = response.data['voice_id'];
-          DebugPoint.log('Voice cloned successfully! ID: $voiceId');
-          ToastUtils.success('Voice cloned successfully!');
-          return voiceId;
+        if (clonedVoiceId != null) {
+          DebugPoint.log('Voice cloned successfully: $clonedVoiceId');
+          ToastUtils.success('Voice cloned!');
+          return clonedVoiceId;
         } else {
-          DebugPoint.error('Failed to clone voice: ${response.statusCode}');
-          ToastUtils.error('Failed to clone voice: ${response.statusCode}');
+          DebugPoint.error('Failed to clone voice');
+          ToastUtils.error('Failed to clone voice');
           return null;
         }
       } catch (e) {
-        DebugPoint.error('ElevenLabs API Error: $e');
-        ToastUtils.error('ElevenLabs API Error: $e');
+        DebugPoint.error('VoiceCloneService Error: $e');
+        ToastUtils.error('Voice cloning failed: $e');
         return null;
       }
     }
@@ -424,6 +445,42 @@ class CreateAvatarProvider extends ChangeNotifier {
 
     _isCreating = true;
     notifyListeners();
+
+    // Voice ID from ElevenLabs
+    // Start with gender-appropriate default voice
+    String voiceId = defaultVoiceId;
+    DebugPoint.log('Default voice for $selectedGender: $voiceId');
+
+    // If recorded voice, clone it to ElevenLabs first
+    if (hasRecordedVoice && audioPath != null) {
+      try {
+        DebugPoint.log('Cloning voice with VoiceCloneService...');
+        ToastUtils.show('Cloning your voice...');
+
+        final voiceCloneService = VoiceCloneService();
+        final file = File(audioPath!);
+        final clonedVoiceId = await voiceCloneService.cloneVoice(
+          name: voiceName.isNotEmpty ? voiceName : '$avatarName\'s Voice',
+          audioFile: file,
+        );
+
+        if (clonedVoiceId != null) {
+          voiceId = clonedVoiceId;
+          DebugPoint.log('Voice cloned successfully: $voiceId');
+          ToastUtils.success('Voice cloned!');
+        } else {
+          DebugPoint.error('Failed to clone voice');
+          ToastUtils.error('Failed to clone voice, using default voice');
+        }
+      } catch (e) {
+        DebugPoint.error('Error cloning voice: $e');
+        ToastUtils.error('Voice cloning failed: $e');
+      }
+    } else if (hasSampleVoice && _selectedSampleVoiceId != null) {
+      // Use selected sample voice
+      voiceId = _selectedSampleVoiceId!;
+      DebugPoint.log('Using sample voice: $voiceId');
+    }
 
     try {
       // If a new local image was picked, upload it first
@@ -451,8 +508,7 @@ class CreateAvatarProvider extends ChangeNotifier {
         gender: selectedGender,
         traits: traits,
         avatarUrl: storageUrl ?? '',
-        voiceId: _selectedSampleVoiceId,
-        voiceTerm: isAgreed,
+        voiceId: voiceId,
       );
 
       await _avatarRepo.updateAvatar(updated);
@@ -469,7 +525,10 @@ class CreateAvatarProvider extends ChangeNotifier {
       } catch (_) {}
 
       _editingAvatarId = null;
-      NavigationService.pop();
+
+      // Navigate and reset
+      NavigationService.goNamed(AppRoutes.bottomNavbar);
+      reset(preserveVoiceAndTraits: false);
     } catch (e) {
       DebugPoint.error('Failed to update avatar: $e');
       ToastUtils.error('Failed to update avatar: $e');
@@ -503,9 +562,41 @@ class CreateAvatarProvider extends ChangeNotifier {
     _isCreating = true;
     notifyListeners();
 
-    // TODO: Voice ID generation - commented for now
-    // String? voiceId = await getOrCreateVoiceId();
-    // DebugPoint.log('Voice ID result: $voiceId');
+    // Voice ID from ElevenLabs
+    // Start with gender-appropriate default voice
+    String voiceId = defaultVoiceId;
+    DebugPoint.log('Default voice for $selectedGender: $voiceId');
+
+    // If recorded voice, clone it to ElevenLabs first
+    if (hasRecordedVoice && audioPath != null) {
+      try {
+        DebugPoint.log('Cloning voice with VoiceCloneService...');
+        ToastUtils.show('Cloning your voice...');
+
+        final voiceCloneService = VoiceCloneService();
+        final file = File(audioPath!);
+        final clonedVoiceId = await voiceCloneService.cloneVoice(
+          name: voiceName.isNotEmpty ? voiceName : '$avatarName\'s Voice',
+          audioFile: file,
+        );
+
+        if (clonedVoiceId != null) {
+          voiceId = clonedVoiceId;
+          DebugPoint.log('Voice cloned successfully: $voiceId');
+          ToastUtils.success('Voice cloned!');
+        } else {
+          DebugPoint.error('Failed to clone voice');
+          ToastUtils.error('Failed to clone voice, using default voice');
+        }
+      } catch (e) {
+        DebugPoint.error('Error cloning voice: $e');
+        ToastUtils.error('Voice cloning failed: $e');
+      }
+    } else if (hasSampleVoice && _selectedSampleVoiceId != null) {
+      // Use selected sample voice
+      voiceId = _selectedSampleVoiceId!;
+      DebugPoint.log('Using sample voice: $voiceId');
+    }
 
     try {
       // Step 1: Upload image to Supabase Storage (BG already removed in preview)
@@ -544,14 +635,18 @@ class CreateAvatarProvider extends ChangeNotifier {
         return;
       }
 
+      // Use existing color or generate new one
+      final color = _avatarColor ?? _generateRandomColor();
+      DebugPoint.log('Using avatar color: $color');
+
       // Step 2: Build avatar model with storage URL
       final avatar = AvatarModel(
         name: avatarName,
         gender: selectedGender,
         traits: traits,
         avatarUrl: storageUrl,
-        voiceId: null, // TODO: add voice ID when voice cloning is enabled
-        voiceTerm: isAgreed,
+        voiceId: voiceId,
+        color: color,
       );
 
       DebugPoint.log('Creating avatar in database...');
@@ -564,17 +659,21 @@ class CreateAvatarProvider extends ChangeNotifier {
         'Avatar created successfully - ID: ${createdAvatar.id}, Name: ${createdAvatar.name}',
       );
       ToastUtils.success('Avatar "$avatarName" created successfully!');
-      reset();
 
-      // Refresh avatars list
+      // Navigate first, then reset (to avoid UI flicker)
+      NavigationService.goNamed(AppRoutes.bottomNavbar);
+
+      // Reset all fields after navigation
+      reset(preserveVoiceAndTraits: false);
+
+      // Reset Prompt AI provider
       try {
         final ctx = NavigationService.context;
         if (ctx != null) {
           ctx.read<AvatarsProvider>().fetchAvatars();
+          ctx.read<PromptAiProvider>().reset();
         }
       } catch (_) {}
-
-      NavigationService.goNamed(AppRoutes.bottomNavbar);
     } catch (e) {
       DebugPoint.error('Failed to create avatar: $e');
       ToastUtils.error('Failed to create avatar: $e');
@@ -628,12 +727,16 @@ class CreateAvatarProvider extends ChangeNotifier {
   }
 
   /// Reset all fields after avatar creation
-  void reset() {
+  /// Set [preserveVoiceAndTraits] to true to keep voice and characteristics data
+  void reset({bool preserveVoiceAndTraits = false}) {
     // Avatar fields
     currentIndex = 0;
     avatarName = '';
     selectedGender = 'Female';
-    traits = [];
+    // Only reset traits if not preserving
+    if (!preserveVoiceAndTraits) {
+      traits = [];
+    }
     selectedVoice = 'Voice 1';
     prompt = '';
     _avatarImagePath = null;
@@ -646,22 +749,52 @@ class CreateAvatarProvider extends ChangeNotifier {
 
     // Voice source selection
     _selectedSampleVoiceId = null;
+    _selectedSampleVoiceName = null;
+    _selectedSampleVoiceUrl = null;
 
     // Voice recording state
     isRecording = false;
-    audioPath = null;
-    transcript = null;
-    voiceDuration = null;
+    // Only reset audio/transcript if not preserving
+    if (!preserveVoiceAndTraits) {
+      audioPath = null;
+      transcript = null;
+      voiceDuration = null;
+      voiceName = '';
+    }
     recordingElapsed = Duration.zero;
-    voiceName = '';
 
     // Reset page controller
     if (voicePageController.hasClients) {
       voicePageController.jumpToPage(0);
     }
 
-    DebugPoint.log('CreateAvatarProvider reset');
+    // Reset color
+    _avatarColor = null;
+
+    DebugPoint.log(
+      'CreateAvatarProvider reset (preserveVoiceAndTraits: $preserveVoiceAndTraits)',
+    );
     notifyListeners();
+  }
+
+  /// Generate a random hex color string (e.g., "#FF5733")
+  String _generateRandomColor() {
+    final random = Random();
+    final r = random.nextInt(256);
+    final g = random.nextInt(256);
+    final b = random.nextInt(256);
+    return '#${r.toRadixString(16).padLeft(2, '0')}${g.toRadixString(16).padLeft(2, '0')}${b.toRadixString(16).padLeft(2, '0')}';
+  }
+
+  /// Generate or get the avatar color (used for preview)
+  Color getBackgroundColor() {
+    if (_avatarColor == null) {
+      _avatarColor = _generateRandomColor();
+      DebugPoint.log('Generated new avatar color: $_avatarColor');
+    }
+    final hex = _avatarColor!.replaceFirst('#', '');
+    final color = Color(int.parse('FF$hex', radix: 16));
+    return color;
   }
 
   @override

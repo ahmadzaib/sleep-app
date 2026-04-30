@@ -1,6 +1,5 @@
 import 'package:avatar_flow/core/router/router.dart';
 import 'package:avatar_flow/core/services/preferences.dart';
-import 'package:avatar_flow/core/services/service_locator.dart';
 import 'package:avatar_flow/core/theme/app_colors.dart';
 import 'package:avatar_flow/my_app.dart';
 import 'package:flutter/material.dart';
@@ -53,7 +52,7 @@ void main() async {
   };
 
   // await initialize();
-  await initDependencies();
+  // await initDependencies();
 
   // Initialize local notifications with enhanced setup
   // if (!kIsWeb) {

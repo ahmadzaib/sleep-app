@@ -4,34 +4,17 @@ import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
 import 'package:avatar_flow/features/avatar/models/trait_model.dart';
 import 'package:avatar_flow/features/avatar/providers/create_avatar_provider.dart';
+import 'package:avatar_flow/widgets/app_loading.dart';
 import 'package:avatar_flow/widgets/custom_button.dart';
 import 'package:avatar_flow/widgets/custom_svg.dart';
 import 'package:avatar_flow/widgets/custom_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-class TraitSelectionBottomSheet extends StatelessWidget {
+class TraitSelectionBottomSheet extends StatefulWidget {
   const TraitSelectionBottomSheet({super.key, required this.provider});
 
   final CreateAvatarProvider provider;
-
-  static final List<TraitModel> traitSuggestions = [
-    TraitModel(id: 1, name: 'Adventurous'),
-    TraitModel(id: 2, name: 'Brave'),
-    TraitModel(id: 3, name: 'Bold'),
-    TraitModel(id: 4, name: 'Calm'),
-    TraitModel(id: 5, name: 'Charismatic'),
-    TraitModel(id: 6, name: 'Cheerful'),
-    TraitModel(id: 7, name: 'Curious'),
-    TraitModel(id: 8, name: 'Creative'),
-    TraitModel(id: 9, name: 'Fearless'),
-    TraitModel(id: 10, name: 'Friendly'),
-    TraitModel(id: 11, name: 'Kind'),
-    TraitModel(id: 12, name: 'Loyal'),
-    TraitModel(id: 13, name: 'Playful'),
-    TraitModel(id: 14, name: 'Smart'),
-    TraitModel(id: 15, name: 'Wise'),
-  ];
 
   static Future<void> show(
     BuildContext context, {
@@ -51,24 +34,44 @@ class TraitSelectionBottomSheet extends StatelessWidget {
   }
 
   @override
+  State<TraitSelectionBottomSheet> createState() =>
+      _TraitSelectionBottomSheetState();
+}
+
+class _TraitSelectionBottomSheetState extends State<TraitSelectionBottomSheet> {
+  final TextEditingController controller = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    // Fetch traits after first frame is built (avoids setState during build)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.provider.availableTraits.isEmpty &&
+          !widget.provider.isLoadingTraits) {
+        widget.provider.fetchAvailableTraits();
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final TextEditingController controller = TextEditingController();
     String query = '';
 
     return StatefulBuilder(
       builder: (context, setModalState) {
-        final suggestions = traitSuggestions
+        final availableTraits = widget.provider.availableTraits;
+        final suggestions = availableTraits
             .where(
               (trait) =>
-                  !provider.traits.any((t) => t.name == trait.name) &&
+                  !widget.provider.traits.any((t) => t.name == trait.name) &&
                   trait.name.toLowerCase().contains(query.toLowerCase()),
             )
             .toList();
         final normalizedQuery = query.trim();
         final canAdd =
             normalizedQuery.isNotEmpty &&
-            !provider.traits.any(
+            !widget.provider.traits.any(
               (trait) =>
                   trait.name.toLowerCase() == normalizedQuery.toLowerCase(),
             );
@@ -126,7 +129,34 @@ class TraitSelectionBottomSheet extends StatelessWidget {
                   return null;
                 },
               ),
-              if (suggestions.isNotEmpty) ...[
+              // Show loading or suggestions
+              if (widget.provider.isLoadingTraits)
+                const Center(child: AppLoading(size: 40))
+              else if (widget.provider.traitsError != null)
+                Center(
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        color: context.appColors.error,
+                        size: 32,
+                      ),
+                      Spacing.y(1),
+                      Text(
+                        'Failed to load traits',
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: context.appColors.error,
+                        ),
+                      ),
+                      Spacing.y(1),
+                      TextButton(
+                        onPressed: () => widget.provider.fetchAvailableTraits(),
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
+                )
+              else if (suggestions.isNotEmpty) ...[
                 Spacing.y(1.6),
                 Wrap(
                   spacing: 8.w,
@@ -134,15 +164,16 @@ class TraitSelectionBottomSheet extends StatelessWidget {
                   children: suggestions
                       .map(
                         (trait) => InkWell(
-                          onTap: () {
-                            controller.text = trait.name;
-                            controller.selection = TextSelection.collapsed(
-                              offset: controller.text.length,
-                            );
-                            setModalState(() {
-                              query = trait.name;
-                            });
-                          },
+                          onTap: widget.provider.hasReachedMaxTraits
+                              ? null // Disable when max reached
+                              : () {
+                                  // Add trait immediately and clear search
+                                  widget.provider.addTrait(trait);
+                                  controller.clear();
+                                  setModalState(() {
+                                    query = '';
+                                  });
+                                },
                           borderRadius: BorderRadius.circular(999.r),
                           child: Container(
                             padding: EdgeInsets.symmetric(
@@ -152,14 +183,22 @@ class TraitSelectionBottomSheet extends StatelessWidget {
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(999.r),
                               border: Border.all(
-                                color: context.appColors.lightGrey,
+                                color: widget.provider.hasReachedMaxTraits
+                                    ? context.appColors.lightGrey.withValues(
+                                        alpha: 0.5,
+                                      )
+                                    : context.appColors.lightGrey,
                               ),
                               color: Colors.transparent,
                             ),
                             child: Text(
                               trait.name,
                               style: textTheme.bodySmall?.copyWith(
-                                color: context.appColors.grey,
+                                color: widget.provider.hasReachedMaxTraits
+                                    ? context.appColors.grey.withValues(
+                                        alpha: 0.5,
+                                      )
+                                    : context.appColors.grey,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -169,23 +208,58 @@ class TraitSelectionBottomSheet extends StatelessWidget {
                       .toList(),
                 ),
               ],
+              // Show selected traits count
+              if (widget.provider.traits.isNotEmpty) ...[
+                Spacing.y(1.6),
+                Text(
+                  '${widget.provider.traits.length}/${CreateAvatarProvider.maxTraits} traits selected',
+                  style: textTheme.bodySmall?.copyWith(
+                    color: widget.provider.hasReachedMaxTraits
+                        ? context.appColors.primary
+                        : context.appColors.grey,
+                    fontWeight: widget.provider.hasReachedMaxTraits
+                        ? FontWeight.w600
+                        : FontWeight.normal,
+                  ),
+                ),
+              ],
+              // Show max reached message
+              if (widget.provider.hasReachedMaxTraits) ...[
+                Spacing.y(1),
+                Text(
+                  'Maximum ${CreateAvatarProvider.maxTraits} traits reached',
+                  style: textTheme.bodySmall?.copyWith(
+                    color: context.appColors.primary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
               Spacing.y(2),
-              CustomButton(
-                text: "Add Trait",
-                onPressed: canAdd
-                    ? () {
-                        final trait = TraitModel(
-                          id: DateTime.now().millisecondsSinceEpoch,
-                          name: normalizedQuery,
-                        );
-                        provider.addTrait(trait);
-                        Navigator.of(context).pop();
-                      }
-                    : null,
-                isDisabled: !canAdd,
-                buttonColor: context.appColors.secondary,
-                textColor: Theme.of(context).colorScheme.onPrimary,
-              ),
+              // Custom trait button (only when search doesn't match existing AND not at max)
+              if (canAdd && !widget.provider.hasReachedMaxTraits)
+                CustomButton(
+                  text: "Add \"$normalizedQuery\"",
+                  onPressed: () {
+                    final trait = TraitModel(
+                      id: DateTime.now().millisecondsSinceEpoch,
+                      name: normalizedQuery,
+                    );
+                    widget.provider.addTrait(trait);
+                    controller.clear();
+                    setModalState(() {
+                      query = '';
+                    });
+                  },
+                  buttonColor: context.appColors.secondary,
+                  textColor: Theme.of(context).colorScheme.onPrimary,
+                )
+              else
+                CustomButton(
+                  text: "Done",
+                  onPressed: () => Navigator.of(context).pop(),
+                  buttonColor: context.appColors.primary,
+                  textColor: Theme.of(context).colorScheme.onPrimary,
+                ),
             ],
           ),
         );
