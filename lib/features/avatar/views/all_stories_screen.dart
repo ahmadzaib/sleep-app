@@ -10,7 +10,9 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:provider/provider.dart';
 
 class AllStoriesScreen extends StatefulWidget {
-  const AllStoriesScreen({super.key});
+  final int avatarId;
+
+  const AllStoriesScreen({super.key, required this.avatarId});
 
   @override
   State<AllStoriesScreen> createState() => _AllStoriesScreenState();
@@ -24,16 +26,25 @@ class _AllStoriesScreenState extends State<AllStoriesScreen> {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<StoryProvider>().fetchStories();
+      context.read<StoryProvider>().loadStories(widget.avatarId);
     });
 
     _controller.addListener(_scrollListener);
   }
 
+  @override
+  void dispose() {
+    _controller.dispose();
+    // Clear stories to prevent showing wrong avatar's stories on next visit
+    context.read<StoryProvider>().clearStories();
+    super.dispose();
+  }
+
   void _scrollListener() {
+    // Pagination can be added here when needed
     if (_controller.position.pixels >=
         _controller.position.maxScrollExtent - 200) {
-      context.read<StoryProvider>().fetchStories();
+      // context.read<StoryProvider>().loadMoreStories();
     }
   }
 

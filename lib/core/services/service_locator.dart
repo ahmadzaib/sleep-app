@@ -4,6 +4,7 @@ import 'package:avatar_flow/core/services/voice_clone_service.dart';
 import 'package:avatar_flow/core/services/storage_service.dart';
 import 'package:avatar_flow/features/auth/services/auth_service.dart';
 import 'package:avatar_flow/features/avatar/repo/avatar_repo.dart';
+import 'package:avatar_flow/features/avatar/repo/story_repo.dart';
 import 'package:get_it/get_it.dart';
 
 final GetIt getIt = GetIt.instance;
@@ -24,4 +25,5 @@ void setupServiceLocator() {
 
   // Repositories
   getIt.registerLazySingleton<AvatarRepo>(() => AvatarRepo());
+  getIt.registerLazySingleton<StoryRepo>(() => StoryRepo());
 }

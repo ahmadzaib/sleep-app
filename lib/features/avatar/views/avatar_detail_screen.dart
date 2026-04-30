@@ -167,7 +167,10 @@ class _AvatarDetailScreenState extends State<AvatarDetailScreen> {
                     ),
                     TextButton(
                       onPressed: () {
-                        NavigationService.pushNamed(AppRoutes.allStories);
+                        NavigationService.pushNamed(
+                          AppRoutes.allStories,
+                          extra: {'avatarId': widget.avatar.id},
+                        );
                       },
                       child: Text(
                         'View all',
@@ -178,7 +181,7 @@ class _AvatarDetailScreenState extends State<AvatarDetailScreen> {
                     ),
                   ],
                 ),
-                StoryCards(),
+                StoryCards(avatarId: widget.avatar.id!),
                 if (!widget.isShared) ...[
                   Spacing.y(2),
                   SharedWithUsersSection(avatarId: widget.avatar.id!),

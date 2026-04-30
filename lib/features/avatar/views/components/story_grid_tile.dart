@@ -61,7 +61,7 @@ class StoryGridTile extends StatelessWidget {
                   Icon(Icons.star, color: Colors.amber, size: 16.w),
                   Spacing.x(1),
                   Text(
-                    story.rating,
+                    story.ratingString,
                     style: textTheme.bodySmall!.copyWith(
                       fontSize: 12.sp,
                       fontWeight: FontWeight.w500,

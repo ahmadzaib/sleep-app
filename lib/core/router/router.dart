@@ -154,7 +154,12 @@ final GoRouter router = GoRouter(
     GoRoute(
       name: AppRoutes.allStories,
       path: AppPaths.allStories,
-      builder: (context, state) => const AllStoriesScreen(),
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>?;
+        final avatarId =
+            extra?['avatarId'] as int? ?? 1; // Default to 1 if not provided
+        return AllStoriesScreen(avatarId: avatarId);
+      },
     ),
     GoRoute(
       name: AppRoutes.createAvatar,
