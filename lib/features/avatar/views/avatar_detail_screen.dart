@@ -70,11 +70,12 @@ class _AvatarDetailScreenState extends State<AvatarDetailScreen> {
   Future<void> _fetchCreator(String userId) async {
     setState(() => _loadingCreator = true);
     final creator = await AvatarRepo().getUserById(userId);
-    if (mounted)
+    if (mounted) {
       setState(() {
         _creator = creator;
         _loadingCreator = false;
       });
+    }
   }
 
   @override

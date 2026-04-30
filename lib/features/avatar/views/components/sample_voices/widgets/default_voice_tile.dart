@@ -12,7 +12,7 @@ import 'voice_selection_indicator.dart';
 
 /// Default Voice Tile - first item in the list
 class DefaultVoiceTile extends StatelessWidget {
-  const DefaultVoiceTile();
+  const DefaultVoiceTile({super.key});
 
   @override
   Widget build(BuildContext context) {

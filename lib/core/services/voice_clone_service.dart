@@ -3,7 +3,6 @@ import 'package:avatar_flow/core/config/appconfig.dart';
 import 'package:avatar_flow/core/services/supabase_client.dart';
 import 'package:avatar_flow/features/avatar/models/eleven_labs_voice_model.dart';
 import 'package:dio/dio.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' hide MultipartFile;
 
 class VoiceCloneService {
   late final Dio _dio;

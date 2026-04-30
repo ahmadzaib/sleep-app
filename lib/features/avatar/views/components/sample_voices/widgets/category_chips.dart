@@ -6,7 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
 class CategoryChips extends StatelessWidget {
-  const CategoryChips();
+  const CategoryChips({super.key});
 
   @override
   Widget build(BuildContext context) {

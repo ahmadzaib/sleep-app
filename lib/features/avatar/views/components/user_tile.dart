@@ -1,4 +1,3 @@
-import 'package:avatar_flow/core/constants/mock_data.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
 import 'package:avatar_flow/widgets/custom_cache_netword_imge.dart';
