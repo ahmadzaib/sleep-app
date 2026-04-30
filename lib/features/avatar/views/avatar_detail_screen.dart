@@ -180,7 +180,7 @@ class _AvatarDetailScreenState extends State<AvatarDetailScreen> {
                 StoryCards(),
                 if (!widget.isShared) ...[
                   Spacing.y(2),
-                  SharedWithUsersSection(),
+                  SharedWithUsersSection(avatarId: widget.avatar.id!),
                 ],
                 Spacing.y(2),
 

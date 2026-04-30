@@ -6,8 +6,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class UserTile extends StatelessWidget {
+  final String? name;
+  final String? email;
+  final String? avatarUrl;
   final VoidCallback onRemoveTap;
-  const UserTile({super.key, required this.onRemoveTap});
+
+  const UserTile({
+    super.key,
+    this.name,
+    this.email,
+    this.avatarUrl,
+    required this.onRemoveTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -16,29 +26,38 @@ class UserTile extends StatelessWidget {
       padding: EdgeInsets.symmetric(vertical: 16.h),
       child: Row(
         children: [
-          CustomCachedNetworkImage(imageUrl: dummyImage, height: 30, width: 30),
+          CustomCachedNetworkImage(
+            imageUrl: avatarUrl,
+            height: 30.r,
+            width: 30.r,
+            borderRadius: 30.r,
+          ),
           SizedBox(width: 12.w),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Lilian Evans',
-                  style: textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14.sp,
+                if (name != null)
+                  Text(
+                    name!,
+                    style: textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14.sp,
+                    ),
                   ),
-                ),
-                Spacing.y(.4),
-                Text(
-                  'lilianevans@gmail.com',
-                  style: textTheme.bodySmall?.copyWith(
-                    letterSpacing: 0,
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.onSurface.withValues(alpha: .5),
+                if (email != null) ...[
+                  Spacing.y(.4),
+                  Text(
+                    email!,
+                    style: textTheme.bodySmall?.copyWith(
+                      letterSpacing: 0,
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: .5),
+                    ),
                   ),
-                ),
+                ],
               ],
             ),
           ),

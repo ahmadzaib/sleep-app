@@ -360,4 +360,51 @@ class AvatarRepo {
       return null;
     }
   }
+
+  /// GET all users an avatar has been shared WITH.
+  Future<List<UserModel>> getSharedWithUsers(int avatarId) async {
+    try {
+      final List<dynamic> rows = await _client
+          .from(DBConstansts.sharedAvatars)
+          .select('*, recipient:shared_with_user_id(*)')
+          .eq('avatar_id', avatarId);
+
+      final users = <UserModel>[];
+      for (final row in rows) {
+        final userData = row['recipient'] as Map<String, dynamic>?;
+        if (userData != null) {
+          users.add(UserModel.fromJson(userData));
+        }
+      }
+      return users;
+    } catch (e) {
+      DebugPoint.error('Error fetching shared recipients for avatar $avatarId: $e');
+      return [];
+    }
+  }
+
+  /// REVOKE access for a specific user.
+  Future<void> revokeShare(int avatarId, String targetUserId) async {
+    try {
+      await _client
+          .from(DBConstansts.sharedAvatars)
+          .delete()
+          .eq('avatar_id', avatarId)
+          .eq('shared_with_user_id', targetUserId);
+    } catch (e) {
+      DebugPoint.error('Error revoking share for user $targetUserId: $e');
+    }
+  }
+
+  /// REVOKE ALL access for an avatar.
+  Future<void> revokeAllShares(int avatarId) async {
+    try {
+      await _client
+          .from(DBConstansts.sharedAvatars)
+          .delete()
+          .eq('avatar_id', avatarId);
+    } catch (e) {
+      DebugPoint.error('Error revoking all shares for avatar $avatarId: $e');
+    }
+  }
 }
