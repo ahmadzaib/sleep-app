@@ -407,4 +407,44 @@ class AvatarRepo {
       DebugPoint.error('Error revoking all shares for avatar $avatarId: $e');
     }
   }
+  /// SEARCH for users to share with
+  Future<List<UserModel>> searchUsers(String query) async {
+    try {
+      final currentUserId = _client.auth.currentUser?.id;
+      final response = await _client
+          .from(DBConstansts.users)
+          .select()
+          .or('email.ilike.%$query%,name.ilike.%$query%')
+          .neq('id', currentUserId ?? '') // Don't show current user
+          .limit(10);
+      
+      return (response as List).map((e) => UserModel.fromJson(e)).toList();
+    } catch (e) {
+      DebugPoint.error('Error searching users: $e');
+      return [];
+    }
+  }
+
+  /// SHARE an avatar with a user
+  Future<void> shareAvatar(int avatarId, String targetUserId) async {
+    try {
+      // Check if already shared
+      final existing = await _client
+          .from(DBConstansts.sharedAvatars)
+          .select()
+          .eq('avatar_id', avatarId)
+          .eq('shared_with_user_id', targetUserId)
+          .maybeSingle();
+      
+      if (existing != null) return;
+
+      await _client.from(DBConstansts.sharedAvatars).insert({
+        'avatar_id': avatarId,
+        'shared_with_user_id': targetUserId,
+      });
+    } catch (e) {
+      DebugPoint.error('Error sharing avatar $avatarId with $targetUserId: $e');
+      rethrow;
+    }
+  }
 }

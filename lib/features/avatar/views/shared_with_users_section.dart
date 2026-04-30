@@ -2,6 +2,7 @@ import 'package:avatar_flow/core/theme/app_colors.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
 import 'package:avatar_flow/features/avatar/providers/avatar_share_provider.dart';
+import 'package:avatar_flow/features/avatar/views/components/share_avatar_bottom_sheet.dart';
 import 'package:avatar_flow/features/avatar/views/components/user_tile.dart';
 import 'package:avatar_flow/widgets/circled_icon_widget.dart';
 import 'package:avatar_flow/widgets/confirmation_dialog.dart';
@@ -40,18 +41,30 @@ class _SharedWithUsersSectionState extends State<SharedWithUsersSection> {
       builder: (context, provider, child) {
         final users = provider.recipients;
 
-        // Don't show anything if empty and not loading
-        if (users.isEmpty && !provider.isLoading) {
-          return const SizedBox.shrink();
-        }
-
         return Column(
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text('Shared with', style: textTheme.bodyMedium),
-                if (users.isNotEmpty)
+                const Spacer(),
+                TextButton(
+                  style: TextButton.styleFrom(
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  onPressed: () =>
+                      ShareAvatarBottomSheet.show(context, widget.avatarId),
+                  child: Text(
+                    'Add',
+                    style: textTheme.bodyMedium!.copyWith(
+                      color: context.appColors.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                if (users.isNotEmpty) ...[
+                  SizedBox(width: 12.w),
                   TextButton(
                     style: TextButton.styleFrom(
                       minimumSize: Size.zero,
@@ -76,19 +89,33 @@ class _SharedWithUsersSectionState extends State<SharedWithUsersSection> {
                       ),
                     ),
                   ),
+                ],
               ],
             ),
             Spacing.y(1),
             if (provider.isLoading)
               _buildShimmer()
+            else if (users.isEmpty)
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: 24.h),
+                child: Text(
+                  'No users shared yet',
+                  style: textTheme.bodySmall?.copyWith(
+                    color: context.appColors.grey.withValues(alpha: 0.6),
+                  ),
+                ),
+              )
             else
               ListView.separated(
                 shrinkWrap: true,
                 padding: EdgeInsets.zero,
                 physics: const NeverScrollableScrollPhysics(),
-                itemCount: users.length > _visibleCount ? _visibleCount : users.length,
+                itemCount:
+                    users.length > _visibleCount ? _visibleCount : users.length,
                 separatorBuilder: (context, index) => Divider(
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: .05),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: .05),
                   height: 1.h,
                   thickness: 1.4,
                 ),
@@ -107,7 +134,8 @@ class _SharedWithUsersSectionState extends State<SharedWithUsersSection> {
                       title: "Remove User",
                       subtitle: "Are you sure you want to remove this user?",
                       confirmText: "Remove",
-                      onConfirm: () => provider.revokeShare(widget.avatarId, user.id),
+                      onConfirm: () =>
+                          provider.revokeShare(widget.avatarId, user.id),
                       cancelText: "Cancel",
                     ),
                   );
@@ -119,7 +147,10 @@ class _SharedWithUsersSectionState extends State<SharedWithUsersSection> {
                 child: TextButton(
                   onPressed: () => setState(() => _visibleCount = users.length),
                   style: TextButton.styleFrom(
-                    padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 24.w,
+                      vertical: 12.h,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(100.r),
                       side: BorderSide(color: AppColors.primary100),
