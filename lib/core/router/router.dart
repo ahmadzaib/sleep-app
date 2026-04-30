@@ -146,8 +146,9 @@ final GoRouter router = GoRouter(
       builder: (context, state) {
         final extra = state.extra as Map<String, dynamic>?;
         final avatar = extra?['avatar'] as AvatarModel?;
+        final isShared = extra?['isShared'] as bool? ?? false;
 
-        return AvatarDetailScreen(avatar: avatar!);
+        return AvatarDetailScreen(avatar: avatar!, isShared: isShared);
       },
     ),
     GoRoute(

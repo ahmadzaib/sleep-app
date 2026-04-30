@@ -38,6 +38,7 @@ class _MainScreenState extends State<MainScreen> {
           children: [
             /// 👇 PageView with animation
             PageView(
+              physics: NeverScrollableScrollPhysics(),
               controller: _pageController,
               onPageChanged: (index) {
                 provider.changeIndex(index);

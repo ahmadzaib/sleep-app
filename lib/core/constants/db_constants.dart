@@ -6,4 +6,5 @@ class DBConstansts {
   static const String profiles = 'profiles';
   static const String avatarTraits = 'avatar_traits';
   static const String traits = 'traits';
+  static const String sharedAvatars = 'shared_avatars';
 }

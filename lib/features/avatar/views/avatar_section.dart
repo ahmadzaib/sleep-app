@@ -19,8 +19,9 @@ import 'package:provider/provider.dart';
 
 class AvatarSection extends StatelessWidget {
   final AvatarModel avatarModel;
+  final bool isShared;
 
-  const AvatarSection({super.key, required this.avatarModel});
+  const AvatarSection({super.key, required this.avatarModel, this.isShared = false});
 
   @override
   Widget build(BuildContext context) {
@@ -60,20 +61,21 @@ class AvatarSection extends StatelessWidget {
               ),
               Align(
                 alignment: Alignment.centerLeft,
-                child: CustomIconButton(
-                  onPressed: () {
-                    context.read<CreateAvatarProvider>().loadAvatarForEdit(
-                      avatarModel,
-                    );
-                    NavigationService.pushNamed(
-                      AppRoutes.createAvatar,
-                      extra: true,
-                    );
-                  },
-
-                  svgPath: AppIconsSvg.edit,
-                  iconColor: context.appColors.primary,
-                ),
+                child: isShared
+                    ? const SizedBox.shrink()
+                    : CustomIconButton(
+                        onPressed: () {
+                          context.read<CreateAvatarProvider>().loadAvatarForEdit(
+                            avatarModel,
+                          );
+                          NavigationService.pushNamed(
+                            AppRoutes.createAvatar,
+                            extra: true,
+                          );
+                        },
+                        svgPath: AppIconsSvg.edit,
+                        iconColor: context.appColors.primary,
+                      ),
               ),
               Align(
                 alignment: Alignment.topRight,

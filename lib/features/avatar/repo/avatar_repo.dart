@@ -1,6 +1,8 @@
 import 'package:avatar_flow/core/constants/db_constants.dart';
 import 'package:avatar_flow/core/debug/debug_point.dart';
+import 'package:avatar_flow/features/auth/models/user_model.dart';
 import 'package:avatar_flow/features/avatar/models/avatar_model.dart';
+import 'package:avatar_flow/features/avatar/models/shared_avatar_model.dart';
 import 'package:avatar_flow/features/avatar/models/trait_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -227,5 +229,132 @@ class AvatarRepo {
         .order('name', ascending: true);
 
     return (response as List).map((e) => TraitModel.fromJson(e)).toList();
+  }
+
+  /// GET shared avatars for the current user (avatars shared WITH the current user)
+  Future<List<SharedAvatarModel>> getSharedAvatars() async {
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) throw Exception('User not authenticated');
+
+    // Fetch rows from shared_avatars where shared_with_user_id = current user
+    final sharedRows = await _client
+        .from(DBConstansts.sharedAvatars)
+        .select()
+        .eq('shared_with_user_id', userId)
+        .order('created_at', ascending: false);
+
+    DebugPoint.log('Fetched ${sharedRows.length} shared avatar rows');
+
+    final result = <SharedAvatarModel>[];
+
+    for (final row in sharedRows as List) {
+      final shared = SharedAvatarModel.fromJson(row);
+      final avatarId = shared.avatarId;
+
+      // Fetch the full avatar
+      final avatarRow = await _client
+          .from(DBConstansts.avatars)
+          .select()
+          .eq('id', avatarId)
+          .maybeSingle();
+
+      if (avatarRow == null) continue;
+
+      var avatar = AvatarModel.fromJson(avatarRow);
+      final traits = await _getAvatarTraits(avatarId);
+      
+      // Fetch creator details
+      String? creatorName;
+      String? creatorAvatarUrl;
+      if (avatar.userId != null) {
+        final creator = await getUserById(avatar.userId!);
+        creatorName = creator?.name;
+        creatorAvatarUrl = creator?.avatarUrl;
+      }
+
+      avatar = avatar.copyWith(
+        traits: traits,
+        creatorName: creatorName,
+        creatorAvatarUrl: creatorAvatarUrl,
+      );
+
+      result.add(shared.copyWith(avatar: avatar));
+    }
+
+    return result;
+  }
+
+  /// REMOVE a shared avatar row.
+  ///
+  /// Allowed callers:
+  ///   • The **recipient** (shared_with_user_id) — removes it from their list
+  ///   • The **owner**    (avatar.user_id)        — retracts the share
+  ///
+  /// The original row in [avatars] is NEVER deleted.
+  Future<void> removeSharedAvatar(int sharedId) async {
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) throw Exception('User not authenticated');
+
+    // 1. Fetch the shared_avatars row to get both parties
+    final sharedRow = await _client
+        .from(DBConstansts.sharedAvatars)
+        .select('id, avatar_id, shared_with_user_id')
+        .eq('id', sharedId)
+        .maybeSingle();
+
+    if (sharedRow == null) {
+      DebugPoint.log('Shared avatar row $sharedId not found — already removed?');
+      return;
+    }
+
+    final recipientId = sharedRow['shared_with_user_id'] as String?;
+    final avatarId    = sharedRow['avatar_id'] as int?;
+
+    // 2. Fetch the original avatar to get the owner's user_id
+    String? ownerId;
+    if (avatarId != null) {
+      final avatarRow = await _client
+          .from(DBConstansts.avatars)
+          .select('user_id')
+          .eq('id', avatarId)
+          .maybeSingle();
+      ownerId = avatarRow?['user_id'] as String?;
+    }
+
+    // 3. Permission check — must be owner OR recipient
+    final isOwner     = ownerId != null && ownerId == userId;
+    final isRecipient = recipientId != null && recipientId == userId;
+
+    if (!isOwner && !isRecipient) {
+      throw Exception('You do not have permission to remove this shared avatar');
+    }
+
+    // 4. Delete ONLY the shared_avatars row — original avatar is untouched
+    await _client
+        .from(DBConstansts.sharedAvatars)
+        .delete()
+        .eq('id', sharedId);
+
+    DebugPoint.log(
+      'Removed shared_avatars row $sharedId '
+      '(caller: ${isOwner ? "owner" : "recipient"})',
+    );
+  }
+
+  /// GET a user's public profile (name + avatar) by user id
+  Future<UserModel?> getUserById(String userId) async {
+    try {
+      final row = await _client
+          .from(DBConstansts.users)
+          .select('id, email, name, avatar_url')
+          .eq('id', userId)
+          .maybeSingle();
+
+      if (row == null) return null;
+      return UserModel.fromJson(row);
+    } catch (e) {
+      DebugPoint.error('Failed to fetch user $userId: $e');
+      return null;
+    }
   }
 }
