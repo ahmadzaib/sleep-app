@@ -47,7 +47,7 @@ class AvatarModel {
           [],
       avatarUrl: json['avatar_url'] ?? '',
       voiceId: json['voice_id'],
-      userId: json['user_id'] ?? '',
+      userId: json['user_id'],
       shareCount: json['share_count'] ?? 0,
       storiesCount: json['stories_count'] ?? 0,
       color: json['color'] as String?,

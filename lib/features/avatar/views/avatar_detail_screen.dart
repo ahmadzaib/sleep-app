@@ -60,10 +60,9 @@ class _AvatarDetailScreenState extends State<AvatarDetailScreen> {
         name: widget.avatar.creatorName,
         avatarUrl: widget.avatar.creatorAvatarUrl,
       );
-    } else if (widget.isShared &&
-        widget.avatar.userId != null &&
+    } else if (widget.avatar.userId != null &&
         widget.avatar.userId!.isNotEmpty) {
-      // Fallback if not pre-populated (though repo should have done it)
+      // Fetch if we have an ID but no name details
       _fetchCreator(widget.avatar.userId!);
     }
   }
@@ -345,16 +344,18 @@ class _AvatarDetailScreenState extends State<AvatarDetailScreen> {
 
   Widget _buildCreatorSection() {
     // Determine the details to show
-    final name = _creator?.name ?? widget.avatar.creatorName ?? _creator?.email ?? '';
+    final name =
+        _creator?.name ?? widget.avatar.creatorName ?? _creator?.email ?? '';
     final imageUrl = _creator?.avatarUrl ?? widget.avatar.creatorAvatarUrl;
 
     return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         // Creator profile image fetched via AvatarRepo.getUserById(avatar.userId)
         CustomCachedNetworkImage(
           imageUrl: imageUrl,
-          height: 40.r,
-          width: 40.r,
+          height: 24.r,
+          width: 24.r,
           borderRadius: 40.r, // full circle
           cover: BoxFit.cover,
         ),
@@ -378,9 +379,16 @@ class _AvatarDetailScreenState extends State<AvatarDetailScreen> {
         else if (name.isNotEmpty)
           Text(
             name,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w600,
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.6),
             ),
+          )
+        else if (_loadingCreator)
+          Text(
+            "Loading profile...",
+            style: Theme.of(context).textTheme.bodySmall,
           ),
       ],
     );

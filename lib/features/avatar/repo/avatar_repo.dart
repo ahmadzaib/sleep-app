@@ -236,40 +236,39 @@ class AvatarRepo {
     final userId = _client.auth.currentUser?.id;
     if (userId == null) throw Exception('User not authenticated');
 
-    // Fetch rows from shared_avatars where shared_with_user_id = current user
-    final sharedRows = await _client
+    // Fetch shared_avatars with joined avatar and creator data
+    // We use the specific column name 'user_id' for the join to avoid ambiguity.
+    final List<dynamic> sharedRows = await _client
         .from(DBConstansts.sharedAvatars)
-        .select()
+        .select('*, avatar:avatars(*, users:user_id(*))')
         .eq('shared_with_user_id', userId)
         .order('created_at', ascending: false);
 
-    DebugPoint.log('Fetched ${sharedRows.length} shared avatar rows');
+    DebugPoint.log(
+      'Fetched ${sharedRows.length} shared avatar rows with joins',
+    );
 
     final result = <SharedAvatarModel>[];
 
-    for (final row in sharedRows as List) {
+    for (final row in sharedRows) {
       final shared = SharedAvatarModel.fromJson(row);
-      final avatarId = shared.avatarId;
+      final avatarData = row['avatar'] as Map<String, dynamic>?;
 
-      // Fetch the full avatar
-      final avatarRow = await _client
-          .from(DBConstansts.avatars)
-          .select()
-          .eq('id', avatarId)
-          .maybeSingle();
+      if (avatarData == null) continue;
 
-      if (avatarRow == null) continue;
-
-      var avatar = AvatarModel.fromJson(avatarRow);
+      // Parse avatar and traits
+      var avatar = AvatarModel.fromJson(avatarData);
+      final avatarId = avatar.id!;
       final traits = await _getAvatarTraits(avatarId);
-      
-      // Fetch creator details
+
+      // Parse joined creator details
+      final creatorData = avatarData['creator'] as Map<String, dynamic>?;
       String? creatorName;
       String? creatorAvatarUrl;
-      if (avatar.userId != null) {
-        final creator = await getUserById(avatar.userId!);
-        creatorName = creator?.name;
-        creatorAvatarUrl = creator?.avatarUrl;
+      if (creatorData != null) {
+        final creator = UserModel.fromJson(creatorData);
+        creatorName = creator.name;
+        creatorAvatarUrl = creator.avatarUrl;
       }
 
       avatar = avatar.copyWith(
@@ -303,12 +302,14 @@ class AvatarRepo {
         .maybeSingle();
 
     if (sharedRow == null) {
-      DebugPoint.log('Shared avatar row $sharedId not found — already removed?');
+      DebugPoint.log(
+        'Shared avatar row $sharedId not found — already removed?',
+      );
       return;
     }
 
     final recipientId = sharedRow['shared_with_user_id'] as String?;
-    final avatarId    = sharedRow['avatar_id'] as int?;
+    final avatarId = sharedRow['avatar_id'] as int?;
 
     // 2. Fetch the original avatar to get the owner's user_id
     String? ownerId;
@@ -322,18 +323,17 @@ class AvatarRepo {
     }
 
     // 3. Permission check — must be owner OR recipient
-    final isOwner     = ownerId != null && ownerId == userId;
+    final isOwner = ownerId != null && ownerId == userId;
     final isRecipient = recipientId != null && recipientId == userId;
 
     if (!isOwner && !isRecipient) {
-      throw Exception('You do not have permission to remove this shared avatar');
+      throw Exception(
+        'You do not have permission to remove this shared avatar',
+      );
     }
 
     // 4. Delete ONLY the shared_avatars row — original avatar is untouched
-    await _client
-        .from(DBConstansts.sharedAvatars)
-        .delete()
-        .eq('id', sharedId);
+    await _client.from(DBConstansts.sharedAvatars).delete().eq('id', sharedId);
 
     DebugPoint.log(
       'Removed shared_avatars row $sharedId '
@@ -344,16 +344,19 @@ class AvatarRepo {
   /// GET a user's public profile (name + avatar) by user id
   Future<UserModel?> getUserById(String userId) async {
     try {
-      final row = await _client
+      final response = await _client
           .from(DBConstansts.users)
-          .select('id, email, name, avatar_url')
+          .select()
           .eq('id', userId)
           .maybeSingle();
 
-      if (row == null) return null;
-      return UserModel.fromJson(row);
+      if (response == null) {
+        DebugPoint.log('User profile not found for ID: $userId');
+        return null;
+      }
+      return UserModel.fromJson(response);
     } catch (e) {
-      DebugPoint.error('Failed to fetch user $userId: $e');
+      DebugPoint.error('Error fetching user profile $userId: $e');
       return null;
     }
   }
