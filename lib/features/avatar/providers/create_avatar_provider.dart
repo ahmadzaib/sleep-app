@@ -8,6 +8,7 @@ import 'package:avatar_flow/core/dio/dio_client.dart';
 import 'package:avatar_flow/core/router/navigation_service.dart';
 import 'package:avatar_flow/core/router/routes.dart';
 import 'package:avatar_flow/core/services/background_removal_service.dart';
+import 'package:avatar_flow/core/services/service_locator.dart';
 import 'package:avatar_flow/core/services/storage_service.dart';
 import 'package:avatar_flow/core/services/voice_clone_service.dart';
 import 'package:avatar_flow/core/utils/toast_utils.dart';
@@ -15,6 +16,8 @@ import 'package:avatar_flow/features/avatar/models/avatar_model.dart';
 import 'package:avatar_flow/features/avatar/models/trait_model.dart';
 import 'package:avatar_flow/features/avatar/providers/avatars_provider.dart';
 import 'package:avatar_flow/features/avatar/repo/avatar_repo.dart';
+import 'package:avatar_flow/features/milestones/models/milestone_action_type.dart';
+import 'package:avatar_flow/features/milestones/models/repository/milestone_repository.dart';
 import 'package:avatar_flow/features/prompt_ai/providers/prompt_ai_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -103,7 +106,8 @@ class CreateAvatarProvider extends ChangeNotifier {
 
   String get effectiveVoiceName {
     if (hasRecordedVoice) return voiceName.isNotEmpty ? voiceName : 'My Voice';
-    if (hasSampleVoice) return _selectedSampleVoiceName ?? _selectedSampleVoiceId!;
+    if (hasSampleVoice)
+      return _selectedSampleVoiceName ?? _selectedSampleVoiceId!;
     return defaultVoiceName;
   }
 
@@ -202,8 +206,6 @@ class CreateAvatarProvider extends ChangeNotifier {
       DebugPoint.error('Error fetching voice preview: $e');
     }
   }
-
-
 
   /// Fetch all available traits from Supabase
   Future<void> fetchAvailableTraits() async {
@@ -659,6 +661,17 @@ class CreateAvatarProvider extends ChangeNotifier {
         'Avatar created successfully - ID: ${createdAvatar.id}, Name: ${createdAvatar.name}',
       );
       ToastUtils.success('Avatar "$avatarName" created successfully!');
+
+      // Track milestone progress for avatar creation
+      final userId = createdAvatar.userId;
+      if (userId != null && userId.isNotEmpty) {
+        unawaited(
+          getIt<MilestoneRepository>().handleAction(
+            userId: userId,
+            action: MilestoneActionType.avatarCreation,
+          ),
+        );
+      }
 
       // Navigate first, then reset (to avoid UI flicker)
       NavigationService.goNamed(AppRoutes.bottomNavbar);
