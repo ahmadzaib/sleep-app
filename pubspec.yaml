@@ -74,6 +74,7 @@ dependencies:
   google_sign_in: ^6.2.2
   flutter_dotenv: ^6.0.1
   path: ^1.9.1
+  flutter_animate: ^4.5.2
 
 dev_dependencies:
   flutter_test:

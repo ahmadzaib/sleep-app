@@ -22,6 +22,7 @@ class AppRoutes {
   static const String cloneVoice = 'cloneVoice';
   static const String subscription = 'subscription';
   static const String profile = 'profile';
+  static const String milestones = 'milestones';
 }
 
 class AppPaths {
@@ -48,4 +49,5 @@ class AppPaths {
   static const String cloneVoice = '/cloneVoice';
   static const String subscription = '/subscription';
   static const String profile = '/profile';
+  static const String milestones = '/milestones';
 }

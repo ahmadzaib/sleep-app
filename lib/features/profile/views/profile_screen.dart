@@ -89,7 +89,10 @@ class ProfileScreen extends StatelessWidget {
                       ProfileMenuItemModel(
                         icon: AppIconsSvg.edit,
                         label: 'Edit Profile',
-                        onTap: () {},
+                        onTap: () => NavigationService.pushNamed(
+                          AppRoutes.createAvatar,
+                          extra: true,
+                        ),
                       ),
                       ProfileMenuItemModel(
                         icon: AppIconsSvg.shield,
@@ -134,7 +137,14 @@ class ProfileScreen extends StatelessWidget {
                       ProfileMenuItemModel(
                         icon: AppIconsSvg.info2,
                         label: 'Manage Subscription',
-                        onTap: () {},
+                        onTap: () =>
+                            NavigationService.pushNamed(AppRoutes.subscription),
+                      ),
+                      ProfileMenuItemModel(
+                        icon: AppIconsSvg.book,
+                        label: 'Milestones',
+                        onTap: () =>
+                            NavigationService.pushNamed(AppRoutes.milestones),
                       ),
                     ],
                   ),

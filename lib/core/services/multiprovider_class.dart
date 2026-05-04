@@ -8,6 +8,7 @@ import 'package:avatar_flow/features/avatar/providers/all_stories_provider.dart'
 import 'package:avatar_flow/features/avatar/providers/story_carousel_provider.dart';
 import 'package:avatar_flow/features/bottom_nav_bar/views/providers/bottom_navbar_provider.dart';
 import 'package:avatar_flow/features/prompt_ai/providers/prompt_ai_provider.dart';
+import 'package:avatar_flow/features/milestones/providers/milestones_provider.dart';
 import 'package:avatar_flow/features/subscription/providers/subscription_provider.dart';
 import 'package:avatar_flow/features/avatar/providers/avatar_share_provider.dart';
 import 'package:provider/provider.dart';
@@ -30,5 +31,6 @@ class MultiProviderClass {
     ChangeNotifierProvider(create: (_) => SubscriptionProvider()),
     ChangeNotifierProvider(create: (_) => AvatarShareProvider()),
     ChangeNotifierProvider(create: (_) => StoryCarouselProvider()),
+    ChangeNotifierProvider(create: (_) => MilestonesProvider()),
   ];
 }
