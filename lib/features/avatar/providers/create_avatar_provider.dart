@@ -17,7 +17,7 @@ import 'package:avatar_flow/features/avatar/models/trait_model.dart';
 import 'package:avatar_flow/features/avatar/providers/avatars_provider.dart';
 import 'package:avatar_flow/features/avatar/repo/avatar_repo.dart';
 import 'package:avatar_flow/features/milestones/models/milestone_action_type.dart';
-import 'package:avatar_flow/features/milestones/models/repository/milestone_repository.dart';
+import 'package:avatar_flow/features/milestones/repository/milestone_repository.dart';
 import 'package:avatar_flow/features/prompt_ai/providers/prompt_ai_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';

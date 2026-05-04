@@ -1,3 +1,4 @@
+import 'package:avatar_flow/core/utils/premium_animation.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
 import 'package:avatar_flow/features/avatar/views/components/avatar_appbar.dart';
 import 'package:avatar_flow/features/avatar/views/components/avatar_tabs.dart';
@@ -33,8 +34,11 @@ class _AvatarScreenState extends State<AvatarScreen> {
         appBar: const HomeAppbar(),
         body: Column(
           children: [
-            Spacing.y(1),
-            const AvatarTabs(),
+            PremiumAnimation.fadeInDown(
+              delay: const Duration(milliseconds: 0),
+              duration: const Duration(milliseconds: 400),
+              child: Column(children: [Spacing.y(1), const AvatarTabs()]),
+            ),
             Expanded(
               child: Consumer<CreateAvatarProvider>(
                 builder: (context, provider, child) {
