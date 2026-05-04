@@ -9,4 +9,9 @@ class BottomNavProvider extends ChangeNotifier {
     _currentIndex = index;
     notifyListeners();
   }
+
+  void resetIndex() {
+    _currentIndex = 0;
+    notifyListeners();
+  }
 }

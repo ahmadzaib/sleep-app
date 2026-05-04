@@ -12,6 +12,8 @@ class AvatarModel {
   final int shareCount;
   final int storiesCount;
   final String? color;
+  final String? creatorName;
+  final String? creatorAvatarUrl;
 
   AvatarModel({
     this.id,
@@ -25,6 +27,8 @@ class AvatarModel {
     this.color,
     this.voiceId,
     this.userId,
+    this.creatorName,
+    this.creatorAvatarUrl,
   });
 
   /// FROM JSON
@@ -43,10 +47,12 @@ class AvatarModel {
           [],
       avatarUrl: json['avatar_url'] ?? '',
       voiceId: json['voice_id'],
-      userId: json['user_id'] ?? '',
+      userId: json['user_id'],
       shareCount: json['share_count'] ?? 0,
       storiesCount: json['stories_count'] ?? 0,
       color: json['color'] as String?,
+      creatorName: json['creator_name'] as String?,
+      creatorAvatarUrl: json['creator_avatar_url'] as String?,
     );
   }
 
@@ -80,6 +86,8 @@ class AvatarModel {
     int? shareCount,
     int? storiesCount,
     String? color,
+    String? creatorName,
+    String? creatorAvatarUrl,
   }) {
     return AvatarModel(
       id: id ?? this.id,
@@ -93,6 +101,8 @@ class AvatarModel {
       shareCount: shareCount ?? this.shareCount,
       storiesCount: storiesCount ?? this.storiesCount,
       color: color ?? this.color,
+      creatorName: creatorName ?? this.creatorName,
+      creatorAvatarUrl: creatorAvatarUrl ?? this.creatorAvatarUrl,
     );
   }
 }

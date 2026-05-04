@@ -8,6 +8,7 @@ import 'package:avatar_flow/features/auth/providers/auth_provider.dart';
 import 'package:avatar_flow/features/profile/views/components/profile_header.dart';
 import 'package:avatar_flow/features/profile/views/components/profile_menu_section.dart';
 import 'package:avatar_flow/features/profile/views/components/profile_stats.dart';
+import 'package:avatar_flow/features/bottom_nav_bar/views/providers/bottom_navbar_provider.dart';
 import 'package:avatar_flow/widgets/bg_widget.dart';
 import 'package:avatar_flow/widgets/confirmation_dialog.dart';
 import 'package:avatar_flow/widgets/custom_svg.dart';
@@ -159,6 +160,7 @@ class ProfileScreen extends StatelessWidget {
                             title: 'Sign Out',
                             subtitle: 'Are you sure you want to sign out?',
                             onConfirm: () async {
+                              context.read<BottomNavProvider>().resetIndex();
                               context.read<AuthProvider>().signOut();
                             },
                           );

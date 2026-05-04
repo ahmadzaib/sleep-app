@@ -12,7 +12,7 @@ import 'voice_selection_indicator.dart';
 import 'waveform_widget.dart';
 
 class SampleVoiceTile extends StatelessWidget {
-  const SampleVoiceTile({required this.voice});
+  const SampleVoiceTile({super.key, required this.voice});
 
   final SampleVoice voice;
 

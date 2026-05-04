@@ -5,7 +5,7 @@ import 'voice_tile_shimmer.dart';
 
 /// Shimmer loading effect for voice list
 class VoiceListShimmer extends StatelessWidget {
-  const VoiceListShimmer();
+  const VoiceListShimmer({super.key});
 
   @override
   Widget build(BuildContext context) {

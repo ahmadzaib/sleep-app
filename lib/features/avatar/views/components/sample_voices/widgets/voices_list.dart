@@ -8,7 +8,7 @@ import 'sample_voice_tile.dart';
 import 'voice_list_shimmer.dart';
 
 class VoicesList extends StatelessWidget {
-  const VoicesList();
+  const VoicesList({super.key});
 
   @override
   Widget build(BuildContext context) {

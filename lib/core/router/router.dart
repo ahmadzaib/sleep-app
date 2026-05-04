@@ -146,14 +146,20 @@ final GoRouter router = GoRouter(
       builder: (context, state) {
         final extra = state.extra as Map<String, dynamic>?;
         final avatar = extra?['avatar'] as AvatarModel?;
+        final isShared = extra?['isShared'] as bool? ?? false;
 
-        return AvatarDetailScreen(avatar: avatar!);
+        return AvatarDetailScreen(avatar: avatar!, isShared: isShared);
       },
     ),
     GoRoute(
       name: AppRoutes.allStories,
       path: AppPaths.allStories,
-      builder: (context, state) => const AllStoriesScreen(),
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>?;
+        final avatarId =
+            extra?['avatarId'] as int? ?? 1; // Default to 1 if not provided
+        return AllStoriesScreen(avatarId: avatarId);
+      },
     ),
     GoRoute(
       name: AppRoutes.createAvatar,

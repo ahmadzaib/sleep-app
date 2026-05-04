@@ -2,7 +2,9 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:avatar_flow/core/debug/debug_point.dart';
+import 'package:avatar_flow/core/services/service_locator.dart';
 import 'package:avatar_flow/core/services/voice_clone_service.dart';
+import 'package:avatar_flow/features/avatar/models/eleven_labs_voice_model.dart';
 import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
 
@@ -41,10 +43,10 @@ class SampleVoicesProvider extends ChangeNotifier {
     fetchVoicesFromElevenLabs();
   }
 
-  final VoiceCloneService _voiceService = VoiceCloneService();
+  final VoiceCloneService _voiceService = getIt<VoiceCloneService>();
 
-  // Static categories - All is first, others dynamically generated
-  static const List<String> _staticCategories = ['All'];
+  // Static categories - All and Liked are first
+  static const List<String> _staticCategories = ['All', 'Liked'];
 
   /// Dynamically generate categories from voice labels
   List<String> get categoryLabels {
@@ -72,8 +74,12 @@ class SampleVoicesProvider extends ChangeNotifier {
 
   String get selectedCategory => _selectedCategory;
   List<SampleVoice> get filteredVoices {
-    if (_selectedCategory == categoryLabels.first) {
+    if (_selectedCategory == 'All') {
       return _voices;
+    }
+
+    if (_selectedCategory == 'Liked') {
+      return _voices.where((v) => _favoriteVoiceIds.contains(v.id)).toList();
     }
 
     return _voices
@@ -88,6 +94,11 @@ class SampleVoicesProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      // Fetch favorites from DB first
+      final favoriteIds = await _voiceService.fetchFavoriteVoiceIds();
+      _favoriteVoiceIds.clear();
+      _favoriteVoiceIds.addAll(favoriteIds);
+
       final elevenLabsVoices = await _voiceService.fetchVoices();
 
       if (elevenLabsVoices.isEmpty) {
@@ -99,7 +110,7 @@ class SampleVoicesProvider extends ChangeNotifier {
             .map((v) => SampleVoice.fromElevenLabs(v))
             .toList();
         DebugPoint.log(
-          'Fetched ${_voices.length} voices from ElevenLabs with labels: ${categoryLabels.skip(1).toList()}',
+          'Fetched ${_voices.length} voices from ElevenLabs with labels: ${categoryLabels.skip(2).toList()}',
         );
       }
     } catch (e) {
@@ -216,8 +227,10 @@ class SampleVoicesProvider extends ChangeNotifier {
   void toggleFavorite(String voiceId) {
     if (_favoriteVoiceIds.contains(voiceId)) {
       _favoriteVoiceIds.remove(voiceId);
+      _voiceService.removeFavoriteVoice(voiceId);
     } else {
       _favoriteVoiceIds.add(voiceId);
+      _voiceService.addFavoriteVoice(voiceId);
     }
 
     notifyListeners();

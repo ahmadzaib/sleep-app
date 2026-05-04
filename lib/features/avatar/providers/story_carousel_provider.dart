@@ -3,9 +3,9 @@ import 'package:avatar_flow/features/avatar/models/story_model.dart';
 import 'package:avatar_flow/features/avatar/repo/story_repo.dart';
 import 'package:flutter/material.dart';
 
-/// Provider for managing stories for an avatar
-/// Handles fetching stories - accessible by owners and shared users
-class StoryProvider extends ChangeNotifier {
+/// Provider for managing stories in the carousel view
+/// Lightweight provider for avatar detail screen story cards
+class StoryCarouselProvider extends ChangeNotifier {
   final StoryRepo _storyRepo = getIt<StoryRepo>();
 
   List<Story> _stories = [];
@@ -17,22 +17,24 @@ class StoryProvider extends ChangeNotifier {
   String? _error;
   String? get error => _error;
 
-  int? _currentAvatarId;
-  int? get currentAvatarId => _currentAvatarId;
+  int? _avatarId;
+  int? get avatarId => _avatarId;
 
-  /// Load stories for a specific avatar (accessible by owner and shared users)
+  /// Load stories for carousel (max 5 stories)
   Future<void> loadStories(int avatarId) async {
-    // Clear previous stories if switching to a different avatar
-    if (_currentAvatarId != null && _currentAvatarId != avatarId) {
+    // Clear if different avatar
+    if (_avatarId != null && _avatarId != avatarId) {
       _stories = [];
     }
-    _currentAvatarId = avatarId;
+
+    _avatarId = avatarId;
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      _stories = await _storyRepo.getStoriesByAvatarId(avatarId);
+      final allStories = await _storyRepo.getStoriesByAvatarId(avatarId);
+      _stories = allStories.take(5).toList();
     } catch (e) {
       _error = 'Failed to load stories: $e';
       _stories = [];
@@ -44,21 +46,15 @@ class StoryProvider extends ChangeNotifier {
 
   /// Refresh stories for current avatar
   Future<void> refreshStories() async {
-    if (_currentAvatarId != null) {
-      await loadStories(_currentAvatarId!);
+    if (_avatarId != null) {
+      await loadStories(_avatarId!);
     }
   }
 
-  /// Clear error message
-  void clearError() {
-    _error = null;
-    notifyListeners();
-  }
-
-  /// Clear all stories (call when navigating away from stories screen)
+  /// Clear stories when leaving screen
   void clearStories() {
     _stories = [];
-    _currentAvatarId = null;
+    _avatarId = null;
     _error = null;
     notifyListeners();
   }

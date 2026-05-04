@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class TitleWidget extends StatelessWidget {
-  const TitleWidget();
+  const TitleWidget({super.key});
 
   @override
   Widget build(BuildContext context) {

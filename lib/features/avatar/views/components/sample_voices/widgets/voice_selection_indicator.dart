@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class VoiceSelectionIndicator extends StatelessWidget {
-  const VoiceSelectionIndicator({required this.isSelected});
+  const VoiceSelectionIndicator({super.key, required this.isSelected});
 
   final bool isSelected;
 

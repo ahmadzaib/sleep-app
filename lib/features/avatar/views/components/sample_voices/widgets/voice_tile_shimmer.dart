@@ -4,7 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 /// Individual shimmer tile
 class VoiceTileShimmer extends StatefulWidget {
-  const VoiceTileShimmer();
+  const VoiceTileShimmer({super.key});
 
   @override
   State<VoiceTileShimmer> createState() => _VoiceTileShimmerState();

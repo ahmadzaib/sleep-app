@@ -4,9 +4,11 @@ import 'package:avatar_flow/core/router/navigation_service.dart';
 import 'package:avatar_flow/core/router/routes.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
+import 'package:avatar_flow/features/auth/models/user_model.dart';
 import 'package:avatar_flow/features/avatar/models/avatar_model.dart';
 import 'package:avatar_flow/features/avatar/providers/create_avatar_provider.dart';
 import 'package:avatar_flow/features/avatar/providers/avatars_provider.dart';
+import 'package:avatar_flow/features/avatar/repo/avatar_repo.dart';
 import 'package:avatar_flow/features/avatar/views/components/achievement_tile.dart';
 import 'package:avatar_flow/features/avatar/views/avatar_section.dart';
 import 'package:avatar_flow/features/avatar/views/components/detail_screen_appbar.dart';
@@ -24,11 +26,17 @@ import 'package:avatar_flow/widgets/pop_menu_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:super_tooltip/super_tooltip.dart';
 
 class AvatarDetailScreen extends StatefulWidget {
   final AvatarModel avatar;
-  const AvatarDetailScreen({super.key, required this.avatar});
+  final bool isShared;
+  const AvatarDetailScreen({
+    super.key,
+    required this.avatar,
+    this.isShared = false,
+  });
 
   @override
   State<AvatarDetailScreen> createState() => _AvatarDetailScreenState();
@@ -37,6 +45,39 @@ class AvatarDetailScreen extends StatefulWidget {
 class _AvatarDetailScreenState extends State<AvatarDetailScreen> {
   final _infoTooltipCont = SuperTooltipController();
   final _skillsTooltipCont = SuperTooltipController();
+
+  UserModel? _creator;
+  bool _loadingCreator = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // If we already have creator info in the model, use it
+    if (widget.avatar.creatorName != null) {
+      _creator = UserModel(
+        id: widget.avatar.userId ?? '',
+        email: '',
+        name: widget.avatar.creatorName,
+        avatarUrl: widget.avatar.creatorAvatarUrl,
+      );
+    } else if (widget.avatar.userId != null &&
+        widget.avatar.userId!.isNotEmpty) {
+      // Fetch if we have an ID but no name details
+      _fetchCreator(widget.avatar.userId!);
+    }
+  }
+
+  Future<void> _fetchCreator(String userId) async {
+    setState(() => _loadingCreator = true);
+    final creator = await AvatarRepo().getUserById(userId);
+    if (mounted) {
+      setState(() {
+        _creator = creator;
+        _loadingCreator = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final sh = MediaQuery.of(context).size.height * 0.01;
@@ -52,7 +93,10 @@ class _AvatarDetailScreenState extends State<AvatarDetailScreen> {
           child: SingleChildScrollView(
             child: Column(
               children: [
-                AvatarSection(avatarModel: widget.avatar),
+                AvatarSection(
+                  avatarModel: widget.avatar,
+                  isShared: widget.isShared,
+                ),
                 Spacing.y(2),
 
                 CustomToolTip(
@@ -62,16 +106,18 @@ class _AvatarDetailScreenState extends State<AvatarDetailScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     spacing: 8.w,
                     children: [
-                      _buildChip(
-                        "${widget.avatar.storiesCount} Stories",
-                        AppIconsSvg.book,
-                        context,
-                      ),
-                      _buildChip(
-                        "${widget.avatar.shareCount} Shares",
-                        AppIconsSvg.upload,
-                        context,
-                      ),
+                      if (!widget.isShared) ...[
+                        _buildChip(
+                          "${widget.avatar.storiesCount} Stories",
+                          AppIconsSvg.book,
+                          context,
+                        ),
+                        _buildChip(
+                          "${widget.avatar.shareCount} Shares",
+                          AppIconsSvg.upload,
+                          context,
+                        ),
+                      ],
                       _buildChip(
                         widget.avatar.gender,
                         getGenderIcon(widget.avatar.gender),
@@ -80,6 +126,7 @@ class _AvatarDetailScreenState extends State<AvatarDetailScreen> {
                     ],
                   ),
                 ),
+                if (widget.isShared) ...[Spacing.y(1), _buildCreatorSection()],
                 Spacing.y(2),
                 SizedBox(
                   height: 12 * sh,
@@ -120,7 +167,10 @@ class _AvatarDetailScreenState extends State<AvatarDetailScreen> {
                     ),
                     TextButton(
                       onPressed: () {
-                        NavigationService.pushNamed(AppRoutes.allStories);
+                        NavigationService.pushNamed(
+                          AppRoutes.allStories,
+                          extra: {'avatarId': widget.avatar.id},
+                        );
                       },
                       child: Text(
                         'View all',
@@ -131,10 +181,13 @@ class _AvatarDetailScreenState extends State<AvatarDetailScreen> {
                     ),
                   ],
                 ),
-                StoryCards(),
+                StoryCards(avatarId: widget.avatar.id!),
+                if (!widget.isShared) ...[
+                  Spacing.y(2),
+                  SharedWithUsersSection(avatarId: widget.avatar.id!),
+                ],
                 Spacing.y(2),
-                SharedWithUsersSection(),
-                Spacing.y(2),
+
                 CustomButton(text: "Start an Adventure", onPressed: () {}),
 
                 //
@@ -172,39 +225,41 @@ class _AvatarDetailScreenState extends State<AvatarDetailScreen> {
         },
       ),
 
-      actions: [
-        ReusablePopupMenu(
-          iconPath: AppIconsSvg.moreVer,
-          items: const [
-            MenuItemConfig(
-              value: 'edit',
-              iconPath: AppIconsSvg.edit,
-              label: 'Edit Avatar',
-            ),
-            MenuItemConfig(
-              value: 'delete',
-              iconPath: AppIconsSvg.delete,
-              label: 'Delete Avatar',
-            ),
-          ],
-          onSelected: (value) {
-            switch (value) {
-              case 'edit':
-                context.read<CreateAvatarProvider>().loadAvatarForEdit(
-                  widget.avatar,
-                );
-                NavigationService.pushNamed(
-                  AppRoutes.createAvatar,
-                  extra: true,
-                );
-                break;
-              case 'delete':
-                _deleteAvatar();
-                break;
-            }
-          },
-        ),
-      ],
+      actions: widget.isShared
+          ? []
+          : [
+              ReusablePopupMenu(
+                iconPath: AppIconsSvg.moreVer,
+                items: const [
+                  MenuItemConfig(
+                    value: 'edit',
+                    iconPath: AppIconsSvg.edit,
+                    label: 'Edit Avatar',
+                  ),
+                  MenuItemConfig(
+                    value: 'delete',
+                    iconPath: AppIconsSvg.delete,
+                    label: 'Delete Avatar',
+                  ),
+                ],
+                onSelected: (value) {
+                  switch (value) {
+                    case 'edit':
+                      context.read<CreateAvatarProvider>().loadAvatarForEdit(
+                        widget.avatar,
+                      );
+                      NavigationService.pushNamed(
+                        AppRoutes.createAvatar,
+                        extra: true,
+                      );
+                      break;
+                    case 'delete':
+                      _deleteAvatar();
+                      break;
+                  }
+                },
+              ),
+            ],
     );
   }
 
@@ -288,6 +343,58 @@ class _AvatarDetailScreenState extends State<AvatarDetailScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildCreatorSection() {
+    // Determine the details to show
+    final name =
+        _creator?.name ?? widget.avatar.creatorName ?? _creator?.email ?? '';
+    final imageUrl = _creator?.avatarUrl ?? widget.avatar.creatorAvatarUrl;
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        // Creator profile image fetched via AvatarRepo.getUserById(avatar.userId)
+        CustomCachedNetworkImage(
+          imageUrl: imageUrl,
+          height: 24.r,
+          width: 24.r,
+          borderRadius: 40.r, // full circle
+          cover: BoxFit.cover,
+        ),
+        SizedBox(width: 10.w),
+        // Show name once loaded — shimmer skeleton while fetching
+        if (_loadingCreator)
+          SizedBox(
+            width: 80.w,
+            height: 14.h,
+            child: Shimmer.fromColors(
+              baseColor: context.appColors.lightGrey,
+              highlightColor: context.appColors.bubbleGray,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(4.r),
+                ),
+              ),
+            ),
+          )
+        else if (name.isNotEmpty)
+          Text(
+            name,
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.6),
+            ),
+          )
+        else if (_loadingCreator)
+          Text(
+            "Loading profile...",
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+      ],
     );
   }
 }

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class WaveformWidget extends StatelessWidget {
-  const WaveformWidget({required this.isActive});
+  const WaveformWidget({super.key, required this.isActive});
 
   final bool isActive;
 
