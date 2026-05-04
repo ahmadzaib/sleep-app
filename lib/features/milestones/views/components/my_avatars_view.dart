@@ -2,6 +2,7 @@ import 'package:avatar_flow/core/constants/app_constants.dart';
 import 'package:avatar_flow/core/constants/app_icons.dart';
 import 'package:avatar_flow/core/router/navigation_service.dart';
 import 'package:avatar_flow/core/router/routes.dart';
+import 'package:avatar_flow/core/utils/premium_animation.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
 import 'package:avatar_flow/features/avatar/views/components/avatar_cards.dart';
 import 'package:avatar_flow/features/avatar/views/components/avtar_milestones_tile.dart';
@@ -18,33 +19,54 @@ class MyAvatarsView extends StatelessWidget {
     return Column(
       children: [
         Spacing.y(2),
-        AvatarCards(),
+
+        // Avatar cards — scale in
+        PremiumAnimation.scaleIn(
+          delay: const Duration(milliseconds: 0),
+          duration: const Duration(milliseconds: 500),
+          beginScale: 0.92,
+          child: AvatarCards(),
+        ),
+
         Spacing.y(2),
+
+        // Milestone tile — fade in up with slight delay
         Consumer<MilestonesProvider>(
           builder: (context, provider, _) {
             final current = provider.currentMilestone;
             if (current == null) return const SizedBox.shrink();
 
-            return AvtarMilestonesTile(
-              title: current.milestone.title,
-              totalValue: current.targetCount,
-              completedValue: current.currentCount,
+            return PremiumAnimation.fadeInUp(
+              delay: const Duration(milliseconds: 150),
+              duration: const Duration(milliseconds: 500),
+              child: AvtarMilestonesTile(
+                title: current.milestone.title,
+                totalValue: current.targetCount,
+                completedValue: current.currentCount,
+              ),
             );
           },
         ),
+
         Spacing.y(2),
-        Padding(
-          padding: AppConstants.defaultPaddingHorizental,
-          child: CustomButton(
-            preffixIconColor: Theme.of(context).colorScheme.onPrimary,
-            prefixIcon: AppIconsSvg.edit,
-            text: "Create a New Avatar",
-            onPressed: () {
-              NavigationService.pushNamed(
-                AppRoutes.createAvatar,
-                queryParameters: const {'isEdit': 'false'},
-              );
-            },
+
+        // Button — fade in up last
+        PremiumAnimation.fadeInUp(
+          delay: const Duration(milliseconds: 280),
+          duration: const Duration(milliseconds: 500),
+          child: Padding(
+            padding: AppConstants.defaultPaddingHorizental,
+            child: CustomButton(
+              preffixIconColor: Theme.of(context).colorScheme.onPrimary,
+              prefixIcon: AppIconsSvg.edit,
+              text: "Create a New Avatar",
+              onPressed: () {
+                NavigationService.pushNamed(
+                  AppRoutes.createAvatar,
+                  queryParameters: const {'isEdit': 'false'},
+                );
+              },
+            ),
           ),
         ),
       ],

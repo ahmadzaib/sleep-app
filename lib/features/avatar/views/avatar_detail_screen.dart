@@ -3,6 +3,7 @@ import 'package:avatar_flow/core/constants/app_icons.dart';
 import 'package:avatar_flow/core/router/navigation_service.dart';
 import 'package:avatar_flow/core/router/routes.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
+import 'package:avatar_flow/core/utils/premium_animation.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
 import 'package:avatar_flow/features/auth/models/user_model.dart';
 import 'package:avatar_flow/features/avatar/models/avatar_model.dart';
@@ -93,104 +94,156 @@ class _AvatarDetailScreenState extends State<AvatarDetailScreen> {
           child: SingleChildScrollView(
             child: Column(
               children: [
-                AvatarSection(
-                  avatarModel: widget.avatar,
-                  isShared: widget.isShared,
+                // Avatar hero — scale in
+                PremiumAnimation.scaleIn(
+                  beginScale: 0.93,
+                  duration: const Duration(milliseconds: 500),
+                  child: AvatarSection(
+                    avatarModel: widget.avatar,
+                    isShared: widget.isShared,
+                  ),
                 ),
                 Spacing.y(2),
 
-                CustomToolTip(
-                  tooltipController: _skillsTooltipCont,
-                  text: "Sword Master: Skilled in combat techniques.",
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    spacing: 8.w,
-                    children: [
-                      if (!widget.isShared) ...[
+                // Chips row — fade in up
+                PremiumAnimation.fadeInUp(
+                  delay: const Duration(milliseconds: 120),
+                  child: CustomToolTip(
+                    tooltipController: _skillsTooltipCont,
+                    text: "Sword Master: Skilled in combat techniques.",
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      spacing: 8.w,
+                      children: [
+                        if (!widget.isShared) ...[
+                          _buildChip(
+                            "${widget.avatar.storiesCount} Stories",
+                            AppIconsSvg.book,
+                            context,
+                          ),
+                          _buildChip(
+                            "${widget.avatar.shareCount} Shares",
+                            AppIconsSvg.upload,
+                            context,
+                          ),
+                        ],
                         _buildChip(
-                          "${widget.avatar.storiesCount} Stories",
-                          AppIconsSvg.book,
-                          context,
-                        ),
-                        _buildChip(
-                          "${widget.avatar.shareCount} Shares",
-                          AppIconsSvg.upload,
+                          widget.avatar.gender,
+                          getGenderIcon(widget.avatar.gender),
                           context,
                         ),
                       ],
-                      _buildChip(
-                        widget.avatar.gender,
-                        getGenderIcon(widget.avatar.gender),
-                        context,
-                      ),
-                    ],
+                    ),
                   ),
                 ),
-                if (widget.isShared) ...[Spacing.y(1), _buildCreatorSection()],
-                Spacing.y(2),
-                SizedBox(
-                  height: 12 * sh,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    spacing: 8.w,
-                    children: [
-                      ...widget.avatar.traits.take(3).map((trait) {
-                        return _buildSkillChip(
-                          trait.name,
-                          trait.imageUrl,
-                          context,
-                        );
-                      }),
-                    ],
+
+                if (widget.isShared) ...[
+                  Spacing.y(1),
+                  PremiumAnimation.fadeInUp(
+                    delay: const Duration(milliseconds: 160),
+                    child: _buildCreatorSection(),
                   ),
-                ),
-                Spacing.y(2),
-                CustomDivider(),
-                Spacing.y(3),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text("Achievement", style: textTheme.bodyMedium),
-                ),
-                Spacing.y(1),
-                AchievementTile(
-                  title: "Hero of the Magical Forest",
-                  subtitle: "100 Stories Shared",
-                ),
-                Spacing.y(1),
-                //Stories where it appears
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Stories where it appears',
-                      style: textTheme.bodyMedium,
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        NavigationService.pushNamed(
-                          AppRoutes.allStories,
-                          extra: {'avatarId': widget.avatar.id},
-                        );
-                      },
-                      child: Text(
-                        'View all',
-                        style: textTheme.bodyMedium!.copyWith(
-                          color: context.appColors.blue,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                StoryCards(avatarId: widget.avatar.id!),
-                if (!widget.isShared) ...[
-                  Spacing.y(2),
-                  SharedWithUsersSection(avatarId: widget.avatar.id!),
                 ],
                 Spacing.y(2),
 
-                CustomButton(text: "Start an Adventure", onPressed: () {}),
+                // Skill chips — fade in up
+                PremiumAnimation.fadeInUp(
+                  delay: const Duration(milliseconds: 200),
+                  child: SizedBox(
+                    height: 12 * sh,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      spacing: 8.w,
+                      children: [
+                        ...widget.avatar.traits.take(3).map((trait) {
+                          return _buildSkillChip(
+                            trait.name,
+                            trait.imageUrl,
+                            context,
+                          );
+                        }),
+                      ],
+                    ),
+                  ),
+                ),
+                Spacing.y(2),
 
-                //
+                PremiumAnimation.fadeInUp(
+                  delay: const Duration(milliseconds: 260),
+                  child: CustomDivider(),
+                ),
+                Spacing.y(3),
+
+                // Achievement — fade in up
+                PremiumAnimation.fadeInUp(
+                  delay: const Duration(milliseconds: 300),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text("Achievement", style: textTheme.bodyMedium),
+                      ),
+                      Spacing.y(1),
+                      AchievementTile(
+                        title: "Hero of the Magical Forest",
+                        subtitle: "100 Stories Shared",
+                      ),
+                    ],
+                  ),
+                ),
+                Spacing.y(1),
+
+                // Stories section — fade in up
+                PremiumAnimation.fadeInUp(
+                  delay: const Duration(milliseconds: 360),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Stories where it appears',
+                            style: textTheme.bodyMedium,
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              NavigationService.pushNamed(
+                                AppRoutes.allStories,
+                                extra: {'avatarId': widget.avatar.id},
+                              );
+                            },
+                            child: Text(
+                              'View all',
+                              style: textTheme.bodyMedium!.copyWith(
+                                color: context.appColors.blue,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      StoryCards(avatarId: widget.avatar.id!),
+                    ],
+                  ),
+                ),
+
+                if (!widget.isShared) ...[
+                  Spacing.y(2),
+                  PremiumAnimation.fadeInUp(
+                    delay: const Duration(milliseconds: 420),
+                    child: SharedWithUsersSection(avatarId: widget.avatar.id!),
+                  ),
+                ],
+                Spacing.y(2),
+
+                // CTA button — fade in up last
+                PremiumAnimation.fadeInUp(
+                  delay: const Duration(milliseconds: 460),
+                  child: CustomButton(
+                    text: "Start an Adventure",
+                    onPressed: () {},
+                  ),
+                ),
                 Spacing.y(2),
               ],
             ),

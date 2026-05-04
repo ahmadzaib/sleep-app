@@ -4,6 +4,7 @@ import 'package:avatar_flow/core/constants/app_constants.dart';
 import 'package:avatar_flow/core/constants/app_icons.dart';
 import 'package:avatar_flow/core/constants/app_images.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
+import 'package:avatar_flow/core/utils/premium_animation.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
 import 'package:avatar_flow/core/utils/toast_utils.dart';
 import 'package:avatar_flow/features/avatar/models/trait_model.dart';
@@ -58,34 +59,57 @@ class AvatarPreviewScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Spacing.y(1.8),
-                    Text(
-                      "Let's Finish Creating\nYour Story Hero",
-                      style: textTheme.headlineLarge?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        // height: 1.15,
+                    PremiumAnimation.fadeInDown(
+                      duration: const Duration(milliseconds: 450),
+                      child: Text(
+                        "Let's Finish Creating\nYour Story Hero",
+                        style: textTheme.headlineLarge?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                     Spacing.y(.8),
-                    Text(
-                      "We use age to tailor stories for your child's development stage.",
-                      style: textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurface.withValues(alpha: 0.58),
-                        height: 1.45,
+                    PremiumAnimation.fadeInDown(
+                      delay: const Duration(milliseconds: 80),
+                      duration: const Duration(milliseconds: 400),
+                      child: Text(
+                        "We use age to tailor stories for your child's development stage.",
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurface.withValues(alpha: 0.58),
+                          height: 1.45,
+                        ),
                       ),
                     ),
                     Spacing.y(2.4),
-                    SizedBox(
-                      height: 0.35.sh,
-                      child: _AvatarPreviewCard(provider: provider),
+                    PremiumAnimation.scaleIn(
+                      delay: const Duration(milliseconds: 150),
+                      duration: const Duration(milliseconds: 500),
+                      beginScale: 0.92,
+                      child: SizedBox(
+                        height: 0.35.sh,
+                        child: _AvatarPreviewCard(provider: provider),
+                      ),
                     ),
                     Spacing.y(2),
-                    _NameField(provider: provider),
+                    PremiumAnimation.fadeInUp(
+                      delay: const Duration(milliseconds: 250),
+                      duration: const Duration(milliseconds: 400),
+                      child: _NameField(provider: provider),
+                    ),
                     Spacing.y(3),
-                    Divider(
-                      color: colorScheme.onSurface.withValues(alpha: 0.08),
+                    PremiumAnimation.fadeInUp(
+                      delay: const Duration(milliseconds: 300),
+                      duration: const Duration(milliseconds: 400),
+                      child: Divider(
+                        color: colorScheme.onSurface.withValues(alpha: 0.08),
+                      ),
                     ),
                     Spacing.y(2),
-                    _DetailsCard(provider: provider),
+                    PremiumAnimation.fadeInUp(
+                      delay: const Duration(milliseconds: 350),
+                      duration: const Duration(milliseconds: 450),
+                      child: _DetailsCard(provider: provider),
+                    ),
                   ],
                 ),
               );
@@ -354,7 +378,8 @@ class _DetailsCard extends StatelessWidget {
         audioPath: provider.audioPath!,
         isFile: true,
       );
-    } else if (provider.hasSampleVoice && provider.selectedSampleVoiceUrl != null) {
+    } else if (provider.hasSampleVoice &&
+        provider.selectedSampleVoiceUrl != null) {
       return VoiceNoteBSTile(
         title: provider.effectiveVoiceName,
         audioPath: provider.selectedSampleVoiceUrl!,
@@ -368,7 +393,9 @@ class _DetailsCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: context.appColors.grey.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: context.appColors.grey.withValues(alpha: 0.2)),
+        border: Border.all(
+          color: context.appColors.grey.withValues(alpha: 0.2),
+        ),
       ),
       child: Row(
         children: [
@@ -378,7 +405,11 @@ class _DetailsCard extends StatelessWidget {
               color: context.appColors.grey.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
-            child: Icon(Icons.volume_up, size: 20, color: context.appColors.grey),
+            child: Icon(
+              Icons.volume_up,
+              size: 20,
+              color: context.appColors.grey,
+            ),
           ),
           SizedBox(width: 12.w),
           Expanded(

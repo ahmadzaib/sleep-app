@@ -5,7 +5,7 @@ import 'package:avatar_flow/core/services/storage_service.dart';
 import 'package:avatar_flow/features/auth/services/auth_service.dart';
 import 'package:avatar_flow/features/avatar/repo/avatar_repo.dart';
 import 'package:avatar_flow/features/avatar/repo/story_repo.dart';
-import 'package:avatar_flow/features/milestones/models/repository/milestone_repository.dart';
+import 'package:avatar_flow/features/milestones/repository/milestone_repository.dart';
 import 'package:get_it/get_it.dart';
 
 final GetIt getIt = GetIt.instance;
