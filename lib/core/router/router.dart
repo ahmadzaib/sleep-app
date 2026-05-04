@@ -1,6 +1,7 @@
 import 'package:avatar_flow/features/auth/services/auth_service.dart';
 import 'package:avatar_flow/core/utils/toast_utils.dart';
 import 'package:avatar_flow/features/avatar/models/avatar_model.dart';
+import 'package:avatar_flow/features/milestones/views/milestones_screen.dart';
 import 'package:avatar_flow/features/subscription/views/subscription_screen.dart';
 import 'package:avatar_flow/features/profile/views/profile_screen.dart';
 import 'package:avatar_flow/features/avatar/views/create_avatar_screen.dart';
@@ -204,6 +205,11 @@ final GoRouter router = GoRouter(
       name: AppRoutes.profile,
       path: AppPaths.profile,
       builder: (context, state) => const ProfileScreen(),
+    ),
+    GoRoute(
+      name: AppRoutes.milestones,
+      path: AppPaths.milestones,
+      builder: (context, state) => const MilestonesScreen(),
     ),
   ],
 );
