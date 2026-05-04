@@ -6,6 +6,7 @@ import 'package:avatar_flow/core/constants/keys.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
 import 'package:avatar_flow/features/auth/providers/auth_provider.dart';
+import 'package:avatar_flow/features/milestones/providers/milestones_provider.dart';
 import 'package:avatar_flow/widgets/custom_cache_netword_imge.dart';
 import 'package:avatar_flow/widgets/custom_svg.dart';
 import 'package:flutter/material.dart';
@@ -54,7 +55,32 @@ class HomeAppbar extends StatelessWidget implements PreferredSizeWidget {
                 ),
 
                 Spacing.x(4),
-                CustomSvg(path: AppIconsSvg.shield),
+                Consumer<MilestonesProvider>(
+                  builder: (context, milestonesProvider, _) {
+                    final current = milestonesProvider.currentMilestone;
+
+                    return GestureDetector(
+                      onTap: () =>
+                          NavigationService.pushNamed(AppRoutes.milestones),
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          CustomSvg(path: AppIconsSvg.shield),
+                          Text(
+                            current != null
+                                ? '${current.milestone.orderIndex}'
+                                : '—',
+                            style: textTheme.bodySmall?.copyWith(
+                              color: context.appColors.primary,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14.sp,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
                 Spacing.x(2),
                 Consumer<AuthProvider>(
                   builder: (context, authProvider, child) {
