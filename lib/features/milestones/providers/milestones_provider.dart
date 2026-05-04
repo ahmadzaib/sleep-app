@@ -9,6 +9,10 @@ class MilestonesProvider extends ChangeNotifier {
   List<MilestoneWithTask> _milestones = [];
   List<MilestoneWithTask> get milestones => _milestones;
 
+  /// The currently active milestone — unlocked and not yet completed
+  MilestoneWithTask? get currentMilestone =>
+      _milestones.where((m) => m.isUnlocked && !m.isCompleted).firstOrNull;
+
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
