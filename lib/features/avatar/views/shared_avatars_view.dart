@@ -8,6 +8,7 @@ import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
 import 'package:avatar_flow/features/avatar/models/shared_avatar_model.dart';
 import 'package:avatar_flow/features/avatar/providers/avatars_provider.dart';
+import 'package:avatar_flow/widgets/app_loading.dart';
 import 'package:avatar_flow/widgets/circled_icon_widget.dart';
 import 'package:avatar_flow/widgets/confirmation_dialog.dart';
 import 'package:avatar_flow/widgets/custom_cache_netword_imge.dart';
@@ -46,12 +47,7 @@ class _SharedAvatarsViewState extends State<SharedAvatarsView> {
   Widget build(BuildContext context) {
     return Consumer<AvatarsProvider>(
       builder: (context, provider, _) {
-        return Column(
-          children: [
-            Spacing.y(2),
-            _buildBody(context, provider),
-          ],
-        );
+        return Column(children: [Spacing.y(2), _buildBody(context, provider)]);
       },
     );
   }
@@ -70,7 +66,11 @@ class _SharedAvatarsViewState extends State<SharedAvatarsView> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.error_outline, size: 40.r, color: theme.colorScheme.error),
+              Icon(
+                Icons.error_outline,
+                size: 40.r,
+                color: theme.colorScheme.error,
+              ),
               Spacing.y(1),
               Text(
                 'Failed to load shared avatars',
@@ -78,7 +78,8 @@ class _SharedAvatarsViewState extends State<SharedAvatarsView> {
               ),
               Spacing.y(1),
               TextButton(
-                onPressed: () => context.read<AvatarsProvider>().fetchSharedAvatars(),
+                onPressed: () =>
+                    context.read<AvatarsProvider>().fetchSharedAvatars(),
                 child: const Text('Retry'),
               ),
             ],
@@ -113,12 +114,17 @@ class _SharedAvatarsViewState extends State<SharedAvatarsView> {
               animation: _pageController,
               builder: (context, child) {
                 double page = 0;
-                if (_pageController.hasClients && _pageController.page != null) {
+                if (_pageController.hasClients &&
+                    _pageController.page != null) {
                   page = _pageController.page!;
                 }
                 final distance = (page - index).abs().clamp(0.0, 1.0);
                 final scale = lerpDouble(1.0, 0.85, distance)!;
-                final hPadding = lerpDouble(AppConstants.paddingOnly, 0.w, distance)!;
+                final hPadding = lerpDouble(
+                  AppConstants.paddingOnly,
+                  0.w,
+                  distance,
+                )!;
 
                 return Padding(
                   padding: EdgeInsets.symmetric(horizontal: hPadding),
@@ -180,7 +186,9 @@ class _SharedAvatarsViewState extends State<SharedAvatarsView> {
                         height: 0.15.sh,
                         decoration: BoxDecoration(
                           color: Colors.deepPurple.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(AppConstants.smallRadius),
+                          borderRadius: BorderRadius.circular(
+                            AppConstants.smallRadius,
+                          ),
                         ),
                       ),
                     ),
@@ -208,13 +216,17 @@ class _SharedAvatarsViewState extends State<SharedAvatarsView> {
                           children: [
                             Text(
                               name,
-                              style: theme.textTheme.headlineSmall?.copyWith(fontSize: 18.sp),
+                              style: theme.textTheme.headlineSmall?.copyWith(
+                                fontSize: 18.sp,
+                              ),
                             ),
                             Spacing.y(.5),
                             Text(
                               traitsText,
                               style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                                color: theme.colorScheme.onSurface.withValues(
+                                  alpha: 0.5,
+                                ),
                               ),
                             ),
                           ],
@@ -227,18 +239,29 @@ class _SharedAvatarsViewState extends State<SharedAvatarsView> {
                     top: 10.h,
                     left: 10.w,
                     child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 8.w,
+                        vertical: 4.h,
+                      ),
                       decoration: BoxDecoration(
-                        color: theme.colorScheme.primary.withValues(alpha: 0.15),
+                        color: theme.colorScheme.primary.withValues(
+                          alpha: 0.15,
+                        ),
                         borderRadius: BorderRadius.circular(20.r),
                         border: Border.all(
-                          color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                          color: theme.colorScheme.primary.withValues(
+                            alpha: 0.3,
+                          ),
                         ),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.people_outline, size: 12.r, color: theme.colorScheme.primary),
+                          Icon(
+                            Icons.people_outline,
+                            size: 12.r,
+                            color: theme.colorScheme.primary,
+                          ),
                           SizedBox(width: 4.w),
                           Text(
                             'Shared',
@@ -260,17 +283,15 @@ class _SharedAvatarsViewState extends State<SharedAvatarsView> {
         provider.isRemoving
             ? Padding(
                 padding: EdgeInsets.symmetric(vertical: 4.h),
-                child: SizedBox(
-                  height: 20.h,
-                  width: 20.h,
-                  child: CircularProgressIndicator(strokeWidth: 2, color: theme.colorScheme.error),
-                ),
+                child: SizedBox(height: 20.h, width: 20.h, child: AppLoading()),
               )
             : TextButton(
                 onPressed: () => _confirmRemove(context, shared, provider),
                 child: Text(
                   'Remove',
-                  style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.error),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.error,
+                  ),
                 ),
               ),
       ],

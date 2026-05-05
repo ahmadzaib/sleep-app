@@ -5,11 +5,10 @@ import 'package:avatar_flow/core/router/routes.dart';
 import 'package:avatar_flow/core/theme/app_theme_extension.dart';
 import 'package:avatar_flow/core/utils/premium_animation.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
-import 'package:avatar_flow/features/auth/models/user_model.dart';
 import 'package:avatar_flow/features/avatar/models/avatar_model.dart';
+import 'package:avatar_flow/features/avatar/providers/avatar_detail_provider.dart';
 import 'package:avatar_flow/features/avatar/providers/create_avatar_provider.dart';
 import 'package:avatar_flow/features/avatar/providers/avatars_provider.dart';
-import 'package:avatar_flow/features/avatar/repo/avatar_repo.dart';
 import 'package:avatar_flow/features/avatar/views/components/achievement_tile.dart';
 import 'package:avatar_flow/features/avatar/views/avatar_section.dart';
 import 'package:avatar_flow/features/avatar/views/components/detail_screen_appbar.dart';
@@ -30,9 +29,11 @@ import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:super_tooltip/super_tooltip.dart';
 
-class AvatarDetailScreen extends StatefulWidget {
+/// Entry point — scopes [AvatarDetailProvider] to this screen only
+class AvatarDetailScreen extends StatelessWidget {
   final AvatarModel avatar;
   final bool isShared;
+
   const AvatarDetailScreen({
     super.key,
     required this.avatar,
@@ -40,41 +41,35 @@ class AvatarDetailScreen extends StatefulWidget {
   });
 
   @override
-  State<AvatarDetailScreen> createState() => _AvatarDetailScreenState();
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (_) => AvatarDetailProvider(),
+      child: _AvatarDetailView(avatar: avatar, isShared: isShared),
+    );
+  }
 }
 
-class _AvatarDetailScreenState extends State<AvatarDetailScreen> {
+// ── Main view ─────────────────────────────────────────────────────────────────
+class _AvatarDetailView extends StatefulWidget {
+  final AvatarModel avatar;
+  final bool isShared;
+
+  const _AvatarDetailView({required this.avatar, required this.isShared});
+
+  @override
+  State<_AvatarDetailView> createState() => _AvatarDetailViewState();
+}
+
+class _AvatarDetailViewState extends State<_AvatarDetailView> {
   final _infoTooltipCont = SuperTooltipController();
   final _skillsTooltipCont = SuperTooltipController();
-
-  UserModel? _creator;
-  bool _loadingCreator = false;
 
   @override
   void initState() {
     super.initState();
-    // If we already have creator info in the model, use it
-    if (widget.avatar.creatorName != null) {
-      _creator = UserModel(
-        id: widget.avatar.userId ?? '',
-        email: '',
-        name: widget.avatar.creatorName,
-        avatarUrl: widget.avatar.creatorAvatarUrl,
-      );
-    } else if (widget.avatar.userId != null &&
-        widget.avatar.userId!.isNotEmpty) {
-      // Fetch if we have an ID but no name details
-      _fetchCreator(widget.avatar.userId!);
-    }
-  }
-
-  Future<void> _fetchCreator(String userId) async {
-    setState(() => _loadingCreator = true);
-    final creator = await AvatarRepo().getUserById(userId);
-    if (mounted) {
-      setState(() {
-        _creator = creator;
-        _loadingCreator = false;
+    if (widget.isShared) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        context.read<AvatarDetailProvider>().loadCreator(widget.avatar);
       });
     }
   }
@@ -87,14 +82,12 @@ class _AvatarDetailScreenState extends State<AvatarDetailScreen> {
     return BgWidget(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: _buildAppbar(),
-
+        appBar: _buildAppbar(context),
         body: Padding(
           padding: AppConstants.defaultPaddingHorizental,
           child: SingleChildScrollView(
             child: Column(
               children: [
-                // Avatar hero — scale in
                 PremiumAnimation.scaleIn(
                   beginScale: 0.93,
                   duration: const Duration(milliseconds: 500),
@@ -105,7 +98,6 @@ class _AvatarDetailScreenState extends State<AvatarDetailScreen> {
                 ),
                 Spacing.y(2),
 
-                // Chips row — fade in up
                 PremiumAnimation.fadeInUp(
                   delay: const Duration(milliseconds: 120),
                   child: CustomToolTip(
@@ -116,21 +108,18 @@ class _AvatarDetailScreenState extends State<AvatarDetailScreen> {
                       spacing: 8.w,
                       children: [
                         if (!widget.isShared) ...[
-                          _buildChip(
+                          _chip(
                             "${widget.avatar.storiesCount} Stories",
                             AppIconsSvg.book,
-                            context,
                           ),
-                          _buildChip(
+                          _chip(
                             "${widget.avatar.shareCount} Shares",
                             AppIconsSvg.upload,
-                            context,
                           ),
                         ],
-                        _buildChip(
+                        _chip(
                           widget.avatar.gender,
-                          getGenderIcon(widget.avatar.gender),
-                          context,
+                          _genderIcon(widget.avatar.gender),
                         ),
                       ],
                     ),
@@ -141,12 +130,11 @@ class _AvatarDetailScreenState extends State<AvatarDetailScreen> {
                   Spacing.y(1),
                   PremiumAnimation.fadeInUp(
                     delay: const Duration(milliseconds: 160),
-                    child: _buildCreatorSection(),
+                    child: const _CreatorSection(),
                   ),
                 ],
                 Spacing.y(2),
 
-                // Skill chips — fade in up
                 PremiumAnimation.fadeInUp(
                   delay: const Duration(milliseconds: 200),
                   child: SizedBox(
@@ -154,15 +142,10 @@ class _AvatarDetailScreenState extends State<AvatarDetailScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       spacing: 8.w,
-                      children: [
-                        ...widget.avatar.traits.take(3).map((trait) {
-                          return _buildSkillChip(
-                            trait.name,
-                            trait.imageUrl,
-                            context,
-                          );
-                        }),
-                      ],
+                      children: widget.avatar.traits
+                          .take(3)
+                          .map((t) => _skillChip(t.name, t.imageUrl))
+                          .toList(),
                     ),
                   ),
                 ),
@@ -174,7 +157,6 @@ class _AvatarDetailScreenState extends State<AvatarDetailScreen> {
                 ),
                 Spacing.y(3),
 
-                // Achievement — fade in up
                 PremiumAnimation.fadeInUp(
                   delay: const Duration(milliseconds: 300),
                   child: Column(
@@ -194,7 +176,6 @@ class _AvatarDetailScreenState extends State<AvatarDetailScreen> {
                 ),
                 Spacing.y(1),
 
-                // Stories section — fade in up
                 PremiumAnimation.fadeInUp(
                   delay: const Duration(milliseconds: 360),
                   child: Column(
@@ -207,12 +188,10 @@ class _AvatarDetailScreenState extends State<AvatarDetailScreen> {
                             style: textTheme.bodyMedium,
                           ),
                           TextButton(
-                            onPressed: () {
-                              NavigationService.pushNamed(
-                                AppRoutes.allStories,
-                                extra: {'avatarId': widget.avatar.id},
-                              );
-                            },
+                            onPressed: () => NavigationService.pushNamed(
+                              AppRoutes.allStories,
+                              extra: {'avatarId': widget.avatar.id},
+                            ),
                             child: Text(
                               'View all',
                               style: textTheme.bodyMedium!.copyWith(
@@ -236,7 +215,6 @@ class _AvatarDetailScreenState extends State<AvatarDetailScreen> {
                 ],
                 Spacing.y(2),
 
-                // CTA button — fade in up last
                 PremiumAnimation.fadeInUp(
                   delay: const Duration(milliseconds: 460),
                   child: CustomButton(
@@ -253,7 +231,7 @@ class _AvatarDetailScreenState extends State<AvatarDetailScreen> {
     );
   }
 
-  PreferredSizeWidget _buildAppbar() {
+  PreferredSizeWidget _buildAppbar(BuildContext context) {
     return AvatarDetailAppbar(
       title: "Avatar",
       subtitleText: "Meet and manage your character",
@@ -266,18 +244,11 @@ class _AvatarDetailScreenState extends State<AvatarDetailScreen> {
             alignment: Alignment.center,
             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
-
-          onPressed: () {
-            _infoTooltipCont.showTooltip();
-          },
-
+          onPressed: _infoTooltipCont.showTooltip,
           icon: CustomSvg(path: AppIconsSvg.info2, size: 16),
         ),
-        onClose: () {
-          _skillsTooltipCont.showTooltip();
-        },
+        onClose: _skillsTooltipCont.showTooltip,
       ),
-
       actions: widget.isShared
           ? []
           : [
@@ -305,10 +276,26 @@ class _AvatarDetailScreenState extends State<AvatarDetailScreen> {
                         AppRoutes.createAvatar,
                         extra: true,
                       );
-                      break;
                     case 'delete':
-                      _deleteAvatar();
-                      break;
+                      ConfirmationDialog.show(
+                        content: CircledIconWidget(
+                          color: context.appColors.error,
+                          icon: Icons.delete,
+                        ),
+                        context: context,
+                        title: "Delete Avatar",
+                        subtitle:
+                            "Are you sure you want to delete this avatar?",
+                        confirmText: "Delete",
+                        cancelText: "Cancel",
+                        onConfirm: () async {
+                          if (widget.avatar.id != null) {
+                            await context.read<AvatarsProvider>().deleteAvatar(
+                              widget.avatar.id!,
+                            );
+                          }
+                        },
+                      );
                   }
                 },
               ),
@@ -316,26 +303,7 @@ class _AvatarDetailScreenState extends State<AvatarDetailScreen> {
     );
   }
 
-  _deleteAvatar() {
-    ConfirmationDialog.show(
-      content: CircledIconWidget(
-        color: context.appColors.error,
-        icon: Icons.delete,
-      ),
-      context: context,
-      title: "Delete Avatar",
-      subtitle: "Are you sure, You want to delete this avatar?",
-      confirmText: "Delete",
-      cancelText: "Cancel",
-      onConfirm: () async {
-        if (widget.avatar.id != null) {
-          await context.read<AvatarsProvider>().deleteAvatar(widget.avatar.id!);
-        }
-      },
-    );
-  }
-
-  String getGenderIcon(String gender) {
+  String _genderIcon(String gender) {
     switch (gender) {
       case "Male":
         return AppIconsSvg.man;
@@ -346,13 +314,11 @@ class _AvatarDetailScreenState extends State<AvatarDetailScreen> {
     }
   }
 
-  Widget _buildChip(String text, String svgPath, BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
+  Widget _chip(String text, String svgPath) {
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 7.h),
       decoration: BoxDecoration(
-        color: Colors.transparent,
         borderRadius: BorderRadius.circular(100.r),
         border: Border.all(color: colorScheme.onSurface.withValues(alpha: .2)),
       ),
@@ -361,19 +327,17 @@ class _AvatarDetailScreenState extends State<AvatarDetailScreen> {
         children: [
           CustomSvg(path: svgPath, size: 16, color: colorScheme.onSurface),
           Spacing.x(1),
-          Text(text, style: textTheme.bodySmall),
+          Text(text, style: Theme.of(context).textTheme.bodySmall),
         ],
       ),
     );
   }
 
-  Widget _buildSkillChip(String text, String? imageUrl, BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
+  Widget _skillChip(String text, String? imageUrl) {
     final colorScheme = Theme.of(context).colorScheme;
     return Expanded(
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.transparent,
           borderRadius: BorderRadius.circular(AppConstants.mediumRadius),
           border: Border.all(
             color: colorScheme.onSurface.withValues(alpha: .2),
@@ -392,62 +356,63 @@ class _AvatarDetailScreenState extends State<AvatarDetailScreen> {
             else
               Icon(Icons.star, size: 32, color: colorScheme.primary),
             Spacing.y(.6),
-            Text(text, style: textTheme.bodySmall),
+            Text(text, style: Theme.of(context).textTheme.bodySmall),
           ],
         ),
       ),
     );
   }
+}
 
-  Widget _buildCreatorSection() {
-    // Determine the details to show
-    final name =
-        _creator?.name ?? widget.avatar.creatorName ?? _creator?.email ?? '';
-    final imageUrl = _creator?.avatarUrl ?? widget.avatar.creatorAvatarUrl;
+// ── Creator section — pure Consumer, zero setState ────────────────────────────
+class _CreatorSection extends StatelessWidget {
+  const _CreatorSection();
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        // Creator profile image fetched via AvatarRepo.getUserById(avatar.userId)
-        CustomCachedNetworkImage(
-          imageUrl: imageUrl,
-          height: 24.r,
-          width: 24.r,
-          borderRadius: 40.r, // full circle
-          cover: BoxFit.cover,
-        ),
-        SizedBox(width: 10.w),
-        // Show name once loaded — shimmer skeleton while fetching
-        if (_loadingCreator)
-          SizedBox(
-            width: 80.w,
-            height: 14.h,
-            child: Shimmer.fromColors(
-              baseColor: context.appColors.lightGrey,
-              highlightColor: context.appColors.bubbleGray,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(4.r),
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<AvatarDetailProvider>(
+      builder: (context, provider, _) {
+        final name = provider.creator?.name ?? '';
+        final imageUrl = provider.creator?.avatarUrl;
+
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CustomCachedNetworkImage(
+              imageUrl: imageUrl,
+              height: 24.r,
+              width: 24.r,
+              borderRadius: 40.r,
+              cover: BoxFit.cover,
+            ),
+            SizedBox(width: 10.w),
+            if (provider.isLoading)
+              SizedBox(
+                width: 80.w,
+                height: 14.h,
+                child: Shimmer.fromColors(
+                  baseColor: context.appColors.lightGrey,
+                  highlightColor: context.appColors.bubbleGray,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4.r),
+                    ),
+                  ),
+                ),
+              )
+            else if (name.isNotEmpty)
+              Text(
+                name,
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.6),
                 ),
               ),
-            ),
-          )
-        else if (name.isNotEmpty)
-          Text(
-            name,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: Theme.of(
-                context,
-              ).colorScheme.onSurface.withValues(alpha: 0.6),
-            ),
-          )
-        else if (_loadingCreator)
-          Text(
-            "Loading profile...",
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-      ],
+          ],
+        );
+      },
     );
   }
 }

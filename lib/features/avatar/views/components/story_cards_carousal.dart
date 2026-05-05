@@ -2,6 +2,7 @@ import 'package:avatar_flow/core/constants/app_constants.dart';
 import 'package:avatar_flow/core/utils/spacing.dart';
 import 'package:avatar_flow/features/avatar/models/story_model.dart';
 import 'package:avatar_flow/features/avatar/providers/story_carousel_provider.dart';
+import 'package:avatar_flow/widgets/app_loading.dart';
 import 'package:avatar_flow/widgets/custom_cache_netword_imge.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -38,7 +39,7 @@ class _StoryCardsState extends State<StoryCards> {
         if (provider.isLoading) {
           return SizedBox(
             height: 0.3.sh,
-            child: const Center(child: CircularProgressIndicator()),
+            child: const Center(child: AppLoading()),
           );
         }
 
